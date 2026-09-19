@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="rose">#ff98ab</color>
+    <color name="green">#39c986</color>
+    <color name="grey">#757575</color>
+    <color name="azzurro">#54B6F8</color>
+
+    <!--tema chiaro-->
+    <color name="primary_teal">#00695C</color>
+    <color name="primary_teal_container">#C954B49C</color>
+    <color name="secondary_orange">#F28E41</color>
+    <color name="background_cream">#FFF8F0</color>
+    <color name="text_dark">#212121</color>
+    <color name="error_Red">#D01111</color>
+
+    <color name="surface">#FFF9F6</color>
+    <color name="surface_variant">#F3F3F3</color>
+
+    <color name="on_primary">#FFFFFF</color>
+    <color name="on_secondary">#FFFFFF</color>
+    <color name="on_background">#212121</color>
+    <color name="on_surface">#212121</color>
+    <color name="on_error">#FFFFFF</color>
+
+    <color name="outline">#BDBDBD</color>
+    <color name="outline_variant">#E0E0E0</color>
+
+    <!-- TextInput -->
+    <color name="text_input_background">#FFFFFFFF</color>
+    <color name="text_input_hint">#757575</color>
+    <color name="text_input_stroke">#BDBDBD</color>
+    <color name="text_input_stroke_focused">@color/primary_teal</color>
+    <color name="text_input_text">@color/text_dark</color>
+
+    <!--tema scuro-->
+    <color name="dark_primary">#303F9F</color>
+    <color name="dark_primary_container">#6167C8</color>
+    <color name="dark_secondary">#FF884D</color>
+    <color name="dark_background">#12121A</color>
+    <color name="dark_surface">#1E1E2C</color>
+    <color name="dark_text">#F5F5F5</color>
+    <color name="dark_text_secondary">#BDBDBD</color>
+    <color name="dark_error">#FF8A80</color>
+
+    <color name="dark_surface_variant">#2A2A38</color>
+
+    <color name="dark_on_primary">#FFFFFF</color>
+    <color name="dark_on_secondary">#000000</color>
+    <color name="dark_on_background">#F5F5F5</color>
+    <color name="dark_on_surface">#F5F5F5</color>
+    <color name="dark_on_error">#000000</color>
+
+    <color name="dark_outline">#5F6368</color>
+    <color name="dark_outline_variant">#3A3A45</color>
+
+    <!-- TextInput -->
+    <color name="dark_text_input_background">#1E1E2C</color>
+    <color name="dark_text_input_hint">#BDBDBD</color>
+    <color name="dark_text_input_stroke">#5F6368</color>
+    <color name="dark_text_input_stroke_focused">@color/dark_primary</color>
+    <color name="dark_text_input_text">@color/dark_text</color>
+
+</resources>

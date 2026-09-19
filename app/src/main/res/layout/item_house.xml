@@ -1,0 +1,301 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+
+    android:clickable="true"
+    android:focusable="true"
+
+    app:cardCornerRadius="25dp"
+    app:cardElevation="4dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="2dp"
+    app:cardBackgroundColor="?attr/colorSurface">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- copertina casa-->
+        <ImageView
+            android:id="@+id/ivHouseCover"
+
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+
+            android:contentDescription="@string/immagine_copertina_casa"
+
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_foreground"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Prezzo -->
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+
+            android:text="@string/segnaposto"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:textColor="?attr/colorOnSurface"
+
+            tools:text="85 €/notte"
+
+            app:layout_constraintTop_toBottomOf="@id/ivHouseCover"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+
+        <!-- Titolo casa -->
+        <TextView
+            android:id="@+id/tvTitle"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="8dp"
+
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            android:textSize="17sp"
+            android:textStyle="bold"
+
+            tools:text="Loft moderno"
+            app:layout_constraintTop_toBottomOf="@id/tvPrice"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Posizione -->
+        <LinearLayout
+            android:id="@+id/layoutLocation"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="6dp"
+
+            android:orientation="horizontal"
+
+            app:layout_constraintTop_toBottomOf="@id/tvTitle"
+            app:layout_constraintStart_toStartOf="parent">
+
+
+            <ImageView
+                android:id="@+id/ivLocation"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/posizione_casa"
+
+                android:src="@drawable/ic_posizione"
+
+                app:tint="?attr/colorOnSurface"/>
+
+
+            <TextView
+                android:id="@+id/tvCity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginStart="6dp"
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+
+                tools:text="Torino Centro"/>
+        </LinearLayout>
+
+        <!-- Informazioni -->
+        <LinearLayout
+            android:id="@+id/layoutInfo"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+
+            android:orientation="horizontal"
+
+            app:layout_constraintTop_toBottomOf="@id/layoutLocation"
+            app:layout_constraintStart_toStartOf="parent">
+
+
+            <!-- Ospiti -->
+            <ImageView
+                android:id="@+id/ivGuests"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/content_description_ospiti"
+                android:src="@drawable/ic_persona"
+                app:tint="?attr/colorOnSurface"/>
+
+            <TextView
+                android:id="@+id/tvGuests"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+
+                tools:text="4"/>
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="1dp"/>
+
+            <!-- Camere -->
+            <ImageView
+                android:id="@+id/ivRooms"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/content_description_camere"
+                android:src="@drawable/ic_bed"
+                app:tint="?attr/colorOnSurface"/>
+
+            <TextView
+                android:id="@+id/tvRooms"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+
+                tools:text="2"/>
+
+            <Space
+                android:layout_width="20dp"
+                android:layout_height="1dp"/>
+
+            <!-- Valutazione -->
+            <ImageView
+                android:id="@+id/ivRating"
+
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/content_description_valutazione"
+                android:src="@drawable/ic_star"
+                />
+
+            <TextView
+                android:id="@+id/tvRating"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginStart="4dp"
+
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+
+                tools:text="4.8"/>
+        </LinearLayout>
+
+
+        <!-- Tag vari -->
+        <HorizontalScrollView
+
+            android:id="@+id/scrollTags"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+
+            android:scrollbars="none"
+
+            app:layout_constraintTop_toBottomOf="@id/layoutInfo"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+
+            <LinearLayout
+                android:id="@+id/layoutTags"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+                <!-- Qui verranno aggiunti dinamicamente i Chip -->
+            </LinearLayout>
+
+        </HorizontalScrollView>
+
+        <!-- Azioni proprietario -->
+        <LinearLayout
+            android:id="@+id/layoutActions"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp"
+
+            android:visibility="gone"
+
+            android:gravity="end"
+            android:orientation="horizontal"
+
+            app:layout_constraintTop_toBottomOf="@id/scrollTags"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnEdit"
+
+                style="?attr/materialButtonOutlinedStyle"
+
+                android:backgroundTint="?attr/colorPrimaryContainer"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="@string/modifica"
+                android:textColor="@color/black"
+                android:contentDescription="@string/bottone_modifica"
+
+                android:layout_marginEnd="8dp"/>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
+
+                style="?attr/materialButtonOutlinedStyle"
+                android:backgroundTint="@color/error_Red"
+
+                android:textColor="@color/white"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="@string/elimina"/>
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
+
+
+
+

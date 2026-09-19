@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <!-- FOTO CASA -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/photosRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+
+                android:layout_marginTop="12dp"
+
+                android:paddingHorizontal="16dp"
+                android:clipToPadding="false"
+
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+
+                android:orientation="horizontal"
+
+                tools:listitem="@layout/item_photo"/>
+
+
+            <!-- TITOLO -->
+            <TextView
+                android:id="@+id/houseTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_margin="16dp"
+
+                android:text="@string/segnaposto"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorOnSurface"
+                tools:text="Casa con giardino"/>
+
+
+            <!-- TAG ESPERIENZA -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginHorizontal="16dp"
+
+                android:scrollbars="none">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/experienceTagsGroup"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    app:singleLine="true"/>
+
+            </HorizontalScrollView>
+
+
+            <!-- POSIZIONE -->
+            <TextView
+                android:id="@+id/houseLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginHorizontal="16dp"
+                android:drawablePadding="8dp"
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+
+                app:drawableStartCompat="@drawable/ic_posizione"
+                app:drawableTint="?attr/colorOnSurface"
+                tools:text="Acqui Terme, Piemonte"/>
+
+
+            <!-- RATING -->
+            <TextView
+                android:id="@+id/houseRating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:drawablePadding="8dp"
+                android:text="@string/segnaposto"
+                android:textColor="?attr/colorOnSurface"
+                app:drawableStartCompat="@drawable/ic_star"
+                tools:text="4.8 (23 recensioni)"/>
+
+
+            <!-- INFORMAZIONI CASA -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardBackgroundColor="?attr/colorSurface"
+                app:strokeColor="?attr/colorPrimaryContainer"
+                app:strokeWidth="1dp">
+
+
+                <LinearLayout
+                    android:id="@+id/houseInfoContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+
+                    android:padding="16dp">
+
+
+                    <TextView
+                        android:id="@+id/houseTypeText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="@string/segnaposto"/>
+
+
+                    <TextView
+                        android:id="@+id/houseGuestsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="@string/segnaposto"/>
+
+
+                    <TextView
+                        android:id="@+id/houseRoomsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="@string/segnaposto"/>
+
+
+                    <TextView
+                        android:id="@+id/houseBathroomsText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+
+                        android:text="@string/segnaposto"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+            <!-- PREZZO -->
+            <TextView
+                android:id="@+id/housePrice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginHorizontal="16dp"
+                android:text="@string/segnaposto"
+                android:textSize="22sp"
+
+                android:textStyle="bold"
+                tools:text="85 €/notte"/>
+
+
+            <!-- PROPRIETARIO -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+
+                android:text="@string/ospitato_da"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <include
+                android:id="@+id/ownerInfo"
+                layout="@layout/item_user"/>
+
+
+            <!-- SERVIZI -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+
+                android:text="@string/servizi"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/servicesTagsGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                app:singleLine="false"/>
+
+
+
+            <!-- REGOLE -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+
+                android:text="@string/regole"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/rulesTagsGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                app:singleLine="false"/>
+
+
+            <!-- DESCRIZIONE -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/descrizione"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/houseDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:text="@string/segnaposto"
+                tools:text="Iore ipsum ..."/>
+
+            <!-- MAPPA -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:text="@string/posizione"
+                android:textSize="20sp"
+                android:textStyle="bold"/>
+
+
+            <FrameLayout
+                android:id="@+id/mapContainer"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_margin="16dp"/>
+
+
+            <!-- RECENSIONI -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:padding="16dp">
+
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/reviewsTitle"
+
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="@string/recensioni"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleSmall"/>
+
+                <TextView
+                    android:id="@+id/tvNoReviews"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/no_recensione_casa"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:visibility="gone" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/reviewsRecyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+
+                    android:nestedScrollingEnabled="false" />
+
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/showAllReviewsButton"
+
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+
+                    android:text="@string/show_all_reviews" />
+            </LinearLayout>
+
+
+
+            <!-- AZIONI -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/contactOwnerButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:layout_marginHorizontal="16dp"
+                android:text="@string/contatta_proprietario"/>
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/bookButton"
+                android:layout_width="match_parent"
+
+                android:backgroundTint="?attr/colorSecondary"
+                android:layout_height="wrap_content"
+
+                android:layout_margin="16dp"
+                android:text="@string/prenota"/>
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <ProgressBar
+    android:id="@+id/progressBar"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:visibility="gone"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent" />
+
+</FrameLayout>
+

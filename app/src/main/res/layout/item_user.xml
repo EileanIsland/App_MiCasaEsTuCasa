@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:padding="12dp"
+
+    android:clickable="true"
+    android:focusable="true"
+
+    android:foreground="?attr/selectableItemBackground">
+
+
+    <!-- Foto profilo -->
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivUserPhoto"
+
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+
+        android:contentDescription="@string/foto_profilo"
+
+        android:scaleType="centerCrop"
+
+        android:src="@drawable/ic_persona"
+        android:tint="?attr/colorOnSurface"
+        app:shapeAppearanceOverlay="@style/CircleImage"
+
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+
+
+    <!-- Nome -->
+    <TextView
+        android:id="@+id/tvUserName"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:layout_marginStart="16dp"
+
+        android:text="@string/segnaposto"
+
+        android:textColor="?attr/colorOnSurface"
+
+        android:textSize="18sp"
+        android:textStyle="bold"
+
+        tools:text="Mario Rossi"
+
+        app:layout_constraintStart_toEndOf="@id/ivUserPhoto"
+        app:layout_constraintTop_toTopOf="@id/ivUserPhoto"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+
+    <!-- Ruolo -->
+    <TextView
+        android:id="@+id/tvUserRole"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+
+        android:text="@string/segnaposto"
+
+        android:textColor="?attr/colorPrimaryContainer"
+
+        android:visibility="gone"
+
+        tools:visibility="visible"
+        tools:text="Proprietario"
+
+        app:layout_constraintStart_toEndOf="@id/ivUserPhoto"
+        app:layout_constraintTop_toBottomOf="@id/tvUserName"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+
+    <!-- Rating -->
+    <TextView
+        android:id="@+id/tvUserRating"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="4dp"
+
+        android:drawablePadding="6dp"
+
+        android:text="@string/segnaposto"
+
+        android:textColor="?attr/colorOnSurfaceVariant"
+
+        android:visibility="gone"
+
+        app:drawableStartCompat="@drawable/ic_star"
+        tools:visibility="visible"
+        tools:text="4.9 (32 recensioni)"
+
+        app:layout_constraintStart_toEndOf="@id/ivUserPhoto"
+        app:layout_constraintTop_toBottomOf="@id/tvUserRole"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+
+
+    <!-- rating -->
+    <TextView
+        android:id="@+id/tvUserStats"
+
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="6dp"
+
+        android:text="@string/segnaposto"
+
+        android:textColor="?attr/colorOnSurfaceVariant"
+
+        android:visibility="gone"
+
+        tools:visibility="visible"
+        tools:text="12 soggiorni • 5 annunci"
+
+        app:layout_constraintStart_toEndOf="@id/ivUserPhoto"
+        app:layout_constraintTop_toBottomOf="@id/tvUserRating"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
+
+
+

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/loginFragment">
+
+
+    <!-- LOGIN  -->
+    <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.LoginFragment">
+
+        <action
+            android:id="@+id/action_loginFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+
+        <action
+            android:id="@+id/action_loginFragment_to_registerFragment"
+            app:destination="@id/registerFragment" />
+
+        <action
+            android:id="@+id/action_loginFragment_to_adminFragment"
+            app:destination="@id/adminFragment" />
+    </fragment>
+
+
+    <!--Registrazione-->
+    <fragment
+        android:id="@+id/registerFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.RegistrationFragment">
+
+        <action
+            android:id="@+id/action_registrationFragment_to_homeFragment"
+            app:destination="@id/homeFragment" />
+
+        <action
+            android:id="@+id/action_registrationFragment_to_loginFragment"
+            app:destination="@id/loginFragment" />
+    </fragment>
+
+
+    <!-- HOME -->
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.HomeFragment">
+
+        <action
+            android:id="@+id/action_homeFragment_to_publishFragment"
+            app:destination="@id/publishFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_searchFragment"
+            app:destination="@id/searchFragment" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_detailedHouseFragment"
+            app:destination="@id/detailedHouseFragment" />
+
+
+    </fragment>
+
+    <!-- DETAILED HOUSE -->
+    <fragment
+        android:id="@+id/detailedHouseFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.DetailedHouseFragment">
+        <argument
+            android:name="houseId"
+            app:argType="string">
+        </argument>
+
+        <argument
+            android:name="userId"
+            app:argType="string">
+        </argument>
+
+
+        <action
+            android:id="@+id/action_detailedHouseFragment_to_chatFragment"
+            app:destination="@id/chatFragment" />
+        <action
+            android:id="@+id/action_detailedHouseFragment_to_detailedChatFragment"
+            app:destination="@id/detailedChatFragment" />
+
+        <action
+            android:id="@+id/action_detailedHouseFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment" />
+
+        <action
+            android:id="@+id/action_detailedHouseFragment_to_bookHouseFragment"
+            app:destination="@id/bookHouseFragment" />
+    </fragment>
+
+
+    <!-- BookHouse -->
+    <fragment
+        android:id="@+id/bookHouseFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.BookHouseFragment">
+        <argument
+            android:name="houseId"
+            app:argType="string">
+        </argument>
+    </fragment>
+
+
+
+    <!-- CHAT -->
+    <fragment
+        android:id="@+id/chatFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.ChatFragment">
+
+        <action
+            android:id="@+id/action_chatFragment_to_detailedChatFragment"
+            app:destination="@id/detailedChatFragment"/>
+
+    </fragment>
+
+    <!-- DETAILED CHAT -->
+    <fragment
+        android:id="@+id/detailedChatFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.DetailedChatFragment"/>
+
+
+    <!-- SEARCH -->
+    <fragment
+        android:id="@+id/searchFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.SearchFragment">
+
+        <argument
+            android:name="category"
+            app:argType="string">
+        </argument>
+
+        <argument
+            android:name="query"
+            app:argType="string">
+        </argument>
+
+        <action
+            android:id="@+id/action_searchFragment_to_detailedHouseFragment"
+            app:destination="@id/detailedHouseFragment"/>
+
+    </fragment>
+
+
+    <!-- Activities -->
+    <fragment
+        android:id="@+id/activitiesFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.activities.ActivitiesFragment">
+
+    </fragment>
+
+
+    <!-- PROFILO personale -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.ProfileFragment">
+
+        <action
+            android:id="@+id/action_profileFragment_to_privacyFragment"
+            app:destination="@id/privacyFragment"/>
+
+        <action
+            android:id="@+id/action_profileFragment_to_modifyProfileFragment"
+            app:destination="@id/modifyProfileFragment"/>
+
+        <action
+            android:id="@+id/action_profileFragment_to_LoginFragment"
+            app:destination="@id/loginFragment"/>
+
+
+        <!--<action
+            android:id="@+id/action_profileFragment_to_notificationsFragment"
+            app:destination="@id/notificationsFragment"/>-->
+
+    </fragment>
+
+
+
+    <!-- profilo utente generico-->
+    <fragment
+        android:id="@+id/userProfileFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.UserProfileFragment">
+
+        <argument
+            android:name="userId"
+            app:argType="string">
+        </argument>
+
+        <action
+            android:id="@+id/action_userProfileFragment_to_chatFragment"
+            app:destination="@id/chatFragment"/>
+    </fragment>
+
+
+
+    <!-- PUBLISH -->
+    <fragment
+        android:id="@+id/publishFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.PublishFragment"
+        >
+
+        <action
+            android:id="@+id/action_publishFragment_to_detailedHouseFragment"
+            app:destination="@id/detailedHouseFragment"/>
+    </fragment>
+
+
+    <!-- SETTINGS / PRIVACY -->
+    <fragment
+        android:id="@+id/privacyFragment"
+        android:name="com.example.micasaestucasa.ui.PrivacyFragment"/>
+
+
+    <!--modifica profilo-->
+    <fragment
+        android:id="@+id/modifyProfileFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.ModifyProfileFragment"/>
+
+
+    <!--ADMIN-->
+    <fragment
+        android:id="@+id/adminFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.AdiminFragment"
+        >
+
+    </fragment>
+
+
+    <!-- NOTIFICATIONS
+    <fragment
+        android:id="@+id/notificationsFragment"
+        android:name="com.example.micasaestucasa.ui.NotificationsFragment"/>-->
+
+
+</navigation>

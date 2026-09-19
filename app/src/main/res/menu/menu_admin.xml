@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/AdminStatistiche"
+        android:title="@string/statistiche"
+        android:icon="@drawable/ic_statistiche"
+        />
+
+    <item
+        android:id="@+id/AdminGestioneUtenti"
+        android:title="@string/utenti"
+        android:icon="@drawable/ic_persona"
+        />
+
+    <item
+        android:id="@+id/AdminGestioneCase"
+        android:title="@string/casa"
+        android:icon="@drawable/ic_home"
+        />
+
+
+
+
+</menu>

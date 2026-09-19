@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<com.google.android.material.card.MaterialCardView
+
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+
+    android:layout_margin="12dp"
+
+    app:cardCornerRadius="25dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="2dp">
+
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:padding="16dp">
+
+
+        <!-- Foto casa -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivHouseCover"
+
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+
+            android:scaleType="centerCrop"
+
+            android:src="@drawable/ic_launcher_foreground"
+
+            android:contentDescription="@string/immagine_copertina_casa"
+
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+
+        <!-- Nome casa -->
+        <TextView
+            android:id="@+id/tvHouseName"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="16dp"
+
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            android:textSize="18sp"
+            android:textStyle="bold"
+
+            tools:text="Loft moderno"
+
+            app:layout_constraintStart_toEndOf="@id/ivHouseCover"
+            app:layout_constraintTop_toTopOf="@id/ivHouseCover"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Posizione -->
+        <TextView
+            android:id="@+id/tvLocation"
+
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="6dp"
+
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            tools:text="Torino"
+
+            app:layout_constraintStart_toStartOf="@id/tvHouseName"
+            app:layout_constraintTop_toBottomOf="@id/tvHouseName"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+
+        <!-- Date -->
+        <TextView
+            android:id="@+id/tvDates"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="16dp"
+
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            tools:text="10 Agosto - 15 Agosto"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivHouseCover"/>
+
+
+        <!-- Numero ospiti -->
+        <TextView
+            android:id="@+id/tvGuests"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            tools:text="4 ospiti"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDates"/>
+
+        <!-- Utente prenotante -->
+        <LinearLayout
+            android:id="@+id/layoutUser"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+
+            app:layout_constraintTop_toBottomOf="@id/tvGuests">
+
+
+            <include
+                android:id="@+id/userInfo"
+                layout="@layout/item_user"/>
+
+        </LinearLayout>
+
+        <!-- Stato prenotazione -->
+        <TextView
+            android:id="@+id/tvStatus"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="16dp"
+
+            android:text="@string/segnaposto"
+            android:textColor="?attr/colorOnSurface"
+
+            android:textStyle="bold"
+
+            tools:text="Confermata"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/layoutUser"/>
+
+
+        <!-- Azioni -->
+        <LinearLayout
+            android:id="@+id/layoutActions"
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="end"
+            android:orientation="horizontal"
+            android:visibility="gone"
+
+            app:layout_constraintTop_toBottomOf="@id/tvStatus">
+
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAccept"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="@string/accetta"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReject"
+
+                android:backgroundTint="@color/error_Red"
+                android:textColor="@color/white"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_marginStart="8dp"
+
+                android:text="@string/rifiuta"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</com.google.android.material.card.MaterialCardView>
