@@ -63,14 +63,12 @@ class ProfileFragment : Fragment(){
                 viewModel.uiState.collect{ state->
 
                     //logout
-                    if(state.isLoggedOut){
-                        findNavController().navigate(R.id.action_profileFragment_to_LoginFragment){
-                            popUpTo(R.id.nav_graph){
-                                inclusive = true
-                            }
-                        }
+                    if (state.isLoggedOut) {
+                        findNavController().navigate(
+                            R.id.loginFragment
+                        )
+                        return@collect
                     }
-
 
                     //Caricamento
                     binding.progressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE

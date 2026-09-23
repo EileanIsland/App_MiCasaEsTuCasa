@@ -33,8 +33,13 @@ import kotlinx.coroutines.launch
 import com.example.micasaestucasa.utils.ViewUtils.showRangeDatePicker
 import com.google.android.material.chip.ChipGroup
 import android.location.Geocoder
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import android.location.Address
+import android.widget.ArrayAdapter
+import kotlin.coroutines.resume
 
 
 //TODO: IN activities:
@@ -89,7 +94,7 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    //gestione stati chiusura/errore/caricamento
+                    //gestione stato errore/caricamento
                     binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     binding.publishButton.isEnabled = state.isFormValid && !state.isLoading
 
@@ -99,16 +104,10 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                         return@collect
                     }
 
-                    state.errorMesasge?.let{ msg ->
+                    state.errorMessage?.let{ msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                         viewModel.clearError()
                     }
-
-                    //FOTO
-                    photoAdapter.submitList(state.images)
-
-                    //disponibilita
-                    availabilityAdapter.submitList(state.disponibilita)
 
                     // popolamento campi
                     if (binding.titleEditText.text.isNullOrEmpty() && state.titolo.isNotEmpty()) binding.titleEditText.setText(state.titolo)
@@ -117,9 +116,35 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                     if (binding.addressEditText.text.isNullOrEmpty() && state.indirizzo.isNotEmpty()) binding.addressEditText.setText(state.indirizzo)
                     if (binding.priceEditText.text.isNullOrEmpty() && state.prezzoNotte > 0) binding.priceEditText.setText(state.prezzoNotte.toString())
 
+                    //dropDown tipologia casa
+                    if(!isCategoriesInitialized && state.availableCategory.isNotEmpty()){
+                        val adapter = ArrayAdapter(
+                            requireContext(),
+                            android.R.layout.simple_dropdown_item_1line,
+                            state.availableCategory
+                        )
+
+                        binding.typeDropdown.setAdapter(adapter)
+
+                        if(state.tipologia.isNotEmpty())
+                            binding.typeDropdown.setText(state.tipologia, false)
+
+                        isCategoriesInitialized = true
+                    }
+
                     //liste foto e disponibilità
                     photoAdapter.submitList(state.images)
                     availabilityAdapter.submitList(state.disponibilita)
+
+                    //TODO: non la centra sulla città così
+                    //la mappa diventa visibile solo dopo aver inserito una città
+                    if(state.citta.isNotBlank()){
+                        binding.mapContainer.visibility = View.VISIBLE
+                        if(state.latitudine != 0.0 && state.longitudine != 0.0)
+                            updateMap(state.latitudine, state.longitudine)
+                    }else{
+                        binding.mapContainer.visibility = View.GONE
+                    }
 
                     //chip e tag
                     if (!isTagsInitialized && state.availableService.isNotEmpty()) {
@@ -134,11 +159,6 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                     updateChips(binding.servicesChipGroup, state.servizi)
                     updateChips(binding.experienceChipGroup, state.esperienza)
                     updateChips(binding.rulesChipGroup, state.regole)
-
-                    //MAPPA
-                    if (state.latitudine != 0.0 && state.longitudine != 0.0) {
-                        updateMap(state.latitudine, state.longitudine)
-                    }
                 }
             }
         }
@@ -153,10 +173,14 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
             val cittaInserita = text.toString().trim()
             viewModel.updateCitta(cittaInserita)
 
-            if (cittaInserita.isNotBlank() && ::googleMap.isInitialized) {
+            if (cittaInserita.isNotBlank()) {
+                binding.mapContainer.visibility = View.VISIBLE
+
                 viewLifecycleOwner.lifecycleScope.launch {
                     centraMappa(cittaInserita)
                 }
+            }else{
+                binding.mapContainer.visibility = View.GONE
             }
         }
 
@@ -187,39 +211,52 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
         if(citta.isBlank()) return
 
         val stringaRicerca = if(indirizzo.isNotBlank()) "$citta, $indirizzo" else citta
+        val geocoder = Geocoder(requireContext())
 
-        withContext(Dispatchers.IO){
-            val geocoder = Geocoder(requireContext())
+        try{
+            val posizione = getAddressAsync(geocoder, stringaRicerca)
 
-            try{
-                val location = geocoder.getFromLocationName(stringaRicerca, 1)
+            if(posizione != null){
+                val coordinate = LatLng(posizione.latitude, posizione.longitude)
 
-                if(!location.isNullOrEmpty()){
-                    val posizione = location[0]
-                    val coordinate = LatLng(posizione.latitude, posizione.longitude)
+                val livelloZoom = if (indirizzo.isNotBlank()) 16f else 13f
 
-                    withContext(Dispatchers.Main){
-                        googleMap.clear()
-
-                        googleMap.addMarker(MarkerOptions().position(coordinate).title(stringaRicerca))
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinate, 12f))
-                    }
-
-                    val livelloZoom = if (indirizzo.isNotBlank()) 16f else 13f
+                withContext(Dispatchers.Main){
+                    googleMap.clear()
+                    googleMap.addMarker(MarkerOptions().position(coordinate).title(stringaRicerca))
                     googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(coordinate, livelloZoom))
 
                     viewModel.updateLatitudine(coordinate.latitude)
                     viewModel.updateLongitudine(coordinate.longitude)
 
                 }
-
-            }catch(e: Exception){
-                e.printStackTrace()
             }
+        }catch(e: Exception){
+            e.printStackTrace()
         }
 
+    }
 
+    private suspend fun getAddressAsync(geocoder: Geocoder, stringaRicerca: String): Address?{
+        return if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            suspendCancellableCoroutine {
+                continuation ->
+                geocoder.getFromLocationName(stringaRicerca, 1, object: Geocoder.GeocodeListener{
+                    override fun onGeocode(addresses: MutableList<Address>){
+                        continuation.resume(addresses.firstOrNull())
+                    }
 
+                    override fun onError(errorMessage: String?){
+                        continuation.resume(null)
+                    }
+                })
+            }
+        }else{
+            withContext(Dispatchers.IO) {
+                @Suppress("DEPRECATION")
+                geocoder.getFromLocationName(stringaRicerca, 1)?.firstOrNull()
+            }
+        }
     }
 
 
@@ -238,7 +275,6 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
             viewModel.save()
             navToDetailedHouse(viewModel.uiState.value.houseId)
         }
-
     }
 
 
@@ -317,21 +353,16 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
         googleMap = map
         val state = viewModel.uiState.value
 
-        val position = LatLng(state.latitudine, state.longitudine)
-        // Se lat/lng sono 0.0, metti una posizione di default
-        val finalPos = if(state.latitudine == 0.0) LatLng(44.9133, 8.6154) else position
-
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(finalPos, 12f))
-
-        // Se c'è già una posizione, aggiungi il marker
-        if(state.latitudine != 0.0) {
-            map.addMarker(MarkerOptions().position(finalPos).title("Casa"))
+        if (state.latitudine != 0.0 && state.longitudine != 0.0) {
+            val position = LatLng(state.latitudine, state.longitudine)
+            map.clear()
+            map.addMarker(MarkerOptions().position(position).title("Posizione salvata"))
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 15f))
         }
 
         map.setOnMapClickListener { latLng ->
             map.clear()
-            map.addMarker(MarkerOptions().position(latLng).title("Casa"))
-            // Aggiorna il ViewModel!
+            map.addMarker(MarkerOptions().position(latLng).title("Posizione selezionata"))
             viewModel.updateLatitudine(latLng.latitude)
             viewModel.updateLongitudine(latLng.longitude)
         }
@@ -339,14 +370,11 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
 
 
     private fun updateMap(lat: Double, lng: Double){
-        val map = googleMap ?: return
+        if (!::googleMap.isInitialized) return
         val position = LatLng(lat, lng)
-
-        map.clear()
-        map.addMarker(MarkerOptions().position(position).title("Casa"))
-        map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 12f))
-
-
+        googleMap.clear()
+        googleMap.addMarker(MarkerOptions().position(position).title("Casa"))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(position, 12f))
     }
 
 

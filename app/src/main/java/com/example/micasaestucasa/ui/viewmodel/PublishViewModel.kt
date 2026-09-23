@@ -49,7 +49,7 @@ class PublishViewModel: ViewModel() {
                 }
 
             }catch(e : Exception){
-                _uiState.update { it.copy(errorMesasge = "errore nel caricamento dei dati") }
+                _uiState.update { it.copy(errorMessage = "errore nel caricamento dei dati") }
             }
 
         }
@@ -88,7 +88,7 @@ class PublishViewModel: ViewModel() {
                     )
                 }
             } else {
-                _uiState.update { it.copy(errorMesasge = "Casa non trovata") }
+                _uiState.update { it.copy(errorMessage = "Casa non trovata") }
             }
         }
     }
@@ -231,7 +231,7 @@ class PublishViewModel: ViewModel() {
         val state = _uiState.value
 
         if (!state.isFormValid) {
-            _uiState.update { it.copy(errorMesasge = "Compilare tutti i campi obbligatori") }
+            _uiState.update { it.copy(errorMessage = "Compilare tutti i campi obbligatori") }
             return
         }
 
@@ -242,7 +242,7 @@ class PublishViewModel: ViewModel() {
             try {
                 val currentUid = UsersRepository.getCurrentUid()
                 if (currentUid == null) {
-                    _uiState.update { it.copy(errorMesasge = "Utente non loggato") }
+                    _uiState.update { it.copy(errorMessage = "Utente non loggato") }
                     return@launch
                 }
 
@@ -299,7 +299,7 @@ class PublishViewModel: ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMesasge = "Errore durante il salvataggio: ${e.message}"
+                        errorMessage = "Errore durante il salvataggio: ${e.message}"
                     )
                 }
             }
@@ -309,7 +309,7 @@ class PublishViewModel: ViewModel() {
 
 
     fun clearError(){
-        _uiState.update { it.copy(errorMesasge = null) }
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
 }

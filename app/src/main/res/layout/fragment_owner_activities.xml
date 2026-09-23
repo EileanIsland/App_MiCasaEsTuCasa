@@ -1,104 +1,82 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<androidx.constraintlayout.widget.ConstraintLayout
+<?xml version="1.0" encoding="utf-8"?><androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-
-    android:background="?attr/colorSurface"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:fillViewport="true"
+    android:background="?attr/colorSurface">
 
-    <!-- Titolo annunci -->
-    <TextView
-        android:id="@+id/tvMyHousesTitle"
-
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="16dp">
 
-        android:text="@string/i_tuoi_annunci"
+        <!-- Titolo annunci -->
+        <TextView
+            android:id="@+id/tvMyHousesTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/i_tuoi_annunci"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
 
-        android:textSize="22sp"
-        android:textStyle="bold"
+        <!-- Lista case (Configurata in ORIZZONTALE) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMyHouses"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_house"
+            app:layout_constraintTop_toBottomOf="@id/tvMyHousesTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-        android:textColor="?attr/colorOnSurface"
+        <!-- Bottone Pubblica -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPublishHouse"
+            android:layout_width="250dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/pubblica_annuncio"
+            app:cornerRadius="24dp"
+            app:layout_constraintTop_toBottomOf="@id/rvMyHouses"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        <!-- Titolo prenotazioni -->
+        <TextView
+            android:id="@+id/tvReceivedBookingsTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/prenotazioni_ricevute"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            app:layout_constraintTop_toBottomOf="@id/btnPublishHouse"
+            app:layout_constraintStart_toStartOf="parent"/>
 
+        <!-- Lista prenotazioni ricevute (Configurata in ORIZZONTALE e con altezza fissa per non collassare) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvReceivedBookings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:clipToPadding="false"
+            android:orientation="horizontal"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_booking"
+            app:layout_constraintTop_toBottomOf="@id/tvReceivedBookingsTitle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Lista case -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMyHouses"
-
-        android:layout_width="match_parent"
-        android:layout_height="380dp"
-
-        android:layout_marginTop="12dp"
-
-        android:clipToPadding="false"
-
-        tools:listitem="@layout/item_house"
-
-        app:layout_constraintTop_toBottomOf="@id/tvMyHousesTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnPublishHouse"
-
-        android:layout_width="250dp"
-        android:layout_height="wrap_content"
-
-        android:layout_marginTop="16dp"
-
-        android:text="@string/pubblica_annuncio"
-
-        app:cornerRadius="24dp"
-
-        app:layout_constraintTop_toBottomOf="@id/rvMyHouses"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-
-    <!-- Titolo prenotazioni -->
-    <TextView
-        android:id="@+id/tvReceivedBookingsTitle"
-
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-
-        android:layout_marginTop="24dp"
-
-        android:text="@string/prenotazioni_ricevute"
-
-        android:textSize="22sp"
-        android:textStyle="bold"
-
-        android:textColor="?attr/colorOnSurface"
-
-        app:layout_constraintTop_toBottomOf="@id/btnPublishHouse"
-        app:layout_constraintStart_toStartOf="parent"/>
-
-
-    <!-- Lista prenotazioni -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvReceivedBookings"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-
-        android:clipToPadding="false"
-
-        android:paddingBottom="16dp"
-
-        tools:listitem="@layout/item_booking"
-
-        app:layout_constraintTop_toBottomOf="@id/tvReceivedBookingsTitle"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

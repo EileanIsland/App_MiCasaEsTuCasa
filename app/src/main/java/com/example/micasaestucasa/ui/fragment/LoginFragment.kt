@@ -19,8 +19,6 @@ import kotlinx.coroutines.launch
 //TODO
 // 2 - capire come creare la cache in repositoryUser per rendere più efficiente recupero dati utente
 // 3 - capire come funziona autorizzazione a vedere certi fragment
-// 4 - xapire se accesso ligin con firestore mi costa crediti (menu differenziati)
-// 5 cambiare il menu dinamicamente nella main activity
 
 
 class LoginFragment : Fragment() {

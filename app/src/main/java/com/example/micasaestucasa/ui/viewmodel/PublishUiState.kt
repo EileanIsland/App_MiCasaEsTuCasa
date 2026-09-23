@@ -32,7 +32,7 @@ data class PublishUiState(
     val availableRule: List<String> = emptyList(),
     val availableCategory : List<String> = emptyList(),
 
-    val errorMesasge: String? = null,
+    val errorMessage: String? = null,
     val isSuccess : Boolean = false
 )
 

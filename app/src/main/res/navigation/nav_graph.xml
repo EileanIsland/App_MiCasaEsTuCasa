@@ -157,10 +157,6 @@
         android:name="com.example.micasaestucasa.ui.fragment.ProfileFragment">
 
         <action
-            android:id="@+id/action_profileFragment_to_privacyFragment"
-            app:destination="@id/privacyFragment"/>
-
-        <action
             android:id="@+id/action_profileFragment_to_modifyProfileFragment"
             app:destination="@id/modifyProfileFragment"/>
 
@@ -205,11 +201,6 @@
             app:destination="@id/detailedHouseFragment"/>
     </fragment>
 
-
-    <!-- SETTINGS / PRIVACY -->
-    <fragment
-        android:id="@+id/privacyFragment"
-        android:name="com.example.micasaestucasa.ui.PrivacyFragment"/>
 
 
     <!--modifica profilo-->
