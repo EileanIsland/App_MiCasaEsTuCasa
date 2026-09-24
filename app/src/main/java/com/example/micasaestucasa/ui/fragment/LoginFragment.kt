@@ -17,8 +17,7 @@ import com.example.micasaestucasa.ui.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 //TODO
-// 2 - capire come creare la cache in repositoryUser per rendere più efficiente recupero dati utente
-// 3 - capire come funziona autorizzazione a vedere certi fragment
+// 3 - autorizzazione per admin
 
 
 class LoginFragment : Fragment() {

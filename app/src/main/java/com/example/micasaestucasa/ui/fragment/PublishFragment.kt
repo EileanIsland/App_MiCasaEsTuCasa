@@ -136,7 +136,6 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                     photoAdapter.submitList(state.images)
                     availabilityAdapter.submitList(state.disponibilita)
 
-                    //TODO: non la centra sulla città così
                     //la mappa diventa visibile solo dopo aver inserito una città
                     if(state.citta.isNotBlank()){
                         binding.mapContainer.visibility = View.VISIBLE
@@ -159,6 +158,18 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                     updateChips(binding.servicesChipGroup, state.servizi)
                     updateChips(binding.experienceChipGroup, state.esperienza)
                     updateChips(binding.rulesChipGroup, state.regole)
+
+
+                    if (state.isSuccess) {
+                        Toast.makeText(requireContext(), "Annuncio Pubblicato!", Toast.LENGTH_SHORT).show()
+
+                        // Ora che lo stato è SUCCESS, l'houseId nel ViewModel è sicuramente pronto e salvato su Firestore!
+                        navToDetailedHouse(state.houseId)
+
+                        // Resetta lo stato di successo nel ViewModel per evitare doppie navigazioni se torni indietro
+                        viewModel.resetSuccess()
+                        return@collect
+                    }
                 }
             }
         }
@@ -272,14 +283,14 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
         }
 
         binding.publishButton.setOnClickListener {
+            binding.publishButton.clearFocus()
             viewModel.save()
-            navToDetailedHouse(viewModel.uiState.value.houseId)
+            //navToDetailedHouse(viewModel.uiState.value.houseId)
         }
     }
 
 
     private fun setupRecyclerViews() {
-        //ListAdapter: listener
         photoAdapter = EditPhotoAdapter { position ->
             val currentImages = viewModel.uiState.value.images
             if (position in currentImages.indices) {

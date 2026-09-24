@@ -280,13 +280,4 @@ private val users = listOf(
 )
 
 
-fun getUsers(): List<User> {
-    return users
-}
-
-
-fun getUserById(id: String): User? {
-    println("Ricerca utente con ID: $id")
-    return users.find { it.id == id }
-
-}*/
+*/

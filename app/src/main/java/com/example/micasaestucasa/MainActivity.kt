@@ -20,6 +20,7 @@ import androidx.core.view.get
 
 //TODO:
 // 1 aggiornare i repository per usere Result<Unit>
+// 2 - Rivedere startDestination dinamico forse non è la soluzione migliore?
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

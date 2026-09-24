@@ -33,6 +33,9 @@ class LoginViewModel: ViewModel() {
                 val firebaseUser = AuthRepository.signInWithEmailAndPassword(email, password)
                 if(firebaseUser != null){
                     //login ok ha avuto successo
+
+                    UsersRepository.loadAndCacheProfile(firebaseUser.uid)
+                    //TODO: soluzione veloce per sistemare errore cache dopo login MIGLIORARE
                     val userProfile = UsersRepository.getUserById(firebaseUser.uid)
                         .onSuccess{ user ->
                             _uiState.update {
@@ -46,7 +49,7 @@ class LoginViewModel: ViewModel() {
                             _uiState.update {
                                 it.copy(
                                     isLoading = false,
-                                    errorMessage = "Errre nel caricamento del profilo utente"
+                                    errorMessage = "Errore nel caricamento del profilo utente"
                                 )}
                         }
 
@@ -77,3 +80,6 @@ class LoginViewModel: ViewModel() {
 
 
 }
+
+
+

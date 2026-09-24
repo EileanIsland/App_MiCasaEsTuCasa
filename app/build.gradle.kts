@@ -56,8 +56,7 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
-
-
+    implementation("com.google.firebase:firebase-storage-ktx")
 
 
     // --- GOOGLE MAPS & IMAGES ---
