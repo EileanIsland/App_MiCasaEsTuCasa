@@ -13,10 +13,17 @@ object CasaRepository {
     //recupera tutte le case
     suspend fun getAllCase(): List<Casa> {
         return try {
+            android.util.Log.d("FIRESTORE_GET_ALL_CASE", "getAllCase() - tentativo recupero case da Firestore...")
             val snapshot = caseCollection.get().await()
-            snapshot.toObjects(Casa::class.java)
+
+            android.util.Log.d("FIRESTORE_GET_ALL_CASE", "Documenti trovati: ${snapshot.size()}")
+
+            val listaCase = snapshot.toObjects(Casa::class.java)
+            android.util.Log.d("FIRESTORE_GET", "Conversione riuscita! Case convertite: ${listaCase.size}")
+            listaCase
 
         } catch (e: Exception) {
+            android.util.Log.e("FIRESTORE_GET", "!!! ERRORE CRITICO NEL RECUPERO CASE !!!", e)
             emptyList()
         }
     }

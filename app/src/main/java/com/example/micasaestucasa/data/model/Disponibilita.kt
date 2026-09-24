@@ -9,6 +9,6 @@ package com.example.micasaestucasa.data.model
  * @property fine il tempo di fine dell'intervallo.
  */
 data class Disponibilita (
-    val inizio: Long,
-    val fine: Long
+    val inizio: Long = 0L,
+    val fine: Long = 0L
 )

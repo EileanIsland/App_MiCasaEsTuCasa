@@ -304,7 +304,7 @@ class PublishViewModel: ViewModel() {
                         regole = state.regole,
                         disponibilita = state.disponibilita,
                         immagini = finalImages,
-                        tipo = EnumHouseType.values().firstOrNull { it.label == state.tipologia } ?: EnumHouseType.ALTRO
+                        tipoString = state.tipologia
                     )
 
                     android.util.Log.d("FIRESTORE_TRACE", "5. Chiamata a CasaRepository.saveCasa()...")

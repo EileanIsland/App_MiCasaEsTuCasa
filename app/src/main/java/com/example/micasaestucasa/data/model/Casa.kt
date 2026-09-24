@@ -37,27 +37,27 @@ package com.example.micasaestucasa.data.model
 
 data class Casa(
 
-    val id: String,
+    val id: String = "",
 
-    val titolo: String,
-    val descrizione: String,
+    val titolo: String = "",
+    val descrizione: String = "",
 
-    val proprietarioId: String,
+    val proprietarioId: String = "",
 
-    val indirizzo: String,
-    val citta: String,
+    val indirizzo: String = "",
+    val citta: String= "",
 
-    val latitudine: Double,
-    val longitudine: Double,
+    val latitudine: Double = 0.0,
+    val longitudine: Double = 0.0,
 
-    val tipo:  EnumHouseType = EnumHouseType.CASA,
+    val tipoString:  String = "",
 
-    val ospitiMassimi: Int,
-    val numeroCamere: Int,
-    val numeroLetti: Int,
-    val numeroBagni: Int,
+    val ospitiMassimi: Int = 0,
+    val numeroCamere: Int = 0,
+    val numeroLetti: Int = 0,
+    val numeroBagni: Int = 0,
 
-    val prezzoNotte: Double,
+    val prezzoNotte: Double = 0.0,
 
     val immagini: List<String> = emptyList(),
     val esperienza: List<String> = emptyList(),
@@ -68,6 +68,8 @@ data class Casa(
 
     val disponibilita: List<Disponibilita> = emptyList(),
     var stato: Boolean = true //true se è una casa ancora attiva sul mercato, il suo annuncio non è stato cancellato
-)
-
+){
+    val tipo: EnumHouseType
+        get() = EnumHouseType.fromString(this.tipoString)
+}
 

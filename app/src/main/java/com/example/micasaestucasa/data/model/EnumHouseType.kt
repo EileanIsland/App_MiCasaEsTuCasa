@@ -59,6 +59,30 @@ enum class EnumHouseType(
             return entries.find { it.id == id }
         }
 
+        fun fromValue(enumHouseType: EnumHouseType): String{
+            return when(enumHouseType){
+                CASA -> "Casa"
+                VILLA -> "Villa"
+                APPARTAMENTO -> "Appartamento"
+                STANZA -> "Stanza"
+                LOFT -> "Loft"
+                CABINA -> "Cabina"
+                ALTRO -> "Altro"
+            }
+        }
+
+        fun fromString(enumHouseType: String): EnumHouseType {
+            return when(enumHouseType){
+                "Casa" -> CASA
+                "Villa" -> VILLA
+                "Appartamento" -> APPARTAMENTO
+                "Stanza" -> STANZA
+                "Loft" -> LOFT
+                "Cabina" -> CABINA
+                else -> ALTRO
+            }
+        }
+
         /**
          * Restituisce l'elenco completo dei nomi di tutte le tipologie disponibili.
          *
