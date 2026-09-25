@@ -172,7 +172,7 @@
     <string name="aggiungi_periodo">Aggiungi periodo</string>
     <string name="citta">Città</string>
     <string name="seleziona_sulla_mappa">Seleziona sulla mappa</string>
-    <string name="no_recensione_casa">Ancora nessuna recensione per questa casa</string>
+    <string name="no_recensioni">Ancora nessuna recensione</string>
     <string name="proprietario">Proprietario</string>
     <string name="detailed_house_prezzo_notte">%1$.2f €/notte</string>
     <string name="detailed_house_tipo">Tipo: %1$s</string>
@@ -203,5 +203,7 @@
     <string name="statistiche">Statistiche</string>
     <string name="utenti">Utenti</string>
     <string name="label_telefono">Numero di telefono</string>
+    <string name="zero_euro">0€</string>
+    <string name="mille_euro">1000€</string>
 
 </resources>

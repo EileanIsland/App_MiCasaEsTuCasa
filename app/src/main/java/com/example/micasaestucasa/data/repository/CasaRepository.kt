@@ -90,8 +90,6 @@ object CasaRepository {
     }
 
 
-
-    //TODO RIVEDERE MOLTO QUESTA FUNZIONE
     suspend fun searchHouses(
         query: String,
         numPerson: Int,
@@ -104,45 +102,58 @@ object CasaRepository {
         category: String
     ): List<Casa> {
         return try {
-            // Recuperiamo tutte le case (in futuro potresti filtrare qui per città se la query non è vuota)
             val allHouses = getAllCase()
 
-            val minPrice = priceRange.getOrNull(0) ?: 0
-            val maxPrice = priceRange.getOrNull(1) ?: 10000 // Aumentato il limite superiore
+            val minPrice = priceRange.getOrNull(0) ?: 0 //TODO: non dovrebbero essere double?
+            val maxPrice = priceRange.getOrNull(1) ?: 10000
 
             // Se non ci sono filtri, restituisci tutto
             if (query.isEmpty() && numPerson <= 0 && date.isEmpty() &&
                 services.isEmpty() && experiences.isEmpty() &&
-                category.isEmpty() && numBathroom == 0 && numBeds == 0
-            ) return allHouses
+                category.isEmpty() && numBathroom == 0 && numBeds == 0 && minPrice<= 0 && maxPrice >= 1000
+            ) {
+                android.util.Log.d("FIRESTORE_SEARCH", "Nessun filtro applicato. Restituisco tutte le ${allHouses.size} case.")
+                return allHouses
+            }
 
-            allHouses.filter { casa ->
+            val filtered = allHouses.filter { casa ->
                 val matchesQuery = query.isEmpty() || (
                         casa.titolo.contains(query, ignoreCase = true) ||
                                 casa.descrizione.contains(query, ignoreCase = true) ||
                                 casa.citta.contains(query, ignoreCase = true)
                         )
 
-                val matchesCategory = category.isEmpty() ||
-                        casa.tipo.label.contains(category, ignoreCase = true)
-                val matchesDate = if (date.size >= 2) {
+                val matchesCategory = category.isEmpty() || (
+                        casa.tipo.label.contains(category, ignoreCase = true) ||
+                        casa.descrizione.contains(category, ignoreCase = true) ||
+                        casa.esperienza.any{it.contains(category, ignoreCase = true)} ||
+                        casa.regole.any{it.contains(category, ignoreCase = true)} ||
+                        casa.servizi.any{it.contains(category, ignoreCase = true)}
+                        )
+
+                val matchesDate = if (date.size >= 2 && date[0] > 0 && date[1] > 0) {
                     casa.disponibilita.any { d ->
                         date[0] >= d.inizio && date[1] <= d.fine
                     }
                 } else true
 
-                matchesQuery &&
-                        matchesCategory &&
-                        matchesDate &&
-                        casa.ospitiMassimi >= numPerson &&
-                        casa.prezzoNotte >= minPrice &&
-                        casa.prezzoNotte <= maxPrice &&
-                        casa.numeroLetti >= numBeds &&
-                        casa.numeroBagni >= numBathroom &&
-                        (services.isEmpty() || casa.servizi.containsAll(services)) &&
-                        (experiences.isEmpty() || casa.esperienza.containsAll(experiences))
+                val matchesPrices = casa.prezzoNotte >= minPrice && casa.prezzoNotte <= maxPrice
+                val matchesCapacity = casa.ospitiMassimi >= numPerson
+                val matchesBeds = casa.numeroLetti >= numBeds
+                val matchesBathrooms = casa.numeroBagni >= numBathroom
+                val matchesServices = services.isEmpty() || casa.servizi.containsAll(services)
+                val matchesExperiences = experiences.isEmpty() || casa.esperienza.containsAll(experiences)
+
+                matchesQuery && matchesCategory && matchesDate && matchesPrices &&
+                        matchesCapacity && matchesBeds && matchesBathrooms &&
+                        matchesServices && matchesExperiences
             }
+
+            android.util.Log.d("SEARCH_DEBUG", "Case trovate: ${filtered.size} su ${allHouses.size}")
+
+            filtered.sortedBy { it.valutazioneMedia }
         } catch (e: Exception) {
+            android.util.Log.e("SEARCH_DEBUG", "Errore durante il filtraggio", e)
             emptyList()
         }
     }
@@ -327,107 +338,5 @@ object CasaRepository {
 
         )
     )
-
-
-
-    fun addCasa(casa: Casa) {
-        case.add(casa)
-    }
-
-
-    fun getCase(): List<Casa> {
-        return case
-    }
-
-
-    fun getCasaById(id: String): Casa? {
-        return case.find {
-            it.id == id
-        }
-    }
-
-
-    fun removeCasa(id: String) {
-        case.removeIf {
-            it.id == id
-        }
-    }
-
-    fun updateCasa(id: String, casa: Casa){
-        val index = case.indexOfFirst{
-            it.id == id
-        }
-
-        if(index != -1){
-            case[index] = casa
-        }
-    }
-
-    fun getCaseByProprietario(ownerId: String): List<Casa> {
-        return case.filter { it.proprietarioId == ownerId }
-    }
-
-
-    fun countHousesByOwner(ownerId: String): Int {
-        return case.count { it.proprietarioId == ownerId }
-    }
-
-    fun searchHouses(
-        query: String,
-        numPerson: Int,
-        date: List<Long>,
-        services: List<String>,
-        experiences: List<String>,
-        priceRange: List<Int>,
-        numBathroom: Int,
-        numBeds: Int,
-        category: String
-    ): List<Casa> {
-        val minPrice = priceRange.getOrNull(0) ?: 0
-        val maxPrice = priceRange.getOrNull(1) ?: 1000
-
-        if(query.isEmpty() &&
-            numPerson <= 0 &&
-            date.isEmpty() &&
-            services.isEmpty() &&
-            experiences.isEmpty() &&
-            minPrice == 0 &&
-            maxPrice == 1000 &&
-            numBathroom == 0 &&
-            numBeds == 0 &&
-            category.isEmpty()) return getCase()
-
-        val filteredHouses = case.filter{it->
-            val matchesQuery = query.isEmpty() || (
-                    it.titolo.contains(query, ignoreCase = true) ||
-                            it.descrizione.contains(query, ignoreCase = true) ||
-                            it.citta.contains(query, ignoreCase = true)
-                    )
-
-            val matchesCategory = category.isEmpty() || it.tipo.toString().contains(category, ignoreCase = true)
-
-            val matchesDate = if (date.size >= 2) {
-                it.disponibilita.any { d ->
-                    date[0] >= d.inizio && date[1] <= d.fine
-                }
-            } else {
-                true
-            }
-
-            matchesQuery &&
-                    matchesCategory &&
-                    matchesDate &&
-                    it.ospitiMassimi >= numPerson &&
-                    it.prezzoNotte >= minPrice &&
-                    it.prezzoNotte <= maxPrice &&
-                    it.numeroLetti >= numBeds &&
-                    it.numeroBagni >= numBathroom &&
-                    (services.isEmpty() || it.servizi.containsAll(services)) &&
-                    (experiences.isEmpty() || it.esperienza.containsAll(experiences))
-        }
-
-        return filteredHouses
-    }
-
      */
 

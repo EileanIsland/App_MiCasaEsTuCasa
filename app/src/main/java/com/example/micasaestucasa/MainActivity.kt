@@ -21,6 +21,8 @@ import androidx.core.view.get
 //TODO:
 // 1 aggiornare i repository per usere Result<Unit>
 // 2 - Rivedere startDestination dinamico forse non è la soluzione migliore?
+// 3- migliorare gestione navigazione dopo log out mi da errori e chiude l'app qundo dovrebbe rimandarmi su login sempre
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

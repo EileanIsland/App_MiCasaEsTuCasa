@@ -17,3 +17,5 @@ data class DetailedHouseUiState(
     val errorMessage: String? = null,
     val isHouseNotFound: Boolean = false
 )
+
+

@@ -160,7 +160,7 @@
                         android:layout_width="48dp"
                         android:layout_height="48dp"
                         android:contentDescription="@string/decrease_guests"
-                        android:enabled="false"
+                        android:enabled="true"
                         android:insetTop="0dp"
                         android:insetBottom="0dp"
                         android:text=""
@@ -427,7 +427,6 @@
 
 
                 <!-- PRICE SECTION -->
-                <!-- PRICE SECTION -->
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -447,14 +446,14 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="0€"
+                        android:text="@string/zero_euro"
                         android:textAppearance="?attr/textAppearanceBodyMedium" />
 
                     <TextView
                         android:id="@+id/tvMaxPrice"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="1000€"
+                        android:text="@string/mille_euro"
                         android:textAlignment="viewEnd"
                         android:textAppearance="?attr/textAppearanceBodyMedium" />
                 </LinearLayout>
@@ -505,7 +504,20 @@
                 android:layout_height="match_parent">
 
                 <!-- Google Map inserita qui -->
+                <androidx.fragment.app.FragmentContainerView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:id="@+id/map_search_fragment"
+                    android:tag="map"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"/>
 
+                <!-- Deve essere l'ultimo elemento del FrameLayout per stare "sopra" -->
+                <!-- aggiunta per migliorare l'utilizzo dello zoom della mappa-->
+                <View
+                    android:id="@+id/mapOverlay"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@android:color/transparent" />
             </FrameLayout>
 
         </com.google.android.material.card.MaterialCardView>

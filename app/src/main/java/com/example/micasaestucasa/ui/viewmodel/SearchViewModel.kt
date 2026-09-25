@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+//TODO: mappa non funziona
+
 class SearchViewModel : ViewModel(){
 
     private val _uiState = MutableStateFlow(SearchUiState())
