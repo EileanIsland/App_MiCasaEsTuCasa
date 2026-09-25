@@ -20,7 +20,6 @@ import kotlinx.coroutines.launch
 //TODO:
 // 1 - pubblicazione annuncio ora funziona, devo migliorare la navigazione alla pagina di dettaglio
 //      ci sono tempi di latenza tra pubblicazione annuncio e risultato che non sono l'idealte
-// 2 - Capire come mai non funziona il searchFragment
 // 3 - rivedere metodo Save()
 
 class PublishViewModel: ViewModel() {

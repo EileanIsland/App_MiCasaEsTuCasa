@@ -15,7 +15,9 @@ data class DetailedHouseUiState(
     val numRec: Int = 0,
     val isShowingAllReviews: Boolean = false,
     val errorMessage: String? = null,
-    val isHouseNotFound: Boolean = false
+    val isHouseNotFound: Boolean = false,
+    val isOwner: Boolean = false
 )
+
 
 

@@ -216,6 +216,22 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
             val selectedType = parent.getItemAtPosition(position) as String
             viewModel.updateTipologia(selectedType)
         }
+
+        binding.guestsEditText.doAfterTextChanged {
+            viewModel.updateOspitiMassimi(it.toString().toIntOrNull() ?: 0)
+        }
+
+        binding.roomsEditText.doAfterTextChanged {
+            viewModel.updateNumeroStanze(it.toString().toIntOrNull() ?: 0)
+        }
+
+        binding.bedsEditText.doAfterTextChanged {
+            viewModel.updateNumeroLetti(it.toString().toIntOrNull() ?: 0)
+        }
+
+        binding.bathroomsEditText.doAfterTextChanged {
+            viewModel.updateNumeroBagni(it.toString().toIntOrNull() ?: 0)
+        }
     }
 
     private suspend fun centraMappa(citta: String, indirizzo: String = ""){

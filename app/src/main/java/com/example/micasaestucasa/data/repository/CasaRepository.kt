@@ -66,16 +66,18 @@ object CasaRepository {
             val snapshot = caseCollection.whereEqualTo("proprietarioId", ownerId).get().await()
             snapshot.toObjects(Casa::class.java)
         } catch (e: Exception) {
+            e.printStackTrace()
             emptyList()
         }
     }
 
 
     suspend fun getTopRatedHouses(): List<Casa> {
-        return try {                                                         //ne prende 5
+        return try {
             val snapshot = caseCollection.orderBy("valutazioneMedia").limit(5).get().await()
             snapshot.toObjects(Casa::class.java)
         } catch (e: Exception) {
+            e.printStackTrace()
             emptyList()
         }
     }

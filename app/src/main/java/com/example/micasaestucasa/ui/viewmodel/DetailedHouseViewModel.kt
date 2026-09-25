@@ -3,6 +3,7 @@ package com.example.micasaestucasa.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.model.ReviewTarget
+import com.example.micasaestucasa.data.repository.AuthRepository
 import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.CasaRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
@@ -37,6 +38,8 @@ class DetailedHouseViewModel : ViewModel() {
 
                 if (foundHouse != null) {
                     val ownerId = foundHouse.proprietarioId
+                    val currentUid = AuthRepository.getCurrentIUD()
+                    val isOwner = ownerId == currentUid
 
                     val ownerDeferred = async{UsersRepository.getUserById(foundHouse.proprietarioId)}
                     val ownerReviewsDeferred = async { ReviewRepository.getReviewsForUser(ownerId) }
@@ -57,7 +60,6 @@ class DetailedHouseViewModel : ViewModel() {
                         numeroRecensioni = totaleOwner,
                         numeroSoggiorni = numeroSoggiorni,
                         numeroAnnunci = numeroCase
-
                     )
 
                     _uiState.update {
@@ -71,6 +73,7 @@ class DetailedHouseViewModel : ViewModel() {
                             houseRating = houseStats.first,
                             numRec = houseStats.second,
                             isHouseNotFound = false,
+                            isOwner = isOwner
                         )
                     }
 

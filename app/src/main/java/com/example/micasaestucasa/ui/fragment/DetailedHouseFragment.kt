@@ -28,9 +28,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
 import kotlinx.coroutines.launch
 
-class DetailedHouseFragment : Fragment(){
+class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
     private var _binding: FragmentDetailedHouseBinding? = null
     private val binding get() = _binding!!
 
@@ -69,61 +70,18 @@ class DetailedHouseFragment : Fragment(){
         }
     }
 
-    private fun setupMapFragment(){
-        val mapFragment = childFragmentManager.findFragmentById(R.id.mapContainer) as? SupportMapFragment
-        mapFragment?.getMapAsync { map ->
-            googleMap = map
-            viewModel.uiState.value.house?.let { updateMapLocation(it) }
-        }
-    }
-
-    private fun setupAdapters(){
-        //FOTO
-        photoAdapter = PhotoAdapter{
-            position ->
-            val images = viewModel.uiState.value.house?.immagini?: emptyList()
-            PhotoGalleryDialogFragment.newInstance(
-                images,
-                position
-            ).show(
-                childFragmentManager,
-                "photoGallery"
-            )
-        }
-        binding.photosRecyclerView.apply{
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.HORIZONTAL,
-                false
-            )
-            adapter = photoAdapter
-        }
-
-
-        //RECENSIONI
-        reviewAdapter = ReviewAdapter()
-        binding.reviewsRecyclerView.apply{
-            layoutManager = LinearLayoutManager(requireContext())
-            adapter = reviewAdapter
-            isNestedScrollingEnabled = false
-        }
-
-    }
-
-
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
+                    android.util.Log.d("DEBUG_HOUSE", "Casa presente nello stato: ${state.house != null}")
+
                     // caricamento
                     binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
 
                     // Casa
                     state.house?.let { house ->
-
-                        if(binding.houseTitle.text.isEmpty()){
-                            displayHouse(house)
-                        }
+                        displayHouse(house)
 
                         updateMapLocation(house)
                         photoAdapter.submitList(house.immagini)
@@ -177,6 +135,10 @@ class DetailedHouseFragment : Fragment(){
                         binding.showAllReviewsButton
                     )
 
+                    // Bottoni visibilità in base all'utente
+                    binding.bookButton.visibility = if (state.isOwner) View.GONE else View.VISIBLE
+                    binding.contactOwnerButton.visibility = if (state.isOwner) View.GONE else View.VISIBLE
+
 
                     // Messaggi di errore
                     state.errorMessage?.let {
@@ -186,6 +148,56 @@ class DetailedHouseFragment : Fragment(){
                 }
             }
         }
+    }
+
+
+    override fun onMapReady(map: GoogleMap) {
+        googleMap = map
+
+        map.uiSettings.isZoomControlsEnabled = true
+        map.uiSettings.isMapToolbarEnabled = false
+
+        viewModel.uiState.value.house?.let {
+            updateMapLocation(it)
+        }
+    }
+
+    private fun setupMapFragment(){
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map_detailed) as? SupportMapFragment
+        mapFragment?.getMapAsync(this)
+
+    }
+
+
+    private fun setupAdapters(){
+        //FOTO
+        photoAdapter = PhotoAdapter{ position ->
+            val images = viewModel.uiState.value.house?.immagini?: emptyList()
+            PhotoGalleryDialogFragment.newInstance(
+                images,
+                position
+            ).show(
+                childFragmentManager,
+                "photoGallery"
+            )
+        }
+        binding.photosRecyclerView.apply{
+            layoutManager = LinearLayoutManager(
+                requireContext(),
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+            adapter = photoAdapter
+        }
+
+        //RECENSIONI
+        reviewAdapter = ReviewAdapter()
+        binding.reviewsRecyclerView.apply{
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = reviewAdapter
+            isNestedScrollingEnabled = false
+        }
+
     }
 
 
@@ -213,14 +225,12 @@ class DetailedHouseFragment : Fragment(){
         binding.experienceTagsGroup.createViewChips(house.esperienza)
         binding.servicesTagsGroup.createViewChips(house.servizi)
         binding.rulesTagsGroup.createViewChips(house.regole)
-
-
     }
+
 
     private fun setupButtons(){
         binding.contactOwnerButton.setOnClickListener {
-            //TODO
-
+            //TODO apertura chat proprietario
             Toast.makeText(
                 requireContext(),
                 "Apri chat proprietario",
@@ -234,11 +244,11 @@ class DetailedHouseFragment : Fragment(){
             findNavController()
                 .navigate(R.id.action_detailedHouseFragment_to_bookHouseFragment, bundle)
 
-            /*Toast.makeText(
+            Toast.makeText(
                 requireContext(),
                 getString(R.string.apri_prenotazione),
                 Toast.LENGTH_SHORT
-            ).show()*/
+            ).show()
 
         }
 
@@ -249,13 +259,18 @@ class DetailedHouseFragment : Fragment(){
 
         //CARD PROPRIETARIO
         binding.ownerInfo.root.setOnClickListener {
-            val bundle = Bundle().apply {
-                putString("userId", viewModel.uiState.value.house?.proprietarioId)
+            val state = viewModel.uiState.value
+
+            if (state.isOwner) {
+                findNavController().navigate(R.id.action_detailedHouseFragment_to_profileFragment)
+            } else {
+                val bundle = Bundle().apply {
+                    putString("userId", viewModel.uiState.value.house?.proprietarioId)
+                }
+
+                findNavController()
+                    .navigate(R.id.action_detailedHouseFragment_to_userProfileFragment, bundle)
             }
-
-            findNavController()
-                .navigate(R.id.action_detailedHouseFragment_to_userProfileFragment, bundle)
-
         }
 
     }
