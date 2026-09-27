@@ -116,6 +116,12 @@ class PublishFragment : Fragment(), OnMapReadyCallback{
                     if (binding.addressEditText.text.isNullOrEmpty() && state.indirizzo.isNotEmpty()) binding.addressEditText.setText(state.indirizzo)
                     if (binding.priceEditText.text.isNullOrEmpty() && state.prezzoNotte > 0) binding.priceEditText.setText(state.prezzoNotte.toString())
 
+                    if(binding.guestsEditText.text.isNullOrEmpty() && state.ospitiMassimi > 0) binding.guestsEditText.setText(state.ospitiMassimi.toString())
+                    if(binding.roomsEditText.text.isNullOrEmpty() && state.numeroStanze > 0) binding.roomsEditText.setText(state.numeroStanze.toString())
+                    if(binding.bedsEditText.text.isNullOrEmpty() && state.numeroLetti > 0) binding.bedsEditText.setText(state.numeroLetti.toString())
+                    if(binding.bathroomsEditText.text.isNullOrEmpty() && state.numeroBagni > 0) binding.bathroomsEditText.setText(state.numeroBagni.toString())
+
+
                     //dropDown tipologia casa
                     if(!isCategoriesInitialized && state.availableCategory.isNotEmpty()){
                         val adapter = ArrayAdapter(

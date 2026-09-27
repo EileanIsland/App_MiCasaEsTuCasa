@@ -14,7 +14,7 @@ object CasaRepository {
     suspend fun getAllCase(): List<Casa> {
         return try {
             android.util.Log.d("FIRESTORE_GET_ALL_CASE", "getAllCase() - tentativo recupero case da Firestore...")
-            val snapshot = caseCollection.whereEqualTo("attiva", true).get().await()
+            val snapshot = caseCollection.whereEqualTo("stato", true).get().await()
 
             android.util.Log.d("FIRESTORE_GET_ALL_CASE", "Documenti trovati: ${snapshot.size()}")
 

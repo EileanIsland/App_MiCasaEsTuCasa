@@ -54,7 +54,7 @@ class PublishViewModel: ViewModel() {
                 }
 
             }catch(e : Exception){
-                _uiState.update { it.copy(errorMessage = "errore nel caricamento dei dati") }
+                _uiState.update { it.copy(isLoading =false, errorMessage = "errore nel caricamento dei dati") }
             }
 
         }
@@ -94,10 +94,10 @@ class PublishViewModel: ViewModel() {
                         )
                     }
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Casa non trovata") }
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Casa non trovata") }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Errore durante il caricamento della casa: ${e.message}") }
+                _uiState.update { it.copy(isLoading = false, errorMessage = "Errore durante il caricamento della casa: ${e.message}") }
             }
         }
     }

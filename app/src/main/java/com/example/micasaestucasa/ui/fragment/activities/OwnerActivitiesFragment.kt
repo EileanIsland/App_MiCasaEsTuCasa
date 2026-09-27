@@ -44,7 +44,6 @@ class OwnerActivitiesFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        fixScrollConflict()
         setupRecyclerView()
         setupListeners()
         observeUiState()
@@ -158,24 +157,6 @@ class OwnerActivitiesFragment : Fragment(){
         }
     }
 
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun fixScrollConflict() {
-        binding.rvMyHouses.setOnTouchListener { v, event ->
-            when (event.action) {
-                android.view.MotionEvent.ACTION_DOWN,
-                android.view.MotionEvent.ACTION_MOVE -> {
-                    // DISATTIVA lo scroll del ViewPager2 per permettere alla RecyclerView di muoversi
-                    binding.rvMyHouses.parent.requestDisallowInterceptTouchEvent(true)
-                }
-                android.view.MotionEvent.ACTION_UP,
-                android.view.MotionEvent.ACTION_CANCEL -> {
-                    binding.rvMyHouses.parent.requestDisallowInterceptTouchEvent(false)
-                }
-            }
-            false
-        }
-    }
 
 
     override fun onDestroyView() {
