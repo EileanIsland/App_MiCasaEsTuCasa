@@ -34,6 +34,7 @@ class ActivitiesFragment : Fragment() {
         val adapter = ActivitiesPagerAdapter(this)
 
         binding.activitiesPager.adapter = adapter
+        binding.activitiesPager.isUserInputEnabled = false
 
         TabLayoutMediator(
             binding.activitiesTabs,

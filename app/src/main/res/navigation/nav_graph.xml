@@ -88,7 +88,7 @@
 
         <action
             android:id="@+id/action_detailedHouseFragment_to_bookHouseFragment"
-            app:destination="@id/bookHouseFragment" />
+            app:destination="@id/bookingFragment" />
 
         <action
             android:id="@+id/action_detailedHouseFragment_to_profileFragment"
@@ -99,8 +99,8 @@
 
     <!-- BookHouse -->
     <fragment
-        android:id="@+id/bookHouseFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.BookHouseFragment">
+        android:id="@+id/bookingFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.BookingFragment">
         <argument
             android:name="houseId"
             app:argType="string">
@@ -153,6 +153,24 @@
         android:id="@+id/activitiesFragment"
         android:name="com.example.micasaestucasa.ui.fragment.activities.ActivitiesFragment">
 
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_publishFragment"
+            app:destination="@+id/publishFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_detailedHouseFragment"
+            app:destination="@id/detailedHouseFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_bookingFragment"
+            app:destination="@id/bookingFragment"
+            >
+        </action>
+
     </fragment>
 
     <!-- Guest-->
@@ -166,24 +184,6 @@
     <fragment
         android:id="@+id/ownerActivitiesFragment"
         android:name="com.example.micasaestucasa.ui.fragment.activities.OwnerActivitiesFragment">
-
-        <action
-            android:id="@+id/action_ownerActivitiesFragment_to_publishHouseFragment"
-            app:destination="@+id/publishHouseFragment"
-            >
-        </action>
-
-        <action
-            android:id="@+id/action_ownerActivitiesFragment_to_detailedHouseFragment"
-            app:destination="@+id/detailedHouseFragment"
-            >
-        </action>
-
-        <action
-            android:id="@+id/action_ownerActivitiesFragment_to_bookingFragment"
-            app:destination="@+id/bookingFragment"
-            >
-        </action>
     </fragment>
 
 

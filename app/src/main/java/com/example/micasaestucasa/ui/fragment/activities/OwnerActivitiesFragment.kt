@@ -1,5 +1,6 @@
 package com.example.micasaestucasa.ui.fragment.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -43,6 +44,7 @@ class OwnerActivitiesFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        fixScrollConflict()
         setupRecyclerView()
         setupListeners()
         observeUiState()
@@ -52,8 +54,10 @@ class OwnerActivitiesFragment : Fragment(){
     private fun observeUiState(){
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.uiState.collect{
-                    state ->
+                viewModel.uiState.collect{state ->
+                    android.util.Log.d("DEBUG_OWNER", "Numero di case ricevute: ${state.housesList.size}")
+
+
                     //todo aggiungere progress bar in xml
                     //binding.progressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
 
@@ -109,7 +113,7 @@ class OwnerActivitiesFragment : Fragment(){
             },
             onEditClick = { casa ->
                 val bundle = Bundle().apply { putString("houseId", casa.id) }
-                findNavController().navigate(R.id.action_ownerActivitiesFragment_to_publishHouseFragment, bundle)
+                findNavController().navigate(R.id.action_ownerActivitiesFragment_to_publishFragment, bundle)
             },
             onDeleteClick = { casa ->
                 showDeleteConfirmation(casa)
@@ -122,8 +126,8 @@ class OwnerActivitiesFragment : Fragment(){
             adapter = houseAdapter
         }
 
-        //TODO: Dentro setupRecyclerViews, dopo aver impostato l'adapter
-        val snapHelper = androidx.recyclerview.widget.PagerSnapHelper()
+        //TODO: verificare se funziona
+        val snapHelper = androidx.recyclerview.widget.LinearSnapHelper()
         snapHelper.attachToRecyclerView(binding.rvMyHouses)
 
         bookingAdapter = BookingAdapter(
@@ -150,9 +154,29 @@ class OwnerActivitiesFragment : Fragment(){
     private fun setupListeners(){
         //pubblica
         binding.btnPublishHouse.setOnClickListener {
-            findNavController().navigate(R.id.action_ownerActivitiesFragment_to_publishHouseFragment)
+            findNavController().navigate(R.id.action_ownerActivitiesFragment_to_publishFragment)
         }
     }
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    private fun fixScrollConflict() {
+        binding.rvMyHouses.setOnTouchListener { v, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN,
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    // DISATTIVA lo scroll del ViewPager2 per permettere alla RecyclerView di muoversi
+                    binding.rvMyHouses.parent.requestDisallowInterceptTouchEvent(true)
+                }
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    binding.rvMyHouses.parent.requestDisallowInterceptTouchEvent(false)
+                }
+            }
+            false
+        }
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

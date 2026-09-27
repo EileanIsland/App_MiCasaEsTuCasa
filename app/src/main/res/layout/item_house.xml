@@ -8,6 +8,8 @@
     android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:layout_margin="12dp"
+    android:layout_marginLeft="16dp"
+
 
     android:clickable="true"
     android:focusable="true"
@@ -21,7 +23,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp">
 
         <!-- copertina casa-->
         <ImageView
@@ -51,7 +54,7 @@
 
             android:text="@string/segnaposto"
             android:textStyle="bold"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textColor="?attr/colorOnSurface"
 
             tools:text="85 €/notte"
@@ -68,12 +71,11 @@
             android:layout_height="wrap_content"
 
             android:layout_marginHorizontal="16dp"
-            android:layout_marginTop="8dp"
 
             android:text="@string/segnaposto"
             android:textColor="?attr/colorOnSurface"
 
-            android:textSize="17sp"
+            android:textSize="20sp"
             android:textStyle="bold"
 
             tools:text="Loft moderno"
@@ -92,6 +94,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginTop="6dp"
 
+            android:contentDescription="@string/posizione"
             android:orientation="horizontal"
 
             app:layout_constraintTop_toBottomOf="@id/tvTitle"
@@ -130,11 +133,16 @@
 
             android:layout_marginStart="16dp"
             android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp"
+
 
             android:orientation="horizontal"
 
             app:layout_constraintTop_toBottomOf="@id/layoutLocation"
-            app:layout_constraintStart_toStartOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            >
+
+
 
 
             <!-- Ospiti -->
@@ -205,40 +213,11 @@
                 android:textColor="?attr/colorOnSurface"
 
                 tools:text="4.8"/>
+
         </LinearLayout>
 
 
-        <!-- Tag vari -->
-        <HorizontalScrollView
 
-            android:id="@+id/scrollTags"
-
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
-
-            android:scrollbars="none"
-
-            app:layout_constraintTop_toBottomOf="@id/layoutInfo"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
-
-
-            <LinearLayout
-                android:id="@+id/layoutTags"
-
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:orientation="horizontal"
-                android:paddingHorizontal="16dp">
-                <!-- Qui verranno aggiunti dinamicamente i Chip -->
-            </LinearLayout>
-
-        </HorizontalScrollView>
 
         <!-- Azioni proprietario -->
         <LinearLayout
@@ -257,7 +236,7 @@
             android:gravity="end"
             android:orientation="horizontal"
 
-            app:layout_constraintTop_toBottomOf="@id/scrollTags"
+            app:layout_constraintTop_toBottomOf="@id/layoutInfo"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
