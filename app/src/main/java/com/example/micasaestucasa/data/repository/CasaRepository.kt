@@ -14,7 +14,7 @@ object CasaRepository {
     suspend fun getAllCase(): List<Casa> {
         return try {
             android.util.Log.d("FIRESTORE_GET_ALL_CASE", "getAllCase() - tentativo recupero case da Firestore...")
-            val snapshot = caseCollection.get().await()
+            val snapshot = caseCollection.whereEqualTo("attiva", true).get().await()
 
             android.util.Log.d("FIRESTORE_GET_ALL_CASE", "Documenti trovati: ${snapshot.size()}")
 
@@ -58,6 +58,19 @@ object CasaRepository {
             caseCollection.document(id).delete().await()
         } catch (e: Exception) {
             throw e
+        }
+    }
+
+
+    suspend fun deactivateCasa(casaId: String): Result<Unit> {
+        return try {
+            db.collection("case")
+                .document(casaId)
+                .update("attiva", false)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 

@@ -39,8 +39,8 @@ class ActivitiesViewModel : ViewModel() {
                 val recBookingDef = async{BookingRepository.getBookingByHost(currentUid)}
                 val myHousesDef = async{ CasaRepository.getCaseByProprietario(currentUid)}
 
-                val booking = bookingDef.await()
-                val recBooking = recBookingDef.await()
+                val booking = bookingDef.await().getOrThrow()
+                val recBooking = recBookingDef.await().getOrThrow()
                 val myHouses = myHousesDef.await()
 
                 _uiState.update {

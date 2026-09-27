@@ -60,8 +60,8 @@ class ProfileViewModel : ViewModel() {
                     val statsDef = async{ ReviewRepository.getRatingStats(currentUid, ReviewTarget.UTENTE)}
 
                     val userReviewsReceived = userReviewsReceivedDef.await()
-                    val stays = staysDef.await()
-                    val ads = adsDef.await()
+                    val stays = staysDef.await().getOrThrow()
+                    val ads = adsDef.await().getOrThrow()
                     val (rating, numeroRec) = statsDef.await()
                     val stats = UserStats(
                         ratingMedia = rating,

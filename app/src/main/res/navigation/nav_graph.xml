@@ -155,6 +155,39 @@
 
     </fragment>
 
+    <!-- Guest-->
+    <fragment
+        android:id="@+id/guestActivitiesFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.activities.GuestActivitiesFragment">
+
+    </fragment>
+
+    <!--host-->
+    <fragment
+        android:id="@+id/ownerActivitiesFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.activities.OwnerActivitiesFragment">
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_publishHouseFragment"
+            app:destination="@+id/publishHouseFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_detailedHouseFragment"
+            app:destination="@+id/detailedHouseFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_bookingFragment"
+            app:destination="@+id/bookingFragment"
+            >
+        </action>
+    </fragment>
+
+
+
 
     <!-- PROFILO personale -->
     <fragment

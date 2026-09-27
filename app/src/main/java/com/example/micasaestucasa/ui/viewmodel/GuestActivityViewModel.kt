@@ -41,7 +41,7 @@ class GuestActivityViewModel : ViewModel() {
                     return@launch
                 }
 
-                val rawBookings = BookingRepository.getBookingByGuest(currentUid)//.getOrThrow()
+                val rawBookings = BookingRepository.getBookingByGuest(currentUid).getOrThrow()
 
                 // 3. Mappatura in PARALLELO di ogni singola prenotazione
                 // .map restituisce una lista di Deferred<BookingUi> grazie al blocco async

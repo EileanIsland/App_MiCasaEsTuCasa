@@ -158,7 +158,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         binding.mapOverlay.setOnTouchListener { v, event ->
             when (event.action) {
                 android.view.MotionEvent.ACTION_DOWN,
-                     android.view.MotionEvent.ACTION_UP-> {
+                     android.view.MotionEvent.ACTION_MOVE-> {
                     // Impedisce al contenitore scorrevole di intercettare il tocco
                     v.parent.requestDisallowInterceptTouchEvent(true)
                 }
@@ -174,10 +174,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
 
 
     private fun setupRecyclerView() {
-        houseAdapter = HouseAdapter { casa ->
+        houseAdapter = HouseAdapter(
+            isOwnerView = false,
+            { casa ->
             val bundle = Bundle().apply { putString("houseId", casa.id) }
             findNavController().navigate(R.id.action_searchFragment_to_detailedHouseFragment, bundle)
-        }
+        })
         binding.resultsRecyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = houseAdapter
@@ -199,8 +201,6 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                 findNavController().navigate(R.id.action_searchFragment_to_detailedHouseFragment, bundle)
             }
         }
-        //TODO: DUBBIO SUI TAG DEI MARKER... come posso essere sicura che contengano proprio l'id della casa?
-        // per come ho implementato la mappa in publishFragment contengono l'indirizzo...
 
         val currentHouses = viewModel.uiState.value.houses
         if(currentHouses.isNotEmpty()){

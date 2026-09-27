@@ -53,7 +53,7 @@ class DetailedHouseViewModel : ViewModel() {
                     val ownerReviews = ownerReviewsDeferred.await()
                     val (mediaOwner, totaleOwner) = ownerStatsDeferred.await()
                     val numeroCase = houseCountDeferred.await()
-                    val numeroSoggiorni = bookingCountDeferred.await()
+                    val numeroSoggiorni = bookingCountDeferred.await().getOrThrow()
 
                     val userStats = UserStats(
                         ratingMedia = mediaOwner,

@@ -23,19 +23,23 @@ class UserProfileViewModel : ViewModel() {
             _uiState.update{it.copy(isLoading = true, errorMessage = null)}
 
             try{
-                //TODO USARE ASYNC E AWAUT
                 val userDef = async { UsersRepository.getUserById(userId)}
                 val userReviewsDef = async { ReviewRepository.getReviewsForUser(userId)}
+                val staysDef = async { BookingRepository.getBookingByGuest(userId)}
+                val adsDef = async { BookingRepository.getBookingByHost(userId)}
 
-                val user = userDef.await().getOrThrow()//todo verificare funzioni
+
+                val user = userDef.await().getOrThrow()
                 val userReviews = userReviewsDef.await()
                 val (media, totale) = ReviewRepository.getRatingStats(user?.id ?: "", ReviewTarget.UTENTE)
+                val stays = staysDef.await().getOrThrow()
+                val ads = adsDef.await().getOrThrow()
 
                 val stats = UserStats(
                     ratingMedia = media,
                     numeroRecensioni = totale,
-                    numeroSoggiorni = BookingRepository.getBookingByGuest(user?.id ?: "").size,
-                    numeroAnnunci = BookingRepository.getBookingByHost(user?.id ?: "").size
+                    numeroSoggiorni = stays.size,
+                    numeroAnnunci = stays.size
 
                 )
 

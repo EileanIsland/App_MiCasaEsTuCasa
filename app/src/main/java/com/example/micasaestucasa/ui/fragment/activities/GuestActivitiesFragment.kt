@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 
 class GuestActivitiesFragment : Fragment() {
 
-    // Utilizziamo viewModels() poiché questo ViewModel è specifico per questa schermata
     private val viewModel: GuestActivityViewModel by viewModels()
 
     private var _binding: FragmentGuestActivitiesBinding? = null
@@ -79,13 +78,11 @@ class GuestActivitiesFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
 
-                    // 1. Gestione indicatore di caricamento (se presente nel tuo XML)
+                    // TODO: Gestione progress bar (non mi ricordo se l'ho messa nel fragment xml controllare)
                     // binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
 
-                    // 2. Aggiornamento della lista nell'adapter
                     bookingAdapter.submitList(state.bookingList)
 
-                    // 3. Gestione dello stato vuoto (tvEmpty)
                     if (state.bookingList.isEmpty() && !state.isLoading) {
                         binding.tvEmpty.visibility = View.VISIBLE
                         binding.rvBookings.visibility = View.GONE
@@ -94,7 +91,7 @@ class GuestActivitiesFragment : Fragment() {
                         binding.rvBookings.visibility = View.VISIBLE
                     }
 
-                    // 4. Gestione centralizzata dei messaggi di errore tramite Snackbar
+                    //TODO: in precedenza ho usato sempre TOast mesagge, controllare quale tra i due mi piace di più
                     state.errorMessage?.let { msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                         viewModel.clearError()

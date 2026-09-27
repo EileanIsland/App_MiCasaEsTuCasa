@@ -23,14 +23,17 @@ class OwnerActivityViewModel : ViewModel(){
         loadOwnerActivities()
     }
 
-    fun loadOwnerActivities(){
-        viewModelScope.launch{
-            _uiState.update{it.copy(isLoading = true, errorMessage = null)}
+    /**
+     * Carica i dati nel Uistate per OwnerFragment
+     */
+    fun loadOwnerActivities() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            try{
+            try {
                 val currentUid = AuthRepository.getCurrentIUD()
-                if(currentUid == null){
-                    _uiState.update{
+                if (currentUid == null) {
+                    _uiState.update {
                         it.copy(
                             isLoading = false,
                             errorMessage = "Utente non autenticato"
@@ -39,29 +42,35 @@ class OwnerActivityViewModel : ViewModel(){
                     return@launch
                 }
 
-                val housesDeferred = async{ CasaRepository.getCaseByProprietario(currentUid)}
-                val bookingsDeferred = async {BookingRepository.getBookingByHost(currentUid) }
+                val housesDeferred = async { CasaRepository.getCaseByProprietario(currentUid) }
+                val bookingsDeferred = async { BookingRepository.getBookingByHost(currentUid) }
 
                 val housesList = housesDeferred.await()
-                val bookings = bookingsDeferred.await()
+                val bookings = bookingsDeferred.await().getOrThrow()
 
                 val mappedBookings = bookings.map { booking ->
                     async {
                         try {
-                            val casa = CasaRepository.getCasaById(booking.idCasa)//.getOrThrow()
+                            val casa = CasaRepository.getCasaById(booking.idCasa)
+
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
                             val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()
 
-                            BookingUi(booking = booking, casa = casa, owner = owner, guest = guest)
+                            BookingUi(
+                                booking = booking,
+                                casa = casa,
+                                owner = owner,
+                                guest = guest
+                            )
                         } catch (e: Exception) {
+                            // Se fallisce il recupero di un dettaglio, creiamo comunque l'oggetto
+                            // per non far sparire l'intera prenotazione dalla lista
                             BookingUi(booking = booking, casa = null, owner = null, guest = null)
                         }
                     }
                 }.awaitAll()
 
-
-
-                _uiState.update{
+                _uiState.update {
                     it.copy(
                         isLoading = false,
                         housesList = housesList,
@@ -69,18 +78,67 @@ class OwnerActivityViewModel : ViewModel(){
                     )
                 }
 
-            }catch (e : Exception){
-                _uiState.update{
+            } catch (e: Exception) {
+                _uiState.update {
                     it.copy(
                         isLoading = false,
                         errorMessage = e.message ?: "Errore durante il caricamento delle attività"
                     )
                 }
             }
-
         }
-
     }
+
+    fun deleteHouse(houseId: String) {
+        viewModelScope.launch {_uiState.update { it.copy(isLoading = true) }
+            try {
+                CasaRepository.deactivateCasa(houseId).getOrThrow()
+
+                loadOwnerActivities()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
+    /**
+     * Accetta una prenotazione impostando lo stato su "Confermata"
+     */
+    fun acceptBooking(bookingId: String) {
+        updateBookingStatus(bookingId, "Confermata")
+    }
+
+    /**
+     * Rifiuta una prenotazione impostando lo stato su "Rifiutata"
+     */
+    fun rejectBooking(bookingId: String) {
+        updateBookingStatus(bookingId, "Rifiutata")
+    }
+
+    /**
+     * Metodo privato di utilità per gestire l'aggiornamento su Firestore
+     */
+    private fun updateBookingStatus(bookingId: String, newStatus: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            try {
+                BookingRepository.updateBookingStatus(bookingId, newStatus).getOrThrow()
+
+                loadOwnerActivities()
+
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Impossibile aggiornare la prenotazione: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+
 
     fun clearError(){
         _uiState.update{
@@ -88,7 +146,7 @@ class OwnerActivityViewModel : ViewModel(){
         }
     }
 
-
-
-
 }
+
+
+

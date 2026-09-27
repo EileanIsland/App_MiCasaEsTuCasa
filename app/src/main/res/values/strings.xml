@@ -205,5 +205,6 @@
     <string name="label_telefono">Numero di telefono</string>
     <string name="zero_euro">0€</string>
     <string name="mille_euro">1000€</string>
+    <string name="nessun_risultato">Nessun risultato</string>
 
 </resources>

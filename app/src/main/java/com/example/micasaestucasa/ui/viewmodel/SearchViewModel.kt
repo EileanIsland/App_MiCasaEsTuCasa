@@ -31,19 +31,20 @@ class SearchViewModel : ViewModel(){
             try{
                 val servicesDeferred = async { TagsRepository.getTagsByType("servizi") }
                 val experiencesDeferred = async { TagsRepository.getTagsByType("esperienza")  }
-                val tipologie = async { EnumHouseType.listEnumHouse() }
+                val tipologieDef = async { EnumHouseType.listEnumHouse() }
                 val houseDeferred = async{ CasaRepository.getAllCase() }
 
                 val services = servicesDeferred.await()
                 val experiences = experiencesDeferred.await()
                 val houses = houseDeferred.await()
+                val tipologie = tipologieDef.await()
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
                         availableService = services,
                         availableExperience = experiences,
-                        availableCategory = tipologie.await(),
+                        availableCategory = tipologie,
                         houses = houses
                     )
                 }
@@ -111,7 +112,7 @@ class SearchViewModel : ViewModel(){
                 date = emptyList(),
                 services = emptyList(),
                 experiences = emptyList(),
-                priceRange = listOf(0, 1000),
+                priceRange = listOf(0, 1000000),
                 numBathroom = 0,
                 numBeds = 0,
                 category = "",

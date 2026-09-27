@@ -10,42 +10,44 @@ object BookingRepository {
     private val bookingCollection = db.collection("bookings")
 
     /**
-     * Recupera tutte le prenotazioni effettuate da un utente specifico
+     * Recupera tutte le prenotazioni effettuate da un utente specifico (Ospite)
      */
-    suspend fun getBookingByGuest(guestId: String): List<Booking> {
+    suspend fun getBookingByGuest(guestId: String): Result<List<Booking>> {
         return try {
             val snapshot = bookingCollection
                 .whereEqualTo("idUtente", guestId)
-                .whereEqualTo("stato", "accepted")
+                // Se vuoi mostrare solo quelle accettate, mantieni il filtro,
+                // altrimenti toglilo per mostrare anche quelle in attesa/rifiutate
                 .get()
                 .await()
-            snapshot.toObjects(Booking::class.java)
+            val bookings = snapshot.toObjects(Booking::class.java)
+            Result.success(bookings)
         } catch (e: Exception) {
-            emptyList()
+            Result.failure(e)
         }
     }
 
     /**
-     * Recupera tutte le prenotazioni che sono richieste a un proprietario specifico
+     * Recupera tutte le prenotazioni ricevute da un proprietario (Host)
      */
-    suspend fun getBookingByHost(hostId: String): List<Booking> {
+    suspend fun getBookingByHost(hostId: String): Result<List<Booking>> {
         return try {
             val snapshot = bookingCollection
                 .whereEqualTo("idHost", hostId)
                 .get()
                 .await()
-            snapshot.toObjects(Booking::class.java)
-        }
-        catch (e: Exception) {
-            emptyList()
+            val bookings = snapshot.toObjects(Booking::class.java)
+            Result.success(bookings)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
     }
 
-
     /**
-     * Salva o aggiorna i dati di una prenotazione
+     * Salva o aggiorna i dati di una prenotazione.
+     * Restituisce l'ID della prenotazione in caso di successo.
      */
-    suspend fun saveBooking(booking: Booking): String {
+    suspend fun saveBooking(booking: Booking): Result<String> {
         return try {
             val docRef = if (booking.idBooking.isEmpty()) {
                 bookingCollection.document()
@@ -54,53 +56,67 @@ object BookingRepository {
             }
             val finalBooking = booking.copy(idBooking = docRef.id)
             docRef.set(finalBooking).await()
-            finalBooking.idBooking
+            Result.success(finalBooking.idBooking)
         } catch (e: Exception) {
-            throw e
-        }
-    }
-
-
-    /**
-     * recupera le info di una prenotazione tramite id
-     */
-    suspend fun getBookingById(booingId: String): Booking{
-        return try{
-            val snapshot = bookingCollection.document(booingId).get().await()
-            snapshot.toObject(Booking::class.java) ?: throw Exception("Booking not found")
-        }catch (e: Exception){
-            throw e
-        }
-    }
-
-
-    /**
-     * elimina una prenotazione
-     */
-    suspend fun deleteBooking(booking: Booking){
-        try{
-            bookingCollection.document(booking.idBooking).delete().await()
-        }catch (e: Exception){
-            throw e
+            Result.failure(e)
         }
     }
 
     /**
-     * recupera il numero di prenotazioni effettuate da un utente specifico
+     * Aggiorna lo stato di una prenotazione (es: Accettata, Rifiutata)
      */
-    suspend fun getBookingCountByGuest(guestId: String): Int {
+    suspend fun updateBookingStatus(bookingId: String, newStatus: String): Result<Unit> {
+        return try {
+            bookingCollection.document(bookingId).update("stato", newStatus).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Recupera i dettagli di una singola prenotazione tramite ID
+     */
+    suspend fun getBookingById(bookingId: String): Result<Booking?> {
+        return try {
+            val snapshot = bookingCollection.document(bookingId).get().await()
+            val booking = snapshot.toObject(Booking::class.java)
+            if (booking != null) {
+                Result.success(booking)
+            } else {
+                Result.failure(Exception("Prenotazione non trovata"))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Elimina una prenotazione dallo storage di Firestore
+     */
+    suspend fun deleteBooking(bookingId: String): Result<Unit> {
+        return try {
+            bookingCollection.document(bookingId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Conta il numero di prenotazioni effettuate da un utente
+     */
+    suspend fun getBookingCountByGuest(guestId: String): Result<Int> {
         return try {
             val snapshot = bookingCollection
                 .whereEqualTo("idUtente", guestId)
                 .whereEqualTo("stato", "accepted")
                 .get()
                 .await()
-            snapshot.size()
+            Result.success(snapshot.size())
         } catch (e: Exception) {
-            0
+            Result.failure(e)
         }
     }
-
-
-
 }
+

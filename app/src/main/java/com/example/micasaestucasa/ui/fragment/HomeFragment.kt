@@ -55,10 +55,14 @@ class HomeFragment : Fragment() {
         binding.etSearch.clearFocus()
     }
     private fun setupRecyclerView() {
-        houseAdapter = HouseAdapter { casa ->
-            val bundle = Bundle().apply { putString("houseId", casa.id) }
-            findNavController().navigate(R.id.action_homeFragment_to_detailedHouseFragment, bundle)
-        }
+        houseAdapter = HouseAdapter(
+            isOwnerView = false,
+            onCasaClick = { casa ->
+                val bundle = Bundle().apply { putString("houseId", casa.id) }
+                findNavController().navigate(R.id.action_homeFragment_to_detailedHouseFragment, bundle)
+            }
+
+        )
 
         binding.rvHouses.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
