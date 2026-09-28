@@ -64,9 +64,12 @@ class ProfileFragment : Fragment(){
 
                     //logout
                     if (state.isLoggedOut) {
-                        findNavController().navigate(
-                            R.id.loginFragment
-                        )
+                        val intent = requireActivity().intent
+                        requireActivity().finish() // Chiude l'app
+                        startActivity(intent)      // riapre app
+
+                        //TODO: inserire animazione?
+
                         return@collect
                     }
 
@@ -226,7 +229,6 @@ class ProfileFragment : Fragment(){
             .setNegativeButton("Annulla", null)
             .setPositiveButton("Esci"){
                     _, _ -> viewModel.logout()
-                //TODO
             }
             .show()
 

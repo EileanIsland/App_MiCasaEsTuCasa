@@ -81,37 +81,6 @@ class ProfileViewModel : ViewModel() {
                     }
 
                 }
-
-                /*
-                val userDef = async { UsersRepository.getUserById(targetUserId)}
-                val userReviewsReceivedDef = async{ ReviewRepository.getReviewsForUser(targetUserId)}
-                val staysDef = async{ BookingRepository.getBookingByGuest(targetUserId)}
-                val adsDef = async{ BookingRepository.getBookingByHost(targetUserId)}
-                val statsDef = async{ ReviewRepository.getRatingStats(targetUserId, ReviewTarget.UTENTE)}
-
-
-                val user = userDef.await().getOrNull()
-                val userReviewsReceived = userReviewsReceivedDef.await()
-                val stays = staysDef.await()
-                val ads = adsDef.await()
-                val (rating, numeroRec) = statsDef.await()
-
-                val stats = UserStats(
-                    ratingMedia = rating,
-                    numeroRecensioni = numeroRec,
-                    numeroSoggiorni = stays.size,
-                    numeroAnnunci = ads.size
-                )
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        user = user,
-                        userStats = stats,
-                        userReviewsReceived = userReviewsReceived,
-                        errorMessage = if (user == null) "Utente non trovato" else null
-                    )
-                }*/
             }catch (e: Exception){
                 _uiState.update {
                     it.copy(

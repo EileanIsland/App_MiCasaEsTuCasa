@@ -23,6 +23,7 @@ data class Booking (
     var dataInizio: String = "",
     var dataFine: String = "",
     var prezzoTotale: Double = 0.0,
+    var numeroOspiti: Int = 1,
     var stato: String = ""
 
 )

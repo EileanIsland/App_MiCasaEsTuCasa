@@ -206,5 +206,6 @@
     <string name="zero_euro">0€</string>
     <string name="mille_euro">1000€</string>
     <string name="nessun_risultato">Nessun risultato</string>
+    <string name="booking_title">Prenotazione</string>
 
 </resources>

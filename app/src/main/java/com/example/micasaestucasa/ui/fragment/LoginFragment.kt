@@ -1,5 +1,6 @@
 package com.example.micasaestucasa.ui.fragment
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,12 +13,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.micasaestucasa.R
 import androidx.navigation.fragment.findNavController
+import com.example.micasaestucasa.MainActivity
 import com.example.micasaestucasa.databinding.FragmentLoginBinding
 import com.example.micasaestucasa.ui.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
 //TODO
 // 3 - autorizzazione per admin
+// 4 - implementare errori validazione con TextInputLayout.Error se voglio evidenziare un campo
+    // snackbar per errori
 
 
 class LoginFragment : Fragment() {
@@ -57,23 +61,27 @@ class LoginFragment : Fragment() {
 
                     //SUCCESSO
                     if (state.isSuccess) {
-                        Toast.makeText(requireContext(), "Accesso eseguito!", Toast.LENGTH_SHORT).show()
-                        val destination = if (state.isAdmin) {
-                            R.id.action_loginFragment_to_adminFragment
-                        } else {
-                            R.id.action_loginFragment_to_homeFragment
-                        }
-                        findNavController().navigate(destination)
+                        val intent = Intent(requireContext(), MainActivity::class.java)
+
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                        startActivity(intent)
+
+                        requireActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+
                     }
 
                     state.errorMessage?.let { error ->
-                        Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
-                        viewModel.errorShown()
+                        com.google.android.material.snackbar.Snackbar.make(        binding.root,
+                            error,
+                            com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                        ).show()
+
+                        viewModel.errorShown() }
                     }
 
                 }
             }
-        }
+
     }
 
 
@@ -100,30 +108,6 @@ class LoginFragment : Fragment() {
             )
         }
 
-        //TODO
-        /*
-        val stringaCompleta = getString(R.string.testo_registrazione)
-        val parolaCliccabile = "Registrati qui"
-
-        val spannableString = SpannableString(stringaCompleta)
-        val startIndex = stringaCompleta.indexOf(parolaCliccabile)
-        val endIndex = startIndex + parolaCliccabile.length
-
-        // Creiamo il link d'azione
-        val clickableSpan = object : ClickableSpan() {
-        override fun onClick(widget: View) {
-        // Inserisci qui l'azione che vuoi far fare al click!
-        navController.navigate(R.id.registerFragment)
-        }
-        }
-
-        // Applichiamo il click alla parola specifica
-        spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        binding.myTextView.text = spannableString
-        binding.myTextView.movementMethod = LinkMovementMethod.getInstance()
-
-         */
 
     }
 

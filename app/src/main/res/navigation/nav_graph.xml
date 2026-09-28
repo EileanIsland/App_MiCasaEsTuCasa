@@ -105,6 +105,11 @@
             android:name="houseId"
             app:argType="string">
         </argument>
+
+        <argument
+            android:name="BookingId"
+            app:argType="string">
+        </argument>
     </fragment>
 
 
