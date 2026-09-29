@@ -124,7 +124,7 @@ class HomeFragment : Fragment() {
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 val query = binding.etSearch.text.toString()
                 if (query.isNotEmpty()) {
-                    navigateToSearch(query, isCategory = false)
+                    navigateToSearch(query)
                 }
                 true
             } else {
@@ -135,7 +135,7 @@ class HomeFragment : Fragment() {
         //bottone ricerca
         binding.btnExecuteSearch.setOnClickListener{
             val query = binding.etSearch.text.toString()
-            navigateToSearch(query, isCategory = false)
+            navigateToSearch(query)
         }
 
         //bottone pubblica
@@ -145,20 +145,20 @@ class HomeFragment : Fragment() {
 
         //CATAEGORIE RICERCA
         binding.catCasa.setOnClickListener {
-            navigateToSearch("CASA")
+            navigateToSearch("Casa")
         }
 
         binding.catAppartamento.setOnClickListener {
-            navigateToSearch("APPARTAMENTO")
+            navigateToSearch("Appartamento")
 
         }
 
         binding.catStanza.setOnClickListener {
-            navigateToSearch("STANZA")
+            navigateToSearch("stanza")
         }
 
         binding.catGiardino.setOnClickListener {
-            navigateToSearch("GIARDINO")
+            navigateToSearch("giardino")
         }
 
         binding.btnVediTutto.setOnClickListener {
@@ -166,13 +166,17 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun navigateToSearch(value: String, isCategory: Boolean = true) {
-        val bundle = Bundle().apply {
-            if (isCategory) {
-                putString("category", value)
-            } else {
-                putString("query", value)
+    private fun navigateToSearch(value: String) {
+        if(value == "ALL"){
+            val bundle = Bundle().apply {
+                putString("query", "")
             }
+            findNavController().navigate(R.id.action_homeFragment_to_searchFragment, bundle)
+            return
+        }
+
+        val bundle = Bundle().apply {
+            putString("query", value)
         }
         findNavController().navigate(R.id.action_homeFragment_to_searchFragment, bundle)
     }

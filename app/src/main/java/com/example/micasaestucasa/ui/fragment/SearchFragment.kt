@@ -81,6 +81,12 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
+                    //provo a eliminare il bug sui marker pulendo la mappa ad ogni modifica
+                    if(googleMap != null){
+                        googleMap!!.clear()
+                        lastDisplayedHouseIds = emptySet()
+                    }
+
                     binding.progressBar.isVisible = state.isLoading
 
                     //CHIP
@@ -286,6 +292,13 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
+        binding.typeFilter.setOnItemClickListener { parent, _, position, _ ->
+            val selected = parent.getItemAtPosition(position).toString()
+            android.util.Log.d("SEARCH_DEBUG", "Categoria selezionata nel Fragment: $selected")
+            viewModel.updateCategory(selected)
+        }
+
+
         // Guests
         binding.btnIncreaseGuests.setOnClickListener { viewModel.updateGuests(viewModel.uiState.value.numPerson + 1) }
         binding.btnDecreaseGuests.setOnClickListener {
@@ -299,7 +312,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         binding.btnDecreaseBeds.setOnClickListener {
             val current = viewModel.uiState.value.numBeds
             if (current > 0) viewModel.updateBeds(current - 1)
-            //TODO sarebbe più sicuro decrementare nel viewmodel, fare i calcoli nel viewmodel RICORDARSI DI CAMBIARE
+            //TODO sarebbe più sicuro decrementare nel viewmodel, fare i calcoli nel view model RICORDARSI DI CAMBIARE
         }
 
         //bagni
@@ -307,12 +320,6 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         binding.btnDecreaseBathrooms.setOnClickListener {
             val current = viewModel.uiState.value.numBathroom
             if (current > 0) viewModel.updateBathroom(current - 1)
-        }
-
-        // Listener Categoria Dropdown
-        binding.typeFilter.setOnItemClickListener { _, _, position, _ ->
-            val selected = binding.typeFilter.adapter.getItem(position).toString()
-            viewModel.updateCategory(selected)
         }
 
         // Listener Chips Esperienza

@@ -146,7 +146,7 @@
                                 android:maxLines="1"
                                 android:textColor="?attr/colorOnSurface"
                                 android:textColorHint="?attr/colorOnSurfaceVariant"
-                                android:textSize="12sp" />
+                                android:textSize="14sp" />
 
                         </com.google.android.material.textfield.TextInputLayout>
 

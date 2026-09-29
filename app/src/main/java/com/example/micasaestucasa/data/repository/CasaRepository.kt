@@ -123,9 +123,9 @@ object CasaRepository {
             val maxPrice = priceRange.getOrNull(1) ?: 10000
 
             // Se non ci sono filtri, restituisci tutto
-            if (query.isEmpty() && numPerson <= 0 && date.isEmpty() &&
+            if (query.isEmpty() && numPerson <= 0 && date.isEmpty() && category.isEmpty() &&
                 services.isEmpty() && experiences.isEmpty() &&
-                category.isEmpty() && numBathroom == 0 && numBeds == 0 && minPrice<= 0 && maxPrice >= 1000
+                numBathroom == 0 && numBeds == 0 && minPrice<= 0 && maxPrice >= 1000
             ) {
                 android.util.Log.d("FIRESTORE_SEARCH", "Nessun filtro applicato. Restituisco tutte le ${allHouses.size} case.")
                 return allHouses
@@ -135,16 +135,13 @@ object CasaRepository {
                 val matchesQuery = query.isEmpty() || (
                         casa.titolo.contains(query, ignoreCase = true) ||
                                 casa.descrizione.contains(query, ignoreCase = true) ||
-                                casa.citta.contains(query, ignoreCase = true)
+                                casa.citta.contains(query, ignoreCase = true) ||
+                                casa.tipo.label.contains(query, ignoreCase = true) ||
+                                casa.servizi.any { it.contains(query, ignoreCase = true) } ||
+                                casa.esperienza.any { it.contains(query, ignoreCase = true) }
                         )
 
-                val matchesCategory = category.isEmpty() || (
-                        casa.tipo.label.contains(category, ignoreCase = true) ||
-                        casa.descrizione.contains(category, ignoreCase = true) ||
-                        casa.esperienza.any{it.contains(category, ignoreCase = true)} ||
-                        casa.regole.any{it.contains(category, ignoreCase = true)} ||
-                        casa.servizi.any{it.contains(category, ignoreCase = true)}
-                        )
+                val matchesCategory  = category.isEmpty() || casa.tipo.label.equals(category, ignoreCase = true)
 
                 val matchesDate = if (date.size >= 2 && date[0] > 0 && date[1] > 0) {
                     casa.disponibilita.any { d ->
@@ -159,14 +156,26 @@ object CasaRepository {
                 val matchesServices = services.isEmpty() || casa.servizi.containsAll(services)
                 val matchesExperiences = experiences.isEmpty() || casa.esperienza.containsAll(experiences)
 
-                matchesQuery && matchesCategory && matchesDate && matchesPrices &&
+                matchesQuery && matchesDate && matchesPrices &&
+                        matchesCategory &&
                         matchesCapacity && matchesBeds && matchesBathrooms &&
                         matchesServices && matchesExperiences
             }
 
-            android.util.Log.d("SEARCH_DEBUG", "Case trovate: ${filtered.size} su ${allHouses.size}")
+            android.util.Log.d("SEARCH_DEBUG", "query: $query" +
+                    " numPerson: $numPerson" +
+                    " date: $date" +
+                    " services: $services" +
+                    " experiences: $experiences" +
+                    " priceRange: $priceRange" +
+                    " numBathroom: $numBathroom" +
+                    " numBeds: $numBeds" +
+                    " category: $category"
+            )
+            android.util.Log.d("SEARCH_DEBUG", "Case trovate: ${filtered.size} su ${allHouses.size} - Query: $query")
 
-            filtered.sortedBy { it.valutazioneMedia }
+
+            filtered.sortedByDescending{ it.valutazioneMedia }
         } catch (e: Exception) {
             android.util.Log.e("SEARCH_DEBUG", "Errore durante il filtraggio", e)
             emptyList()

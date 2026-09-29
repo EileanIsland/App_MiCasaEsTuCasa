@@ -64,6 +64,13 @@ class SearchViewModel : ViewModel(){
         performSearch()
     }
 
+    fun updateCategory(category: String){
+        _uiState.update{ it.copy(category = category) }
+        android.util.Log.d("SEARCH_DEBUG", "ViewModel: categoria aggiornata a -> $category")
+        performSearch()
+    }
+
+
     fun updateGuests(guests: Int){
         _uiState.update{ it.copy(numPerson = guests) }
         performSearch()
@@ -99,10 +106,6 @@ class SearchViewModel : ViewModel(){
         performSearch()
     }
 
-    fun updateCategory(category: String){
-        _uiState.update{ it.copy(category = category) }
-        performSearch()
-    }
 
     fun nofilter(){
         _uiState.update{
@@ -128,9 +131,10 @@ class SearchViewModel : ViewModel(){
                 it.copy(isLoading = true)
             }
 
-            try{
-                val currentState = _uiState.value
+            val currentState = _uiState.value
+            android.util.Log.d("SEARCH_DEBUG", "PerformSearch sta chiamando il repo con categoria: '${currentState.category}'")
 
+            try{
                 val houses = CasaRepository.searchHouses(
                     query = currentState.query,
                     numPerson = currentState.numPerson,
@@ -142,6 +146,8 @@ class SearchViewModel : ViewModel(){
                     numBeds = currentState.numBeds,
                     category = currentState.category
                 )
+
+                android.util.Log.d("SEARCH_DEBUG", "Repo ha risposto. Case trovate: ${houses.size}")
 
                 _uiState.update{
                     it.copy(
