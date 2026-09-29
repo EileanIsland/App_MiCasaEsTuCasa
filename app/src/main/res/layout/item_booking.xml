@@ -8,7 +8,8 @@
 
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="10dp"
+    android:layout_margin="10dp"
+
 
     app:cardCornerRadius="25dp"
     app:cardElevation="4dp"
@@ -23,19 +24,19 @@
 
         android:padding="16dp">
 
-
         <!-- Foto casa -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivHouseCover"
 
-            android:layout_width="90dp"
-            android:layout_height="90dp"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
 
             android:scaleType="centerCrop"
-
             android:src="@drawable/ic_launcher_foreground"
 
             android:contentDescription="@string/immagine_copertina_casa"
+
+            app:shapeAppearanceOverlay="@style/BordiArrotondatiFoto"
 
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"/>

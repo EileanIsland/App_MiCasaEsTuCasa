@@ -20,8 +20,8 @@ data class Booking (
     val idCasa: String = "",
     val idUtente: String = "",
     val idHost: String = "",
-    var dataInizio: String = "",
-    var dataFine: String = "",
+    var dataInizio: Long = 0,
+    var dataFine: Long = 0,
     var prezzoTotale: Double = 0.0,
     var numeroOspiti: Int = 1,
     var stato: String = ""

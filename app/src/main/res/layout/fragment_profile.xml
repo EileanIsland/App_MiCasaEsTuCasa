@@ -48,8 +48,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
 
-            <!-- Badge -->
 
+            <!-- Badge -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/profileBadges"
                 android:layout_width="wrap_content"

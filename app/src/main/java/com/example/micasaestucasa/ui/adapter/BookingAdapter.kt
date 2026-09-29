@@ -10,6 +10,7 @@ import com.bumptech.glide.Glide
 import com.example.micasaestucasa.R
 import com.example.micasaestucasa.data.model.BookingUi
 import com.example.micasaestucasa.databinding.ItemBookingBinding
+import com.example.micasaestucasa.utils.DateUtils.formatRange
 
 /**
  * Adapter riutilizzabile che accetta un [BookingUi] per mostrare
@@ -58,9 +59,8 @@ class BookingAdapter(
             binding.tvGuests.text = "${casa?.ospitiMassimi ?: 0} ospiti"
             binding.tvStatus.text = booking?.stato // Assicurati che 'stato' esista in Booking.kt
 
-            val dataInizioStr = booking?.dataInizio
-            val dataFineStr = booking?.dataFine
-            binding.tvDates.text = "$dataInizioStr - $dataFineStr"
+
+            binding.tvDates.text = formatRange( booking?.dataInizio, booking?.dataFine)
 
             val imageUrl = casa?.immagini?.firstOrNull()
             Glide.with(context)

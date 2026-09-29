@@ -42,5 +42,14 @@
         <item name="cornerSize">50%</item>
     </style>
 
+
+
+    <style name="BordiArrotondatiFoto" parent="">
+        <item name="cornerSize">12dp</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
+
+
+
     <style name="Theme.MiCasaEsTuCasa" parent="Base.Theme.MiCasaEsTuCasa" />
 </resources>

@@ -176,6 +176,13 @@
             >
         </action>
 
+        <action
+            android:id="@+id/action_guestActivitiesFragment_to_bookingFragment"
+            app:destination="@id/bookingFragment"
+            >
+        </action>
+
+
     </fragment>
 
     <!-- Guest-->

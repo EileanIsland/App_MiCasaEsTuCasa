@@ -3,7 +3,6 @@ package com.example.micasaestucasa.utils
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.micasaestucasa.R
@@ -161,5 +160,38 @@ object ViewUtils {
         }
 
         dateRangePicker.show(fragmentManager, "DATE_RANGE_PICKER")
+    }
+
+
+    /**
+     * selettore di date ma in un determinato range
+     */
+    fun showAvailableRangeDatePicker(
+        fragmentManager: FragmentManager,
+        disponibilita: List<kotlin.Pair<Long, Long>>,
+        onDateSelected: (Long, Long) -> Unit
+    ) {
+        val constraintsBuilder = CalendarConstraints.Builder()
+
+        constraintsBuilder.setValidator(AvailabilityValidator(disponibilita))
+
+        if (disponibilita.isNotEmpty()) {
+            constraintsBuilder.setOpenAt(disponibilita.first().first)
+        }
+
+        val picker = MaterialDatePicker.Builder.dateRangePicker()
+            .setTitleText("Seleziona date disponibili")
+            .setCalendarConstraints(constraintsBuilder.build())
+            .build()
+
+        picker.addOnPositiveButtonClickListener { range ->
+            val start = range.first
+            val end = range.second
+            if (start != null && end != null) {
+                onDateSelected(start, end)
+            }
+        }
+
+        picker.show(fragmentManager, "AVAILABLE_DATE_PICKER")
     }
 }

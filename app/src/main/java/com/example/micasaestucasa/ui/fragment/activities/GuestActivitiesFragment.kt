@@ -10,12 +10,17 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.micasaestucasa.databinding.FragmentGuestActivitiesBinding
 import com.example.micasaestucasa.ui.adapter.BookingAdapter
 import com.example.micasaestucasa.ui.viewmodel.GuestActivityViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import com.example.micasaestucasa.R
+
+
+//TODO migliorare la card prenotazione
 
 class GuestActivitiesFragment : Fragment() {
 
@@ -42,16 +47,18 @@ class GuestActivitiesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        // Inizializziamo l'adapter specificando che NON siamo nella vista Host
+
         bookingAdapter = BookingAdapter(
             isHostView = false,
             onModifyClick = { uiModel ->
-                // Azione al click su "Modifica" (Adatta con la tua azione di navigazione reale)
-                Toast.makeText(
-                    requireContext(),
-                    "Modifica viaggio: ${uiModel.booking?.idBooking}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val bundle = Bundle().apply {
+                    putString("bookingId", uiModel.booking?.idBooking)
+                    putString("houseId", uiModel.casa?.id)
+
+                }
+                findNavController().navigate(R.id.action_guestActivitiesFragment_to_bookingFragment, bundle)
+
+
 
                 // Esempio Navigazione:
                 // val action = GuestActivitiesFragmentDirections.actionToModifyBooking(uiModel.booking.idBooking)
@@ -91,7 +98,6 @@ class GuestActivitiesFragment : Fragment() {
                         binding.rvBookings.visibility = View.VISIBLE
                     }
 
-                    //TODO: in precedenza ho usato sempre TOast mesagge, controllare quale tra i due mi piace di più
                     state.errorMessage?.let { msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                         viewModel.clearError()

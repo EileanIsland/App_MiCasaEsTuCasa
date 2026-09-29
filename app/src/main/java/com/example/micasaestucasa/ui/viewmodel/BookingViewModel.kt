@@ -11,18 +11,44 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 
 class BookingViewModel : ViewModel(){
     private val _uiState = MutableStateFlow(BookingUiState())
     val uiState: StateFlow<BookingUiState> = _uiState.asStateFlow()
 
-    fun load(houseId: String){
+    private var currentBookingId : String? = null //id prenotazione per modalità modifica
+
+    fun loadBookingData(houseId: String, bookingId: String? = null) {
+        currentBookingId = bookingId
         _uiState.update { it.copy(isLoading = true) }
+
         viewModelScope.launch{
             try{
-                val casa = CasaRepository.getCasaById(houseId)
-                _uiState.update { it.copy(isLoading = false, casa = casa) }
+                val casaDef = async {CasaRepository.getCasaById(houseId)}
+                val bookingDeferred = if (bookingId != null) {
+                    async { BookingRepository.getBookingById(bookingId).getOrNull() }
+                } else null
 
+                val booking = bookingDeferred?.await()
+                val casa = casaDef.await()
+
+                _uiState.update {
+                    state -> state.copy(
+                        isLoading = false,
+                        casa = casa,
+                        startDate = booking?.dataInizio ?: state.startDate,
+                        endDate = booking?.dataFine ?: state.endDate,
+                        numGuest = booking?.numeroOspiti ?: state.numGuest,
+                        status = booking?.stato ?: state.status,
+                    )
+                }
+
+                if (booking != null) {
+                    updateDates(booking.dataInizio, booking.dataFine)
+                } else {
+                    validateForm()
+                }
 
             }catch(e: Exception){
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
@@ -32,22 +58,31 @@ class BookingViewModel : ViewModel(){
     }
 
     fun updateDates(startDate: Long, endDate: Long){
-        val diff = endDate -startDate
+        val diff = endDate - startDate
         val nights = (diff / (1000 * 60 * 60 * 24)).toInt()
         val prNight = uiState.value.casa?.prezzoNotte ?: 0.0
+        _uiState.update { it.copy(startDate = startDate, endDate = endDate, numNights = nights, totalPrice = nights * prNight) }
         validateForm()
 
-        _uiState.update { it.copy(startDate = startDate, endDate = endDate, numNights = nights, totalPrice = nights * prNight) }
     }
 
     fun updateGuest(numGuest: Int){
-        validateForm()
         _uiState.update { it.copy(numGuest = numGuest) }
+
+        validateForm()
+
     }
 
     private fun validateForm(){
         val s = _uiState.value
-        val isValid = s.casa != null && s.startDate != null && s.endDate != null && s.numGuest > 0 && s.numNights> 0
+        val isValid =
+            s.casa != null &&
+                    s.startDate != null
+                    && s.endDate != null
+                    && s.startDate < s.endDate
+                    && s.numGuest > 0
+                    && s.numGuest < s.casa.ospitiMassimi
+                    && s.numNights> 0
 
         _uiState.update { it.copy(isFormValid = isValid) }
     }
@@ -62,11 +97,12 @@ class BookingViewModel : ViewModel(){
             try{
                 val currentUid = UsersRepository.getCurrentUid() ?: throw Exception("Effettuare il login per prenotare")
                 val booking = Booking(
+                    idBooking = currentBookingId ?: "",
                     idCasa = state.casa!!.id,
                     idUtente = currentUid,
                     idHost = state.casa.proprietarioId,
-                    dataInizio = state.startDate.toString(),
-                    dataFine = state.endDate.toString(),
+                    dataInizio = state.startDate!!,
+                    dataFine = state.endDate!!,
                     prezzoTotale = state.totalPrice,
                     numeroOspiti = state.numGuest,
                     stato = "In attesa"

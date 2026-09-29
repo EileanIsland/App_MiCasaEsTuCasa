@@ -17,10 +17,12 @@ object DateUtils {
     }
 
     fun formatRange(
-        start: Long,
-        end: Long
+        start: Long?,
+        end: Long?
     ): String{
-        return "${formatDate(start)} → ${formatDate(end)}"
+        if(start == null || end == null) return "Data non specificata"
+        else
+            return "${formatDate(start)} → ${formatDate(end)}"
     }
 
 

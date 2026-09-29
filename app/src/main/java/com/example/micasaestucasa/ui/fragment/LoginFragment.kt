@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import com.google.android.material.snackbar.Snackbar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -20,8 +20,9 @@ import kotlinx.coroutines.launch
 
 //TODO
 // 3 - autorizzazione per admin
-// 4 - implementare errori validazione con TextInputLayout.Error se voglio evidenziare un campo
-    // snackbar per errori
+// 4 - implementare errori validazione con TextInputLayout.Error se voglio evidenziare un
+//      campo snackbar per errori
+//      TOast è per messaggi di sistema
 
 
 class LoginFragment : Fragment() {
@@ -71,9 +72,10 @@ class LoginFragment : Fragment() {
                     }
 
                     state.errorMessage?.let { error ->
-                        com.google.android.material.snackbar.Snackbar.make(        binding.root,
+                        Snackbar.make(
+                            binding.root,
                             error,
-                            com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                            Snackbar.LENGTH_LONG
                         ).show()
 
                         viewModel.errorShown() }
@@ -95,7 +97,11 @@ class LoginFragment : Fragment() {
                 viewModel.login(email, password)
 
             }else{
-                Toast.makeText(requireContext(), "Inserisci email e password", Toast.LENGTH_SHORT).show()
+                Snackbar.make(
+                    binding.root,
+                    "Inserisci email e password",
+                    Snackbar.LENGTH_LONG
+                ).show()
             }
             binding.etPassword.text?.clear()
 

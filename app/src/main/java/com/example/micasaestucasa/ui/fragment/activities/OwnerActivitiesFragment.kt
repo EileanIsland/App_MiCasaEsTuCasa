@@ -1,12 +1,10 @@
 package com.example.micasaestucasa.ui.fragment.activities
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -138,7 +136,10 @@ class OwnerActivitiesFragment : Fragment(){
                 viewModel.rejectBooking(uiModel.booking?.idBooking ?: "")
             },
             onItemClick = {
-                findNavController().navigate(R.id.action_ownerActivitiesFragment_to_bookingFragment)
+                val bundle = Bundle()
+                bundle.putString("houseId", it.casa?.id)
+                bundle.putString("bookingId", it.booking?.idBooking)
+                findNavController().navigate(R.id.action_ownerActivitiesFragment_to_bookingFragment, bundle)
 
             }
         )
