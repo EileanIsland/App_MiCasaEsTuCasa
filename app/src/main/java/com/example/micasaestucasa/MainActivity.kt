@@ -22,9 +22,9 @@ import androidx.navigation.NavGraph
 
 //TODO:
 // 1 aggiornare i repository per usere Result<Unit>
-// 2 - Rivedere startDestination dinamico forse non è la soluzione migliore?
-// 3- migliorare gestione navigazione dopo log out mi da errori e chiude l'app qundo dovrebbe rimandarmi su login sempre
 // 4 - in alcuni viewmodel avevo usato UUID.random... cambiare usare gli id creati da Firestore
+// 5 - The safeArg gradle plug-in
+// 6 - PREFERENCES per memorizzare l'utente login/logout
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding

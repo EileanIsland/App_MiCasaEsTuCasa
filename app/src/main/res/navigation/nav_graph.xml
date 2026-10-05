@@ -123,12 +123,23 @@
             android:id="@+id/action_chatFragment_to_detailedChatFragment"
             app:destination="@id/detailedChatFragment"/>
 
+        <argument
+            android:name="chatId"
+            app:argType="string">
+        </argument>
+
+        <argument
+            android:name="otherUserId"
+            app:argType="string">
+        </argument>
+
+
     </fragment>
 
     <!-- DETAILED CHAT -->
     <fragment
         android:id="@+id/detailedChatFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.DetailedChatFragment"/>
+        android:name="com.example.micasaestucasa.ui.fragment.detailedChatFragment"/>
 
 
     <!-- SEARCH -->

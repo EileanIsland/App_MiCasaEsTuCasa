@@ -8,7 +8,8 @@
     android:layout_height="wrap_content"
 
     android:paddingHorizontal="12dp"
-    android:paddingVertical="6dp">
+    android:paddingVertical="6dp"
+    >
 
 
     <!-- Bubble del messaggio -->
@@ -17,6 +18,8 @@
 
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+
+        android:maxWidth="260dp"
 
         app:cardCornerRadius="24dp"
         app:cardBackgroundColor="?attr/colorPrimaryContainer"

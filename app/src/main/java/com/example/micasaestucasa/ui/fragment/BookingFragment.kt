@@ -50,9 +50,6 @@ class BookingFragment : Fragment(){
         val bookId = arguments?.getString("bookId")
         val houseId = arguments?.getString("houseId")
 
-        //TODO PER Il momento uso questo metodo per gli argomenti
-        // poi approfondire:     private val args: BookingFragmentArgs by navArgs()
-
         if(houseId == null){
             android.util.Log.e("BOOKING_DEBUG", "Errore: houseId mancante!")
             Snackbar.make(
