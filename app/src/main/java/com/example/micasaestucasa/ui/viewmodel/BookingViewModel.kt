@@ -67,9 +67,39 @@ class BookingViewModel : ViewModel(){
     }
 
     fun updateGuest(numGuest: Int){
-        _uiState.update { it.copy(numGuest = numGuest) }
+        val max = _uiState.value.casa?.ospitiMassimi ?: 1
+        val validatedCount = if (numGuest > max) max else numGuest
+
+        _uiState.update { it.copy(numGuest = validatedCount) }
 
         validateForm()
+
+    }
+
+    fun deleteBooking(bookingId: String){
+        if(bookingId.isEmpty()) return
+
+        if(_uiState.value.status != "In attesa"){
+            _uiState.update { it.copy(errorMessage = "Impossibile eliminare una prenotazione") }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                BookingRepository.deleteBooking(bookingId).getOrThrow()
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message
+                            ?: "Errore durante la cancellazione della prenotazione"
+                    )
+                }
+            }
+        }
+
 
     }
 
@@ -81,7 +111,7 @@ class BookingViewModel : ViewModel(){
                     && s.endDate != null
                     && s.startDate < s.endDate
                     && s.numGuest > 0
-                    && s.numGuest < s.casa.ospitiMassimi
+                    && s.numGuest <= s.casa.ospitiMassimi
                     && s.numNights> 0
 
         _uiState.update { it.copy(isFormValid = isValid) }

@@ -208,5 +208,8 @@
     <string name="nessun_risultato">Nessun risultato</string>
     <string name="booking_title">Prenotazione</string>
     <string name="booking_status">Stato: %s</string>
+    <string name="segnala_chat">Segnala utente</string>
+    <string name="elimina_chat">Elimina chat</string>
+    <string name="recensione">Recensione</string>
 
 </resources>

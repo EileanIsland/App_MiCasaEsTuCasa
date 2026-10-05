@@ -142,9 +142,6 @@
             app:layout_constraintStart_toStartOf="parent"
             >
 
-
-
-
             <!-- Ospiti -->
             <ImageView
                 android:id="@+id/ivGuests"
@@ -215,8 +212,6 @@
                 tools:text="4.8"/>
 
         </LinearLayout>
-
-
 
 
         <!-- Azioni proprietario -->

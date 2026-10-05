@@ -55,6 +55,10 @@ class ChatFragment: Fragment() {
                 viewModel.uiState.collect { state ->
                     binding.progressBar.isVisible = state.isLoading
 
+                    binding.rvChats.isVisible = !state.isLoading && state.chats.isNotEmpty()
+                    binding.noResult.isVisible = !state.isLoading && state.chats.isEmpty()
+
+
                     if(state.chats.isNotEmpty()){
                         binding.rvChats.isVisible = true
                         binding.noResult.isVisible = false

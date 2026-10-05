@@ -164,6 +164,36 @@ object UsersRepository {
     fun clearCache() {
         _currentUserProfile.value = null
     }
+
+
+    /**
+     * Segnala un utente per comportamento scorretto.
+     *
+     * @param reportedUserId L'ID dell'utente da segnalare.
+     * @param reason La motivazione della segnalazione.
+     * @return [Result] di tipo [Unit].
+     */
+    suspend fun reportUser(reportedUserId: String, reason: String): Result<Unit> {
+        return try {
+            val reporterId = getCurrentUid() ?: return Result.failure(Exception("Utente non autenticato"))
+
+            val reportData = mapOf(
+                "reportedUserId" to reportedUserId,
+                "reporterUserId" to reporterId,
+                "reason" to reason,
+                "timestamp" to System.currentTimeMillis(),
+                "status" to "pending"
+            )
+
+            db.collection("user_reports").add(reportData).await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
 }
 
 

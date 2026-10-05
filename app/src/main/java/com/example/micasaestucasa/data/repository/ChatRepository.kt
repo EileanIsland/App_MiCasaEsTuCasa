@@ -122,6 +122,9 @@ object ChatRepository {
 
 
     fun getChatId(uid1: String, uid2: String): String {
+        if(uid1 == uid2) throw IllegalArgumentException("Utenti uguali")
+        if(uid1.isBlank() || uid2.isBlank()) throw IllegalArgumentException("Utenti vuoti")
+
         val sortedIdas = listOf(uid1, uid2).sorted()
         return "${sortedIdas[0]}_${sortedIdas[1]}"
     }
@@ -156,6 +159,49 @@ object ChatRepository {
             Result.failure(e)
         }
     }
+
+
+
+    /**
+     * Recupera i metadati di una singola chat (nomi e foto)
+     */
+    fun getChatMetadata(chatId: String): Flow<Map<String, Any>?> = callbackFlow {
+        val subscription = chatsCollection.document(chatId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                trySend(snapshot?.data)
+            }
+        awaitClose { subscription.remove() }
+    }
+
+
+    /**
+     * Elimina la chat e tutti i relativi messaggi (Batch)
+     */
+    suspend fun deleteChat(chatId: String): Boolean {
+        return try {
+            val batch = firestore.batch()
+
+            val chatRef = chatsCollection.document(chatId)
+
+            val messages = chatRef.collection("messages").get().await()
+            for (doc in messages) {
+                batch.delete(doc.reference)
+            }
+
+            batch.delete(chatRef)
+
+            batch.commit().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
 }
 
 

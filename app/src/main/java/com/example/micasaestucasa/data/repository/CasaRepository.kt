@@ -66,7 +66,7 @@ object CasaRepository {
         return try {
             db.collection("case")
                 .document(casaId)
-                .update("attiva", false)
+                .update("stato", false)
                 .await()
             Result.success(Unit)
         } catch (e: Exception) {

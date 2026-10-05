@@ -65,9 +65,25 @@ object BookingRepository {
     /**
      * Aggiorna lo stato di una prenotazione (es: Accettata, Rifiutata)
      */
+    //TODO: CAMBIARE CON ACCEPT BOOKING e CON REFUSE BOOKING
+
     suspend fun updateBookingStatus(bookingId: String, newStatus: String): Result<Unit> {
         return try {
             bookingCollection.document(bookingId).update("stato", newStatus).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /*
+    suspend fun acceptBooking(bookingId: String): Result<Unit> {
+
+    }*/
+
+    suspend fun refuseBooking(bookingId: String): Result<Unit> {
+        return try {
+            bookingCollection.document(bookingId).update("stato", "Rifiutata").await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

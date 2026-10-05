@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -54,23 +53,28 @@ class GuestActivitiesFragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("bookingId", uiModel.booking?.idBooking)
                     putString("houseId", uiModel.casa?.id)
-
+                    putBoolean("isReadOnly", false)
                 }
                 findNavController().navigate(R.id.action_guestActivitiesFragment_to_bookingFragment, bundle)
 
+                            },
+            onReviewClick = { uiModel ->
 
+                val bundle = Bundle().apply {
+                    putString("bookingId", uiModel.booking?.idBooking)
+                    putString("houseId", uiModel.casa?.id)
 
-                // Esempio Navigazione:
-                // val action = GuestActivitiesFragmentDirections.actionToModifyBooking(uiModel.booking.idBooking)
-                // findNavController().navigate(action)
+                }
+                findNavController().navigate(R.id.action_guestActivitiesFragment_to_reviewFragment, bundle)
+
             },
             onItemClick = { uiModel ->
-                // Azione al click sull'intera card per vedere i dettagli
-                Toast.makeText(
-                    requireContext(),
-                    "Dettagli viaggio: ${uiModel.booking?.idBooking}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                val bundle = Bundle().apply {
+                    putString("bookingId", uiModel.booking?.idBooking)
+                    putString("houseId", uiModel.casa?.id)
+                    putBoolean("isReadOnly", true)
+                }
+                findNavController().navigate(R.id.action_guestActivitiesFragment_to_bookingFragment, bundle)
             }
         )
 
@@ -112,8 +116,6 @@ class GuestActivitiesFragment : Fragment() {
         _binding = null
     }
 }
-
-
 
 
 

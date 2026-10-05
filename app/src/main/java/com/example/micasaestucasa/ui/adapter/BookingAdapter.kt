@@ -21,6 +21,7 @@ class BookingAdapter(
     private val onModifyClick: ((BookingUi) -> Unit)? = null,
     private val onAcceptClick: ((BookingUi) -> Unit)? = null,
     private val onRejectClick: ((BookingUi) -> Unit)? = null,
+    private val onReviewClick: ((BookingUi) -> Unit)? = null,
     private val onItemClick: ((BookingUi) -> Unit)? = null
 ) : ListAdapter<BookingUi, BookingAdapter.BookingViewHolder>(BookingUiCallback) {
 
@@ -30,7 +31,7 @@ class BookingAdapter(
             parent,
             false
         )
-        return BookingViewHolder(binding, isHostView, onModifyClick, onAcceptClick, onRejectClick, onItemClick)
+        return BookingViewHolder(binding, isHostView, onModifyClick, onAcceptClick, onRejectClick, onReviewClick, onItemClick)
     }
 
     override fun onBindViewHolder(holder: BookingViewHolder, position: Int) {
@@ -43,6 +44,7 @@ class BookingAdapter(
         private val onModifyClick: ((BookingUi) -> Unit)?,
         private val onAcceptClick: ((BookingUi) -> Unit)?,
         private val onRejectClick: ((BookingUi) -> Unit)?,
+        private val onReviewClick: ((BookingUi) -> Unit)?,
         private val onItemClick: ((BookingUi) -> Unit)?
     ) : RecyclerView.ViewHolder(binding.root) {
 
@@ -51,13 +53,14 @@ class BookingAdapter(
             val booking = uiModel.booking
             val casa = uiModel.casa
             val user = if(isHostView) uiModel.guest!! else uiModel.owner!!
+            val ruolo = if(isHostView) "Ospite" else "Proprietario"
 
 
             binding.tvHouseName.text = casa?.titolo ?: context.getString(R.string.segnaposto)
             binding.tvLocation.text = casa?.citta ?: "Posizione non specificata"
 
             binding.tvGuests.text = "${casa?.ospitiMassimi ?: 0} ospiti"
-            binding.tvStatus.text = booking?.stato // Assicurati che 'stato' esista in Booking.kt
+            binding.tvStatus.text = booking?.stato
 
 
             binding.tvDates.text = formatRange( booking?.dataInizio, booking?.dataFine)
@@ -70,11 +73,10 @@ class BookingAdapter(
                 .centerCrop()
                 .into(binding.ivHouseCover)
 
-            // 4. DATI UTENTE CONTROPARTE (item_user.xml incluso via ViewBinding)
             binding.layoutUser.visibility = View.VISIBLE
             binding.userInfo.apply {
-                tvUserName.text = (user.name + user.surname) ?: "Nome non specificato"
-                //TODO: Altre info utente
+                tvUserName.text = (user.name + " " + user.surname) ?: "Nome non specificato"
+                tvUserRole.text = ruolo
             }
 
             if (isHostView) {
@@ -91,8 +93,16 @@ class BookingAdapter(
                 binding.btnAccept.visibility = View.GONE
                 binding.btnReject.visibility = View.GONE
 
-                binding.layoutActions.visibility = View.VISIBLE
-                binding.btnModify.visibility = View.VISIBLE
+                // si può modificare la prenotazione solo se è in attesa o pending
+                val canModify = booking?.stato == "In attesa" || booking?.stato == "Pending"
+
+                if (canModify) {
+                    binding.layoutActions.visibility = View.VISIBLE
+                    binding.btnModify.visibility = View.VISIBLE
+                } else {
+                    binding.btnReview.visibility = View.VISIBLE
+                    binding.btnModify.visibility = View.GONE
+                }
             }
 
             binding.btnModify.setOnClickListener { onModifyClick?.invoke(uiModel) }

@@ -230,12 +230,9 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
 
     private fun setupButtons(){
         binding.contactOwnerButton.setOnClickListener {
-            //TODO apertura chat proprietario
-            Toast.makeText(
-                requireContext(),
-                "Apri chat proprietario",
-                Toast.LENGTH_SHORT
-            ).show()
+            val bundle = Bundle().apply{putString("otherUserId", viewModel.uiState.value.house?.proprietarioId)}
+            findNavController()
+                .navigate(R.id.action_detailedHouseFragment_to_chatFragment, bundle)
 
         }
 

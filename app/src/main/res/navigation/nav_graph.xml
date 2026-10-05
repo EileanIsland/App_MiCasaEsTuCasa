@@ -193,7 +193,33 @@
             >
         </action>
 
+        <action
+            android:id="@+id/action_guestActivitiesFragment_to_reviewFragment"
+            app:destination="@id/reviewFragment"
+            >
+        </action>
+    </fragment>
 
+
+    <!--RECENSIONE-->
+    <fragment
+        android:id="@+id/reviewFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.ReviewFragment">
+
+        <argument
+            android:name="houseId"
+            app:argType="string">
+        </argument>
+
+        <argument
+            android:name="bookingId"
+            app:argType="string">
+        </argument>
+
+        <argument
+            android:name="userId"
+            app:argType="string">
+        </argument>
     </fragment>
 
     <!-- Guest-->

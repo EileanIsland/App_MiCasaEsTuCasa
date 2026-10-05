@@ -13,33 +13,113 @@
 
     android:background="?attr/backgroundColor">
 
+    <View
+        android:id="@+id/toolbar_divider"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="?attr/colorOutlineVariant"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chat_detail_toolbar">
+    </View>
+
 
     <!-- Toolbar -->
-    <include
+    <androidx.appcompat.widget.Toolbar
         android:id="@+id/chat_detail_toolbar"
-
-        layout="@layout/custom_toolbar"
-
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:contentInsetStartWithNavigation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp"
+            tools:ignore="RtlSymmetry">
+
+            <!-- Immagine Profilo -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivUserProfile"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_person"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full"
+                tools:src="@tools:sample/avatars" />
+
+            <!-- Nome Utente / Titolo -->
+            <TextView
+                android:id="@+id/tvChatUserName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                tools:text="Nome Utente"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+            <!-- Icona Segnala -->
+            <ImageButton
+                android:id="@+id/btnReportChat"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/segnala_chat"
+                android:src="@drawable/ic_report"
+                app:tint="?attr/colorError" />
+
+            <!-- Icona Elimina -->
+            <ImageButton
+                android:id="@+id/btnDeleteChat"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/elimina_chat"
+                android:src="@drawable/ic_delete"
+                app:tint="?attr/colorOnSurfaceVariant" />
+
+            <!-- Icona Recensione (Stella) -->
+            <ImageButton
+                android:id="@+id/btnRateUser"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Recensisci"
+                android:src="@drawable/ic_star"
+                android:visibility="gone"
+                app:tint="?attr/colorPrimary"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+    </androidx.appcompat.widget.Toolbar>
+
 
     <include
         android:id="@+id/user"
+        android:layout_width="260dp"
+        android:layout_height="wrap_content"
+
+        android:layout_marginTop="10dp"
+        android:gravity="start"
 
         layout="@layout/item_house"
 
-        app:layout_constraintTop_toBottomOf="@id/chat_detail_toolbar"
+        app:layout_constraintTop_toBottomOf="@id/toolbar_divider"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 
     <!-- Lista messaggi -->
     <androidx.recyclerview.widget.RecyclerView
-
         android:id="@+id/rvMessages"
 
         android:layout_width="0dp"
@@ -50,11 +130,8 @@
         android:clipToPadding="false"
 
         app:layout_constraintTop_toBottomOf="@id/user"
-
-        app:layout_constraintBottom_toTopOf="@id/layoutSendMessage"
-
         app:layout_constraintStart_toStartOf="parent"
-
+        app:layout_constraintBottom_toBottomOf="@id/layoutSendMessage"
         app:layout_constraintEnd_toEndOf="parent"
 
         tools:listitem="@layout/item_message_sent"
@@ -145,7 +222,10 @@
             app:cornerRadius="24dp"/>
 
 
+
     </LinearLayout>
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
