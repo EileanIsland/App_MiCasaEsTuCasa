@@ -4,5 +4,15 @@ package com.example.micasaestucasa.data.model
  * Rappresenta il tipo di elemento recensito (casa o utente) in una recensione.
  */
 enum class ReviewTarget {
-    CASA, UTENTE
+    CASA, UTENTE;
+
+    companion object {
+        fun fromString(text: String): ReviewTarget {
+            return when (text.lowercase()) {
+                "casa" -> CASA
+                "utente" -> UTENTE
+                else -> throw IllegalArgumentException("Valore non valido: $text")
+            }
+        }
+    }
 }

@@ -142,6 +142,7 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
 
                     // Messaggi di errore
                     state.errorMessage?.let {
+                        android.util.Log.d("DEBUG_HOUSE", "Errore caricamento casa: $it")
                         Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
                         viewModel.errorShown()
                     }

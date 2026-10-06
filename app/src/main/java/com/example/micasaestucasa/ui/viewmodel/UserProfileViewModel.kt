@@ -30,8 +30,8 @@ class UserProfileViewModel : ViewModel() {
 
 
                 val user = userDef.await().getOrThrow()
-                val userReviews = userReviewsDef.await()
-                val (media, totale) = ReviewRepository.getRatingStats(user?.id ?: "", ReviewTarget.UTENTE)
+                val userReviews = userReviewsDef.await().getOrThrow()
+                val (media, totale) = ReviewRepository.getRatingStats(user?.id ?: "", ReviewTarget.UTENTE).getOrThrow()
                 val stays = staysDef.await().getOrThrow()
                 val ads = adsDef.await().getOrThrow()
 
@@ -39,7 +39,7 @@ class UserProfileViewModel : ViewModel() {
                     ratingMedia = media,
                     numeroRecensioni = totale,
                     numeroSoggiorni = stays.size,
-                    numeroAnnunci = stays.size
+                    numeroAnnunci = ads.size
 
                 )
 

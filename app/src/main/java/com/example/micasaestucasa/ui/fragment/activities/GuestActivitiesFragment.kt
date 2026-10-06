@@ -66,8 +66,8 @@ class GuestActivitiesFragment : Fragment() {
             onReviewClick = { uiModel ->
 
                 val bundle = Bundle().apply {
-                    putString("bookingId", uiModel.booking?.idBooking)
-                    putString("houseId", uiModel.casa?.id)
+                    putString("targetId", uiModel.casa?.id)
+                    putString("targetType", "CASA")
 
                 }
                 findNavController().navigate(R.id.action_guestActivitiesFragment_to_reviewFragment, bundle)

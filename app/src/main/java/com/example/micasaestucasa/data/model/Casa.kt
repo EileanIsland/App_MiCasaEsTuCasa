@@ -1,5 +1,7 @@
 package com.example.micasaestucasa.data.model
 
+import com.google.firebase.firestore.Exclude
+
 /**
  * Rappresenta una casa all'interno dell'applicazione.
  *
@@ -69,6 +71,7 @@ data class Casa(
     val disponibilita: List<Disponibilita> = emptyList(),
     var stato: Boolean = true //true se è una casa ancora attiva sul mercato, il suo annuncio non è stato cancellato
 ){
+    @get:Exclude
     val tipo: EnumHouseType
         get() = EnumHouseType.fromString(this.tipoString)
 }

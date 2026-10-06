@@ -211,5 +211,7 @@
     <string name="segnala_chat">Segnala utente</string>
     <string name="elimina_chat">Elimina chat</string>
     <string name="recensione">Recensione</string>
+    <string name="raccontaci_la_tua_esperienza">Raccontaci la tua esperienza...</string>
+    <string name="pubblica">Pubblica</string>
 
 </resources>

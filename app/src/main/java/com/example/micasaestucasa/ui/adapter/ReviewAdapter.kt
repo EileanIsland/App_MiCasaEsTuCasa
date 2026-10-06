@@ -20,7 +20,7 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(DiffCa
         fun bind(review: Review) {
             binding.reviewerName.text = review.reviewerName
             binding.reviewRating.text = "${review.rating}/5"
-            binding.reviewDate.text = formatDate(review.date)
+            binding.reviewDate.text = formatDate(review.timestamp)
             binding.reviewText.text = review.testo
 
             if (review.reviewerImageUrl.isNotEmpty()) {
@@ -51,7 +51,7 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(DiffCa
 
     companion object DiffCallback : DiffUtil.ItemCallback<Review>() {
         override fun areItemsTheSame(oldItem: Review, newItem: Review): Boolean {
-            return oldItem.reviewerName == newItem.reviewerName && oldItem.date == newItem.date
+            return oldItem.reviewerName == newItem.reviewerName && oldItem.timestamp == newItem.timestamp
         }
 
         override fun areContentsTheSame(oldItem: Review, newItem: Review): Boolean {
@@ -59,3 +59,5 @@ class ReviewAdapter : ListAdapter<Review, ReviewAdapter.ReviewViewHolder>(DiffCa
         }
     }
 }
+
+

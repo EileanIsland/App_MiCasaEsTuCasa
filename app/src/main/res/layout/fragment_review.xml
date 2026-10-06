@@ -13,7 +13,7 @@
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lascia una recensione"
+        android:text="@string/lascia_una_recensione"
         android:textAppearance="?attr/textAppearanceHeadlineSmall"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
@@ -29,9 +29,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
         android:numStars="5"
-        android:progressTint="?attr/colorPrimary"
+        android:progressTint="?attr/colorSecondary"
         android:rating="0.0"
-        android:stepSize="1.0"
+        android:stepSize="0.5"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle" />
@@ -43,7 +43,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="32dp"
-        android:hint="Raccontaci la tua esperienza..."
+        android:hint="@string/raccontaci_la_tua_esperienza"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/ratingBar">
@@ -66,7 +66,7 @@
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:layout_marginTop="40dp"
-        android:text="Pubblica"
+        android:text="@string/pubblica"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilComment" />

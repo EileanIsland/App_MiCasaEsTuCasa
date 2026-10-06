@@ -33,8 +33,8 @@ class DetailedHouseViewModel : ViewModel() {
                 val houseStatsDeferred = async { ReviewRepository.getRatingStats(id, ReviewTarget.CASA) }
 
                 val foundHouse = houseDeferred.await()
-                val houseReviews = reviewsDeferred.await()
-                val houseStats = houseStatsDeferred.await()
+                val houseReviews = reviewsDeferred.await().getOrThrow()
+                val houseStats = houseStatsDeferred.await().getOrThrow()
 
                 if (foundHouse != null) {
                     val ownerId = foundHouse.proprietarioId
@@ -49,9 +49,9 @@ class DetailedHouseViewModel : ViewModel() {
                     val bookingCountDeferred = async { BookingRepository.getBookingCountByGuest(ownerId) }
 
 
-                    val owner = ownerDeferred.await().getOrThrow() //TODO VERIFICARE SE IL NUOVO METODO FUNZIONA
-                    val ownerReviews = ownerReviewsDeferred.await()
-                    val (mediaOwner, totaleOwner) = ownerStatsDeferred.await()
+                    val owner = ownerDeferred.await().getOrThrow()
+                    val ownerReviews = ownerReviewsDeferred.await().getOrThrow()
+                    val (mediaOwner, totaleOwner) = ownerStatsDeferred.await().getOrThrow()
                     val numeroCase = houseCountDeferred.await()
                     val numeroSoggiorni = bookingCountDeferred.await().getOrThrow()
 
@@ -89,6 +89,8 @@ class DetailedHouseViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 _uiState.update {
+                    android.util.Log.d("DEBUG_DETAILED_HOUSE", "Errore durante il caricamento della casa: ${e.message}")
+
                     it.copy(
                         isLoading = false,
                         errorMessage = "Errore durante il caricamento della casa"

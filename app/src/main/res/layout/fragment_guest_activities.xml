@@ -21,10 +21,10 @@
 
         android:text="@string/le_tue_prenotazioni"
 
-        android:textSize="22sp"
+        android:textSize="24sp"
         android:textStyle="bold"
 
-        android:textColor="?attr/colorOnPrimary"
+        android:textColor="?attr/colorSecondary"
 
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"/>

@@ -59,10 +59,10 @@ class ProfileViewModel : ViewModel() {
                     val adsDef = async{ BookingRepository.getBookingByHost(currentUid)}
                     val statsDef = async{ ReviewRepository.getRatingStats(currentUid, ReviewTarget.UTENTE)}
 
-                    val userReviewsReceived = userReviewsReceivedDef.await()
+                    val userReviewsReceived = userReviewsReceivedDef.await().getOrThrow()
                     val stays = staysDef.await().getOrThrow()
                     val ads = adsDef.await().getOrThrow()
-                    val (rating, numeroRec) = statsDef.await()
+                    val (rating, numeroRec) = statsDef.await().getOrThrow()
                     val stats = UserStats(
                         ratingMedia = rating,
                         numeroRecensioni = numeroRec,

@@ -32,8 +32,10 @@ object CasaRepository {
     suspend fun getCasaById(id: String): Casa? {
         return try {
             val snapshot = caseCollection.document(id).get().await()
+            android.util.Log.d("FIRESTORE_DEBUG", "Data: ${snapshot.data}")
             snapshot.toObject(Casa::class.java)
         } catch (e: Exception) {
+            android.util.Log.e("FIRESTORE_ERROR", "Error: ${e.message}")
             null
         }
     }

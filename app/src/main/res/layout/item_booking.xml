@@ -13,7 +13,7 @@
 
     app:cardCornerRadius="25dp"
     app:cardElevation="4dp"
-    app:cardBackgroundColor="?attr/colorPrimaryContainer"
+    app:cardBackgroundColor="?attr/colorSurface"
     app:strokeColor="?attr/colorPrimary"
     app:strokeWidth="2dp">
 
