@@ -76,10 +76,63 @@ object BookingRepository {
         }
     }
 
-    /*
-    suspend fun acceptBooking(bookingId: String): Result<Unit> {
 
-    }*/
+    /**
+     * Accetta una prenotazione:
+     * 1. Recupera la prenotazione e la casa.
+     * 2. Verifica che le date siano ancora disponibili.
+     * 3. "Spacca" l'intervallo di disponibilità della casa.
+     * 4. Aggiorna entrambi i documenti.
+     */
+    suspend fun acceptBooking(bookingId: String): Result<Unit> {
+        return try {
+            db.runTransaction { transaction ->
+                val bookingRef = bookingCollection.document(bookingId)
+                val bookingSnapshot = transaction.get(bookingRef)
+                val booking = bookingSnapshot.toObject(Booking::class.java) ?: throw Exception("Prenotazione non trovata")
+
+                if (booking.stato != "In attesa" && booking.stato != "Pending") {
+                    throw Exception("La prenotazione non è più in attesa.")
+                }
+
+                val houseRef = db.collection("case").document(booking.idCasa)
+                val houseSnapshot = transaction.get(houseRef)
+
+                val currentDisponibilita = houseSnapshot.get("disponibilita") as? List<Map<String, Long>> ?: emptyList()
+
+                val startB = booking.dataInizio
+                val endB = booking.dataFine
+
+                val matchingInterval = currentDisponibilita.find {
+                    val inizioA = it["inizio"] ?: 0L
+                    val fineA = it["fine"] ?: 0L
+                    startB >= inizioA && endB <= fineA
+                } ?: throw Exception("Le date selezionate non sono più disponibili.")
+
+                val inizioA = matchingInterval["inizio"] ?: 0L
+                val fineA = matchingInterval["fine"] ?: 0L
+
+                val newAvailableList = currentDisponibilita.toMutableList()
+                newAvailableList.remove(matchingInterval)
+
+                if (inizioA < startB) {
+                    newAvailableList.add(mapOf("inizio" to inizioA, "fine" to startB))
+                }
+                if (fineA > endB) {
+                    newAvailableList.add(mapOf("inizio" to endB, "fine" to fineA))
+                }
+
+                // 4. ESECUZIONE AGGIORNAMENTI
+                transaction.update(bookingRef, "stato", "Confermata")
+                transaction.update(houseRef, "disponibilita", newAvailableList)
+            }.await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
     suspend fun refuseBooking(bookingId: String): Result<Unit> {
         return try {

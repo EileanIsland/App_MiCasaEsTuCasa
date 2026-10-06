@@ -101,44 +101,53 @@ class OwnerActivityViewModel : ViewModel(){
         }
     }
 
+
     /**
      * Accetta una prenotazione impostando lo stato su "Confermata"
      */
-    fun acceptBooking(bookingId: String) {
-        updateBookingStatus(bookingId, "Confermata")
-    }
+    fun acceptBooking(bookingId: String){
+        if(bookingId.isEmpty()) return
 
-    /**
-     * Rifiuta una prenotazione impostando lo stato su "Rifiutata"
-     */
-    fun rejectBooking(bookingId: String) {
-        updateBookingStatus(bookingId, "Rifiutata")
-    }
-
-    /**
-     * Metodo privato di utilità per gestire l'aggiornamento su Firestore
-     */
-    private fun updateBookingStatus(bookingId: String, newStatus: String) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             try {
-                BookingRepository.updateBookingStatus(bookingId, newStatus).getOrThrow()
-
+                BookingRepository.acceptBooking(bookingId).getOrThrow()
                 loadOwnerActivities()
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
 
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Impossibile aggiornare la prenotazione: ${e.message}"
-                    )
-                }
+            }catch(e: Exception){
+                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la conferma della prenotazione", isLoading = false, isSuccess = false)}
             }
         }
     }
 
 
+    fun refuseBooking(bookingId: String){
+        if(bookingId.isEmpty()) return
+
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                BookingRepository.refuseBooking(bookingId).getOrThrow()
+                loadOwnerActivities()
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+
+            }catch(e: Exception){
+                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la gestione della prenotazione", isLoading = false, isSuccess = false)}
+            }
+        }
+
+    }
+
+    fun resetSuccess() {
+        _uiState.update { it.copy(isSuccess = false) }
+    }
+
+    fun clearMessage(){
+        _uiState.update{
+            it.copy(message = null)
+        }
+    }
 
     fun clearError(){
         _uiState.update{

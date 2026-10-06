@@ -74,7 +74,6 @@
             app:argType="string">
         </argument>
 
-
         <action
             android:id="@+id/action_detailedHouseFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
@@ -107,11 +106,19 @@
         </argument>
 
         <argument
-            android:name="BookingId"
+            android:name="bookingId"
             app:argType="string">
         </argument>
-    </fragment>
 
+        <argument
+            android:name="isReadOnly"
+            app:argType="boolean">
+        </argument>
+
+        <action
+            android:id="@+id/action_bookingFragment_to_detailedHouseFragment"
+            app:destination="@id/detailedHouseFragment" />
+    </fragment>
 
 
     <!-- CHAT -->
@@ -196,6 +203,18 @@
         <action
             android:id="@+id/action_guestActivitiesFragment_to_reviewFragment"
             app:destination="@id/reviewFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_guestActivitiesFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_userProfileFragment"
+            app:destination="@id/userProfileFragment"
             >
         </action>
     </fragment>

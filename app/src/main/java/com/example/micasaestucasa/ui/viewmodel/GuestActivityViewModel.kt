@@ -29,7 +29,6 @@ class GuestActivityViewModel : ViewModel() {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                // 1. Recupero l'ID dell'utente attualmente loggato
                 val currentUid = AuthRepository.getCurrentIUD()
                 if (currentUid == null) {
                     _uiState.update {
@@ -43,18 +42,13 @@ class GuestActivityViewModel : ViewModel() {
 
                 val rawBookings = BookingRepository.getBookingByGuest(currentUid).getOrThrow()
 
-                // 3. Mappatura in PARALLELO di ogni singola prenotazione
-                // .map restituisce una lista di Deferred<BookingUi> grazie al blocco async
                 val mappedBookings = rawBookings.map { booking ->
                     async {
                         try {
-                            // Scarico la casa associata alla prenotazione
                             val casa = CasaRepository.getCasaById(booking.idCasa)//.getOrThrow()
 
-                            // Scarico il proprietario della casa (Owner)
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
 
-                            // Scarico il profilo di chi ha prenotato (Guest)
                             val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()
 
                             BookingUi(
@@ -82,7 +76,6 @@ class GuestActivityViewModel : ViewModel() {
                 }
 
             } catch (e: Exception) {
-                // Cattura eventuali errori generali (es. fallimento del BookingRepository iniziale)
                 _uiState.update {
                     it.copy(
                         isLoading = false,

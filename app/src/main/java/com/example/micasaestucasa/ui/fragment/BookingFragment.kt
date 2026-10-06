@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -16,15 +17,6 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import com.example.micasaestucasa.utils.DateUtils.formatDate
 import com.example.micasaestucasa.utils.ViewUtils.showAvailableRangeDatePicker
-
-
-//TODO:
-// 1 - mettere scritte vicino ai dati es: selezionare data 2
-// 2 - item_house iniziale non carica tutti i dati (mi sono dimenticata di mettere il binding)
-// 3 - validazione dettagli prenotazione
-//      (controllare che il numero di ospiti non supera il numero di max di ospiti
-//      date prenotazione siano corrette eccetera -
-// 4 -mi ha accettato pretnotazione con input 40 ospiti (errore) anche se poi ha salvato con 3 capire come mai
 
 
 class BookingFragment : Fragment(){
@@ -153,6 +145,8 @@ class BookingFragment : Fragment(){
 
                     if (state.isSuccess) {
                         Snackbar.make(requireView(), "Operazione completata!", Snackbar.LENGTH_LONG).show()
+
+                        findNavController().previousBackStackEntry?.savedStateHandle?.set("refresh_list", true)
                         findNavController().popBackStack()
                     }
 
@@ -179,16 +173,35 @@ class BookingFragment : Fragment(){
             }
         }
 
-        binding.guestsNumber.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !isReadOnly) {
-                val guests = binding.guestsNumber.text.toString().toIntOrNull() ?: 1
-                viewModel.updateGuest(guests)
+        binding.housePreview.root.setOnClickListener {
+            val houseId = viewModel.uiState.value.casa?.id
+            if (houseId != null) {
+                val bundle = Bundle().apply {
+                    putString("houseId", houseId)
+                }
+                findNavController().navigate(com.example.micasaestucasa.R.id.action_bookingFragment_to_detailedHouseFragment, bundle)
+            }
+
+        }
+
+        // In BookingFragment.kt -> setupListeners()
+        binding.guestsNumber.doAfterTextChanged { text ->val input = text.toString().toIntOrNull() ?: 1
+            val maxGuests = viewModel.uiState.value.casa?.ospitiMassimi ?: 1
+
+            // Validazione immediata
+            if (input > maxGuests) {
+                // Se inserisce troppo, resettiamo al massimo
+                binding.guestsNumber.setText(maxGuests.toString())
+                binding.guestsNumber.setSelection(binding.guestsNumber.text?.length ?: 0)
+                viewModel.updateGuest(maxGuests)
+            } else if (input > 0) {
+                viewModel.updateGuest(input)
             }
         }
 
         binding.bookingButton.setOnClickListener {
             if (!isReadOnly) {
-                viewModel.confirmBooking()
+                viewModel.saveBooking()
             }
         }
 
@@ -208,7 +221,6 @@ class BookingFragment : Fragment(){
                         .setNegativeButton("Mantieni", null)
                         .show()
                 } else {
-                    // Se è una nuova prenotazione non ancora salvata torna  indietro
                     findNavController().popBackStack()
                 }
             }

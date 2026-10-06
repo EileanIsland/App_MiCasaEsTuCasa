@@ -9,4 +9,6 @@ data class OwnerActivityUiState(
     val bookingList: List<BookingUi> = emptyList(),
     val housesList: List<Casa> = emptyList(),
     val errorMessage : String? = null,
+    val isSuccess: Boolean = false,
+    val message: String? = null
 )

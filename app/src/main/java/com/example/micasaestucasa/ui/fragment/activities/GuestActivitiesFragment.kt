@@ -19,8 +19,6 @@ import kotlinx.coroutines.launch
 import com.example.micasaestucasa.R
 
 
-//TODO migliorare la card prenotazione
-
 class GuestActivitiesFragment : Fragment() {
 
     private val viewModel: GuestActivityViewModel by viewModels()
@@ -41,12 +39,19 @@ class GuestActivitiesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("refresh_list")
+            ?.observe(viewLifecycleOwner) { refresh ->
+                if (refresh) {
+                    viewModel.loadGuestActivities()
+                    findNavController().currentBackStackEntry?.savedStateHandle?.remove<Boolean>("refresh_list")
+                }
+            }
+
         setupRecyclerView()
         observeUiState()
     }
 
     private fun setupRecyclerView() {
-
         bookingAdapter = BookingAdapter(
             isHostView = false,
             onModifyClick = { uiModel ->
@@ -75,6 +80,13 @@ class GuestActivitiesFragment : Fragment() {
                     putBoolean("isReadOnly", true)
                 }
                 findNavController().navigate(R.id.action_guestActivitiesFragment_to_bookingFragment, bundle)
+            },
+            onUserClick = { userId ->
+                val bundle = Bundle().apply {
+                    android.util.Log.d("NAV_TEST", "Cliccato su utente: $userId")
+                    putString("userId", userId)
+                }
+                findNavController().navigate(R.id.action_guestActivitiesFragment_to_userProfileFragment, bundle)
             }
         )
 
@@ -116,14 +128,6 @@ class GuestActivitiesFragment : Fragment() {
         _binding = null
     }
 }
-
-
-
-
-
-
-
-
 
 
 //TODO AGGIUNGERE SWIPE

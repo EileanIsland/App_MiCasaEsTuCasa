@@ -93,6 +93,7 @@ class BookingViewModel : ViewModel(){
                 _uiState.update {
                     it.copy(
                         isLoading = false,
+                        isSuccess = false,
                         errorMessage = e.message
                             ?: "Errore durante la cancellazione della prenotazione"
                     )
@@ -100,6 +101,47 @@ class BookingViewModel : ViewModel(){
             }
         }
 
+
+    }
+
+
+    fun acceptBooking(bookingId: String){
+        if(bookingId.isEmpty()) return
+
+        if(_uiState.value.status != "In attesa"){
+            _uiState.update { it.copy(errorMessage = "Impossibile confermare prenotazione") }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                BookingRepository.acceptBooking(bookingId).getOrThrow()
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+
+            }catch(e: Exception){
+                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la conferma della prenotazione", isLoading = false, isSuccess = false)}
+            }
+        }
+    }
+
+    fun refuseBooking(bookingId: String){
+        if(bookingId.isEmpty()) return
+        if(_uiState.value.status != "In attesa"){
+            _uiState.update { it.copy(errorMessage = "Impossibile rifiutare prenotazione") }
+            return
+        }
+
+        _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            try {
+                BookingRepository.refuseBooking(bookingId).getOrThrow()
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+
+            }catch(e: Exception){
+                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante il rifiuto della prenotazione", isLoading = false, isSuccess = false)}
+            }
+        }
 
     }
 
@@ -118,7 +160,7 @@ class BookingViewModel : ViewModel(){
     }
 
 
-    fun confirmBooking(){
+    fun saveBooking(){
         val state = _uiState.value
         if(!state.isFormValid) return
 

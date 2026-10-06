@@ -77,6 +77,18 @@ class OwnerActivitiesFragment : Fragment(){
                         binding.rvReceivedBookings.visibility = View.VISIBLE
                     }
 
+                    if (state.isSuccess) {
+                        Snackbar.make(binding.root, "Operazione completata!", Snackbar.LENGTH_SHORT).show()
+
+                        viewModel.resetSuccess()
+                    }
+
+                    state.message?.let{
+                        msg ->
+                        Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+                        viewModel.clearMessage()
+                    }
+
                     state.errorMessage?.let{
                         msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
@@ -133,16 +145,22 @@ class OwnerActivitiesFragment : Fragment(){
                 viewModel.acceptBooking(uiModel.booking?.idBooking ?: "")
             },
             onRejectClick = {uiModel->
-                viewModel.rejectBooking(uiModel.booking?.idBooking ?: "")
+                viewModel.refuseBooking(uiModel.booking?.idBooking ?: "")
             },
             onItemClick = {
                 val bundle = Bundle()
                 bundle.putString("houseId", it.casa?.id)
                 bundle.putString("bookingId", it.booking?.idBooking)
+                bundle.putBoolean("isReadOnly", true)
                 findNavController().navigate(R.id.action_ownerActivitiesFragment_to_bookingFragment, bundle)
 
-            }
-        )
+            },
+            onUserClick = {
+                val bundle = Bundle()
+                bundle.putString("userId", it)
+                findNavController().navigate(R.id.action_ownerActivitiesFragment_to_userProfileFragment, bundle)
+
+            })
 
         binding.rvReceivedBookings.apply{
             layoutManager = LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
@@ -158,6 +176,12 @@ class OwnerActivitiesFragment : Fragment(){
         }
     }
 
+
+    //TODO: altra soluzione: real time con addSnapshotListener nel repository
+    override fun onStart() {
+        super.onStart()
+        viewModel.loadOwnerActivities()
+    }
 
 
     override fun onDestroyView() {

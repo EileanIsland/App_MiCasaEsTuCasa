@@ -42,12 +42,6 @@ import android.widget.ArrayAdapter
 import kotlin.coroutines.resume
 
 
-//TODO: IN activities:
-//val id =
- //   arguments?.getString("houseId")
-//CasaRepository.getCasaById(id)
-
-
 class PublishFragment : Fragment(), OnMapReadyCallback{
     private val viewModel: PublishViewModel by viewModels()
     private var _binding: FragmentPublishBinding? = null

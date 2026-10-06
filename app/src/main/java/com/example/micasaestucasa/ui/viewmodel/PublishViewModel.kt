@@ -49,7 +49,7 @@ class PublishViewModel: ViewModel() {
                         availableExperience = defExperiences.await(),
                         availableRule = defRules.await(),
                         availableCategory = categories,
-                        isLoading = it.houseId.isNotBlank()
+                        isLoading = false
                     )
                 }
 

@@ -241,12 +241,6 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
             findNavController()
                 .navigate(R.id.action_detailedHouseFragment_to_bookHouseFragment, bundle)
 
-            Toast.makeText(
-                requireContext(),
-                getString(R.string.apri_prenotazione),
-                Toast.LENGTH_SHORT
-            ).show()
-
         }
 
         //bottone mostra tutte le recensioni
