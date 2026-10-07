@@ -95,8 +95,8 @@ class MainActivity : AppCompatActivity() {
     private fun setupBottomNavigationListeners() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
 
-            val authFragments = setOf(R.id.loginFragment, R.id.registerFragment)
-            if (destination.id in authFragments) {
+            val noBottomNavFragments = setOf(R.id.loginFragment, R.id.registerFragment, R.id.detailedChatFragment)
+            if (destination.id in noBottomNavFragments) {
                 binding.bottomNavigation.visibility = View.GONE
             } else {
                 binding.bottomNavigation.visibility = View.VISIBLE

@@ -55,7 +55,7 @@ class ReviewFragment : Fragment() {
         }
 
         binding.btnPublish.setOnClickListener {
-            viewModel.submitReview(viewModel.uiState.value.targetId)
+            viewModel.submitReview()
         }
     }
 

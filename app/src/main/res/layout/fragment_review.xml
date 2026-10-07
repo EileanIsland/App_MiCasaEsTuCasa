@@ -59,6 +59,17 @@
 
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tilComment"
+        />
+
     <!-- Tasto Pubblica -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnPublish"
@@ -69,6 +80,6 @@
         android:text="@string/pubblica"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tilComment" />
+        app:layout_constraintTop_toBottomOf="@id/progressBar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

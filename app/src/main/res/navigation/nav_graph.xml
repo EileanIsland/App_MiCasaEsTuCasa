@@ -77,6 +77,7 @@
         <action
             android:id="@+id/action_detailedHouseFragment_to_chatFragment"
             app:destination="@id/chatFragment" />
+
         <action
             android:id="@+id/action_detailedHouseFragment_to_detailedChatFragment"
             app:destination="@id/detailedChatFragment" />
@@ -146,7 +147,7 @@
     <!-- DETAILED CHAT -->
     <fragment
         android:id="@+id/detailedChatFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.detailedChatFragment"/>
+        android:name="com.example.micasaestucasa.ui.fragment.DetailedChatFragment"/>
 
 
     <!-- SEARCH -->
@@ -209,6 +210,12 @@
         <action
             android:id="@+id/action_guestActivitiesFragment_to_userProfileFragment"
             app:destination="@id/userProfileFragment"
+            >
+        </action>
+
+        <action
+            android:id="@+id/action_guestActivitiesFragment_to_detailedChatFragment"
+            app:destination="@id/detailedChatFragment"
             >
         </action>
 

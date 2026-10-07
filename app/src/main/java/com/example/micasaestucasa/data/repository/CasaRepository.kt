@@ -2,6 +2,7 @@ package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Casa
 import com.google.firebase.firestore.FirebaseFirestore.getInstance
+import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 
@@ -89,7 +90,7 @@ object CasaRepository {
 
     suspend fun getTopRatedHouses(): List<Casa> {
         return try {
-            val snapshot = caseCollection.orderBy("valutazioneMedia").limit(5).get().await()
+            val snapshot = caseCollection.orderBy("valutazioneMedia", Query.Direction.DESCENDING).limit(5).get().await()
             snapshot.toObjects(Casa::class.java)
         } catch (e: Exception) {
             e.printStackTrace()

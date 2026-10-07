@@ -157,7 +157,9 @@ class OwnerActivitiesFragment : Fragment(){
             },
             onUserClick = {
                 val bundle = Bundle()
-                bundle.putString("userId", it)
+                bundle.putString("userId", it.guest?.id)
+                bundle.putString("bookingId", it.booking?.idBooking)
+                bundle.putString("casaId", it.casa?.id)
                 findNavController().navigate(R.id.action_ownerActivitiesFragment_to_userProfileFragment, bundle)
 
             })

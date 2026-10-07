@@ -1,5 +1,7 @@
 package com.example.micasaestucasa.ui.viewmodel
 
+import com.example.micasaestucasa.data.model.Booking
+import com.example.micasaestucasa.data.model.Casa
 import com.example.micasaestucasa.data.model.ChatPreview
 import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.model.User
@@ -11,11 +13,13 @@ data class DetailedChatUiState(
     val otherUser: User? = null,
     val errorMessage: String? = null,
 
-    // Nuovi campi per le azioni della Toolbar
+    val house: Casa? = null,
+    val booking: Booking? = null,
+
     val isDeleting: Boolean = false,       // Indica se l'eliminazione è in corso
     val isReporting: Boolean = false,      // Indica se la segnalazione è in corso
     val actionSuccess: Boolean = false,    // Utile per chiudere la chat dopo l'eliminazione
-    val userFeedback: String? = null ,      // Per mostrare un messaggio (es. "Chat segnalata")
+    val userFeedback: String? = null,      // Per mostrare un messaggio (es. "Chat segnalata")
 
     val canReview: Boolean = false,       // Determina se mostrare l'icona/pulsante recensione
     val hasAlreadyReviewed: Boolean = false, // Evita doppie recensioni

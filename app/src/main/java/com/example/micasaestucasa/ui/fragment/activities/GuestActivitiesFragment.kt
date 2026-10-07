@@ -81,12 +81,14 @@ class GuestActivitiesFragment : Fragment() {
                 }
                 findNavController().navigate(R.id.action_guestActivitiesFragment_to_bookingFragment, bundle)
             },
-            onUserClick = { userId ->
+            onUserClick = { uiModel ->
                 val bundle = Bundle().apply {
-                    android.util.Log.d("NAV_TEST", "Cliccato su utente: $userId")
-                    putString("userId", userId)
+                    android.util.Log.d("NAV_TEST", "Cliccato su utente: ${uiModel.owner?.id}")
+                    putString("otherUserId", uiModel.owner?.id)
+                    putString("bookingId", uiModel.booking?.idBooking)
+                    putString("casaId", uiModel.casa?.id)
                 }
-                findNavController().navigate(R.id.action_guestActivitiesFragment_to_userProfileFragment, bundle)
+                findNavController().navigate(R.id.action_guestActivitiesFragment_to_detailedChatFragment, bundle)
             }
         )
 

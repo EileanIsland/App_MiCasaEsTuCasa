@@ -163,16 +163,40 @@ object ChatRepository {
 
 
     /**
-     * Recupera i metadati di una singola chat (nomi e foto)
+     * Recupera i metadati di una singola chat in tempo reale.
+     * Restituisce un Flow del modello ChatPreview.
      */
-    fun getChatMetadata(chatId: String): Flow<Map<String, Any>?> = callbackFlow {
+    fun getChatMetadata(chatId: String, currentUserId: String): Flow<ChatPreview?> = callbackFlow {
         val subscription = chatsCollection.document(chatId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
-                trySend(snapshot?.data)
+
+                if (snapshot == null || !snapshot.exists()) {
+                    trySend(null)
+                    return@addSnapshotListener
+                }
+
+                // Estraiamo i dati dal documento
+                val users = snapshot.get("users") as? List<String> ?: emptyList()
+                val otherUserId = users.find { it != currentUserId } ?: ""
+
+                val namesMap = snapshot.get("userNames") as? Map<String, String>
+                // Nota: uso "userPhotoUrls" per coerenza con initializeChat
+                val photosMap = snapshot.get("userPhotoUrls") as? Map<String, String>
+
+                val preview = ChatPreview(
+                    id = snapshot.id,
+                    lastMessage = snapshot.getString("lastMessage") ?: "",
+                    lastTimestamp = snapshot.getLong("lastTimestamp") ?: 0L,
+                    otherUserName = namesMap?.get(otherUserId) ?: "Utente",
+                    otherUserPhoto = photosMap?.get(otherUserId),
+                    otherUserId = otherUserId
+                )
+
+                trySend(preview)
             }
         awaitClose { subscription.remove() }
     }

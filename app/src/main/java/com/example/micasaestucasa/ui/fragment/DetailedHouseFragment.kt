@@ -231,9 +231,12 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
 
     private fun setupButtons(){
         binding.contactOwnerButton.setOnClickListener {
-            val bundle = Bundle().apply{putString("otherUserId", viewModel.uiState.value.house?.proprietarioId)}
+            val bundle = Bundle().apply{
+                putString("otherUserId", viewModel.uiState.value.house?.proprietarioId)
+                putString("casaId", viewModel.uiState.value.house?.id)
+            }
             findNavController()
-                .navigate(R.id.action_detailedHouseFragment_to_chatFragment, bundle)
+                .navigate(R.id.action_detailedHouseFragment_to_detailedChatFragment, bundle)
 
         }
 

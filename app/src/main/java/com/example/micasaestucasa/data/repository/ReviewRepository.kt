@@ -10,26 +10,43 @@ object ReviewRepository {
 
     private val db = FirebaseFirestore.getInstance()
     private val reviewsCollection = db.collection("reviews")
+    private val houseCollection = db.collection("case")
 
     /**
      * Salva una nuova recensione o ne aggiorna una esistente.
      * Restituisce Result.success(Unit) se l'operazione va a buon fine.
      */
-    suspend fun saveReview(review: Review): Result<Unit> {
+    suspend fun saveReviewHouse(review: Review): Result<Unit> {
         return try {
-            val docRef = if (review.id.isBlank()) {
-                reviewsCollection.document()
-            } else {
-                reviewsCollection.document(review.id)
-            }
+            db.runTransaction { transaction ->
+                val houseRef = db.collection("case").document(review.targetId)
+                val houseSnapshot = transaction.get(houseRef)
 
-            val finalReview = review.copy(id = docRef.id)
-            docRef.set(finalReview).await()
+                val oldRating = houseSnapshot.getDouble("valutazioneMedia") ?: 0.0
+                val oldCount = houseSnapshot.getLong("numeroRecensioni") ?: 0L
+
+                val newCount = oldCount + 1
+                val newRating = ((oldRating * oldCount) + review.rating) / newCount
+
+
+                val newReviewRef = db.collection("reviews").document()
+                val finalReview = review.copy(id = newReviewRef.id)
+                transaction.set(newReviewRef, finalReview)
+
+                transaction.update(houseRef, mapOf(
+                    "valutazioneMedia" to newRating,
+                    "numeroRecensioni" to newCount
+                ))
+            }.await()
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("ReviewRepository", "Errore durante il salvataggio della recensione: ${e.message}", e)
             Result.failure(e)
         }
     }
+
+    //TODO SALVA RECENSIONE UTENTE
+
 
     /**
      * Recupera le recensioni per una CASA.
@@ -98,7 +115,21 @@ object ReviewRepository {
         return try {
             val snapshot = reviewsCollection
                 .whereEqualTo("bookingId", bookingId)
-                .whereEqualTo("authorId", authorId)
+                .whereEqualTo("reviewerId", authorId)
+                .get()
+                .await()
+            Result.success(!snapshot.isEmpty)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun hasAlreadyReviewedUser(userId: String, authorId: String): Result<Boolean> {
+        return try {
+            val snapshot = reviewsCollection
+                .whereEqualTo("targetId", userId)
+                .whereEqualTo("reviewerId", authorId)
                 .get()
                 .await()
             Result.success(!snapshot.isEmpty)

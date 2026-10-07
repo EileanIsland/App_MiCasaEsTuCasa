@@ -27,6 +27,7 @@ import com.google.firebase.firestore.Exclude
  * @property numeroLetti il numero di letti presenti nella casa.
  * @property numeroBagni il numero di bagni presenti nella casa.
  * @property prezzoNotte il prezzo della notte per la casa.
+ * @property numeroRecensioni il numero di recensioni ricevute per la casa.
  * @property immagini una lista di URL delle immagini della casa.
  * @property esperienza una lista di tag associati all'esperienza della casa.
  * @property servizi una lista di tag associati ai servizi offerti dalla casa.
@@ -60,6 +61,8 @@ data class Casa(
     val numeroBagni: Int = 0,
 
     val prezzoNotte: Double = 0.0,
+
+    val numeroRecensioni: Int = 0,
 
     val immagini: List<String> = emptyList(),
     val esperienza: List<String> = emptyList(),

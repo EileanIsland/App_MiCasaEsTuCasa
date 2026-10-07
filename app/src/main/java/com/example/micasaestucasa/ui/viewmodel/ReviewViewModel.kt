@@ -3,7 +3,6 @@ package com.example.micasaestucasa.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.model.Review
-import com.example.micasaestucasa.data.model.ReviewTarget
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +43,7 @@ class ReviewViewModel : ViewModel() {
     }
 
 
-    fun submitReview(target: String) {
+    fun submitReview() {
         val state = _uiState.value
         if (!state.isPublishEnabled) return
 
@@ -66,7 +65,7 @@ class ReviewViewModel : ViewModel() {
                 targetTypeString = state.targetType
             )
 
-            ReviewRepository.saveReview(review).onSuccess {
+            ReviewRepository.saveReviewHouse(review).onSuccess {
                 _uiState.update { it.copy(
                     isLoading = false,
                     isSuccess = true
@@ -74,7 +73,7 @@ class ReviewViewModel : ViewModel() {
             }.onFailure { e ->
                 _uiState.update { it.copy(
                     isLoading = false,
-                    errorMessage = e.message ?: "Errore durante il salvataggio"
+                    errorMessage = "Errore durante il salvataggio"
                 ) }
             }
         }

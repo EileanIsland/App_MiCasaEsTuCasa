@@ -23,7 +23,7 @@ class BookingAdapter(
     private val onRejectClick: ((BookingUi) -> Unit)? = null,
     private val onReviewClick: ((BookingUi) -> Unit)? = null,
     private val onItemClick: ((BookingUi) -> Unit)? = null,
-    private val onUserClick: ((String) -> Unit)? = null
+    private val onUserClick: ((BookingUi) -> Unit)? = null
 ) : ListAdapter<BookingUi, BookingAdapter.BookingViewHolder>(BookingUiCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookingViewHolder {
@@ -47,7 +47,7 @@ class BookingAdapter(
         private val onRejectClick: ((BookingUi) -> Unit)?,
         private val onReviewClick: ((BookingUi) -> Unit)?,
         private val onItemClick: ((BookingUi) -> Unit)?,
-        private val onUserClick: ((String) -> Unit)?
+        private val onUserClick: ((BookingUi) -> Unit)?
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(uiModel: BookingUi) {
@@ -122,7 +122,7 @@ class BookingAdapter(
             }
 
             binding.userInfo.root.setOnClickListener {
-                user?.id?.let { id -> onUserClick?.invoke(id) }
+                user.id.let { onUserClick?.invoke(uiModel) }
             }
         }
     }
