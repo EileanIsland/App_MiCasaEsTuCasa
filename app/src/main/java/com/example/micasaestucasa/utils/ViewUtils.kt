@@ -1,6 +1,10 @@
 package com.example.micasaestucasa.utils
 
+import android.content.Context
+import android.content.Context.*
+import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.fragment.app.FragmentManager
@@ -13,7 +17,9 @@ import com.google.android.material.chip.ChipGroup
 import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
-import androidx.core.util.Pair // IMPORTANTE: Deve essere questo Pair
+import androidx.core.util.Pair
+import com.example.micasaestucasa.databinding.DialogReportUserBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 object ViewUtils {
 
@@ -194,4 +200,54 @@ object ViewUtils {
 
         picker.show(fragmentManager, "AVAILABLE_DATE_PICKER")
     }
+
+
+
+
+
+
+    // In com.example.micasaestucasa.utils.ViewUtils.kt
+
+    fun showReportUserDialog(
+        context: Context,
+        layoutInflater: LayoutInflater,
+        onReportConfirmed: (String) -> Unit
+    ) {
+        val dialogBinding = DialogReportUserBinding.inflate(layoutInflater)
+
+        dialogBinding.reportReasonGroup.setOnCheckedChangeListener { _, checkedId ->
+            if (checkedId == dialogBinding.rbOther.id) {
+                dialogBinding.descriptionLayout.visibility = View.VISIBLE
+                dialogBinding.etDescription.requestFocus()
+                val imm = context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                dialogBinding.etDescription.post {
+                    imm.showSoftInput(dialogBinding.etDescription, InputMethodManager.SHOW_IMPLICIT)
+                }
+            } else {
+                dialogBinding.descriptionLayout.visibility = View.GONE
+                dialogBinding.etDescription.text?.clear()
+            }
+        }
+
+        MaterialAlertDialogBuilder(context)
+            .setView(dialogBinding.root)
+            .setNegativeButton(context.getString(R.string.annulla), null)
+            .setPositiveButton(context.getString(R.string.invia)) { _, _ ->
+                val reason = when (dialogBinding.reportReasonGroup.checkedRadioButtonId) {
+                    dialogBinding.rbSpam.id -> "Spam"
+                    dialogBinding.rbScam.id -> "Scam"
+                    dialogBinding.rbOffensive.id -> "Offensivo"
+                    dialogBinding.rbOther.id -> dialogBinding.etDescription.text.toString()
+                    else -> "Altro"
+                }
+                if (reason.isNotBlank()) {
+                    onReportConfirmed(reason)
+                }
+            }
+            .show()
+    }
+
+
 }
+
+

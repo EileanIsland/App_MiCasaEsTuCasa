@@ -73,8 +73,7 @@ class DetailedChatViewModel: ViewModel(){
                     _uiState.update { it.copy(house = casa) }
                 }
 
-
-
+                checkReviewEligibility(cid, bookingId)
             }
         }catch (e: Exception){
             _uiState.update { it.copy(errorMessage = e.message) }
@@ -85,15 +84,33 @@ class DetailedChatViewModel: ViewModel(){
 
     /**
      * Verifica se mostrare l'icona della recensione nella toolbar.
+     * La stella appare se:
+     * 1. C'è un bookingId passato alla chat.
+     * 2. Quella specifica prenotazione è passata/conclusa.
+     * 3. L'utente non ha già lasciato una recensione per questo target.
      */
-    private suspend fun checkReviewEligibility() {
+    private fun checkReviewEligibility(chatId: String, bookingId: String?) {
         val uid = currentUserID ?: return
+        val otherId = otherUserID ?: return
 
-        ReviewRepository.hasAlreadyReviewedUser(otherUserID!!, uid).onSuccess { alreadyReviewed ->
+        if (bookingId == null) {
+            _uiState.update { it.copy(canReview = false) }
+            return
+        }
+
+        viewModelScope.launch {
+            val alreadyReviewed = ReviewRepository.hasAlreadyReviewedUser(otherId, uid).getOrDefault(false)
+
+            val isBookingReviewable = BookingRepository.getBookingById(bookingId).map { booking ->
+                val isExpired = (booking?.dataFine ?: Long.MAX_VALUE) < System.currentTimeMillis()
+                val isConfirmed = booking?.stato == "Confermata" || booking?.stato == "Rifiutata"
+                isConfirmed && isExpired
+            }.getOrDefault(false)
+
             _uiState.update { it.copy(
-                canReview = true,
+                canReview = isBookingReviewable,
                 hasAlreadyReviewed = alreadyReviewed
-            ) }
+            )}
         }
     }
 
@@ -194,6 +211,10 @@ class DetailedChatViewModel: ViewModel(){
                 _uiState.update { it.copy(
                     isReporting = false,
                     userFeedback = "Utente segnalato con successo"
+                ) }
+            }.onFailure {
+                _uiState.update { it.copy(
+                    errorMessage = "Errore durante segnalazione dell'utente"
                 ) }
             }
         }

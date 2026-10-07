@@ -9,6 +9,7 @@ data class UserProfileUiState (
     val userStats: UserStats? = null,
     val reviews: List<Review> = emptyList(),
     val isShowingAllReviews: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val feedback: String? = null
 
 )

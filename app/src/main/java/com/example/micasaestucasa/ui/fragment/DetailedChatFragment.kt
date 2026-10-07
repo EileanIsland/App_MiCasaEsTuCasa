@@ -18,9 +18,10 @@ import com.bumptech.glide.Glide
 import com.example.micasaestucasa.databinding.FragmentDetailedChatBinding
 import com.example.micasaestucasa.ui.adapter.MessageAdapter
 import com.example.micasaestucasa.ui.viewmodel.DetailedChatViewModel
+import com.example.micasaestucasa.utils.ViewUtils.showReportUserDialog
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-
+import com.example.micasaestucasa.R
 
 class DetailedChatFragment : Fragment(){
 
@@ -62,8 +63,20 @@ class DetailedChatFragment : Fragment(){
 
 
     private fun setupRecyclerView() {
-        val currentUid = viewModel.currentUserID ?: ""
-        val messageAdapter = MessageAdapter(currentUid)
+
+        val messageAdapter = MessageAdapter(
+            currentUid = viewModel.currentUserID ?: "",
+            onImageClick = { imageUrl ->
+                val images = arrayListOf(imageUrl)
+                PhotoGalleryDialogFragment.newInstance(
+                    images,
+                    0
+                ).show(
+                    childFragmentManager,
+                    "photoGallery"
+                )
+            }
+        )
 
         binding.rvMessages.apply {
             adapter = messageAdapter
@@ -75,7 +88,9 @@ class DetailedChatFragment : Fragment(){
 
     private fun setupToolbarListeners() {
         binding.btnReportChat.setOnClickListener {
-            showReportDialog()
+            showReportUserDialog(requireContext(), layoutInflater) { reason ->
+                viewModel.reportUser(reason)
+            }
         }
 
         binding.tvChatUserName.setOnClickListener {
@@ -211,24 +226,11 @@ class DetailedChatFragment : Fragment(){
     }
 
 
-    //TODO METTERLO NEGLI UTILS E RIUTILIZAZRLO COS^é éé IDENITCO SIA IN USERPROFILE che qui
-    private fun showReportDialog() {
-        val reasons = arrayOf("Spam", "Comportamento offensivo", "Profilo falso", "Altro")
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Segnala utente")
-            .setItems(reasons) { _, which ->
-                viewModel.reportUser(reasons[which])
-            }
-            .show()
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
-
-
 
 
 

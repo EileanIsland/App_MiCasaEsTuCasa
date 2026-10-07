@@ -69,6 +69,27 @@ class UserProfileViewModel : ViewModel() {
         _uiState.update { it.copy(isShowingAllReviews = !it.isShowingAllReviews) }
     }
 
+
+    fun reportUser(reason: String) {
+        viewModelScope.launch {
+            val state = _uiState.value
+            UsersRepository.reportUser(state.user?.id ?: "", reason).onSuccess {
+                _uiState.update { it.copy(
+                    feedback = "Utente segnalato con successo"
+                ) }
+            }.onFailure {
+                _uiState.update { it.copy(
+                    errorMessage = "Errore durante segnalazione dell'utente"
+                ) }
+            }
+        }
+    }
+
+    fun clearFeedback() {
+        _uiState.update { it.copy(feedback = null) }
+    }
+
+
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }

@@ -2,12 +2,10 @@ package com.example.micasaestucasa.ui.fragment
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -25,6 +23,8 @@ import com.example.micasaestucasa.ui.viewmodel.UserProfileViewModel
 import kotlinx.coroutines.launch
 import com.example.micasaestucasa.utils.ViewUtils.setupUserBadges
 import com.example.micasaestucasa.utils.ViewUtils.manageReviewsDisplay
+import com.example.micasaestucasa.utils.ViewUtils.showReportUserDialog
+import com.google.android.material.snackbar.Snackbar
 
 class UserProfileFragment : Fragment() {
 
@@ -60,7 +60,7 @@ class UserProfileFragment : Fragment() {
             viewModel.loadUserProfile(userId)
         }else{
             binding.progressBar.visibility = View.GONE
-            Toast.makeText(requireContext(), "Errore: ID utente non trovato", Toast.LENGTH_LONG).show()
+            Snackbar.make(binding.root, "Utente non trovato", Snackbar.LENGTH_LONG).show()
             findNavController().popBackStack()
         }
 
@@ -125,9 +125,13 @@ class UserProfileFragment : Fragment() {
                         binding.showAllReviewsButton
                     )
 
+                    state.feedback?.let{
+                        Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
+                        viewModel.clearFeedback()
+                    }
 
                     state.errorMessage?.let { error ->
-                        Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, error, Snackbar.LENGTH_LONG).show()
                         viewModel.clearError()
                     }
 
@@ -153,7 +157,9 @@ class UserProfileFragment : Fragment() {
     private fun setupButtons() {
         //SEGNALARE UTENTE
         binding.reportButton.setOnClickListener {
-            showReportDialog()
+            showReportUserDialog(requireContext(), layoutInflater) { reason ->
+                viewModel.reportUser(reason)
+            }
         }
 
         //Contattare utente
@@ -161,10 +167,10 @@ class UserProfileFragment : Fragment() {
             val currentUserId = viewModel.uiState.value.user?.id
             if (currentUserId != null) {
                 val bundle = Bundle().apply {
-                    putString("userId", currentUserId)
+                    putString("otherUserId", currentUserId)
                 }
                 findNavController().navigate(
-                    R.id.action_userProfileFragment_to_chatFragment,
+                    R.id.action_userProfileFragment_to_detailedChatFragment,
                     bundle
                 )
             }
@@ -177,43 +183,6 @@ class UserProfileFragment : Fragment() {
 
     }
 
-    private fun showReportDialog(){
-        val dialogBinding = DialogReportUserBinding.inflate(layoutInflater)
-
-        dialogBinding.reportReasonGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (checkedId == dialogBinding.rbOther.id) {
-                dialogBinding.descriptionLayout.visibility = View.VISIBLE
-                dialogBinding.etDescription.requestFocus()
-                val imm =
-                    requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-
-                dialogBinding.etDescription.post {
-                    imm.showSoftInput(dialogBinding.etDescription, InputMethodManager.SHOW_IMPLICIT)
-                }
-            } else {
-                dialogBinding.descriptionLayout.visibility = View.GONE
-                dialogBinding.etDescription.text?.clear()
-            }
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogBinding.root)
-            .setNegativeButton("Annulla", null)
-            .setPositiveButton("Invia") {
-                    _, _->
-
-                val reason = when(dialogBinding.reportReasonGroup.checkedRadioButtonId){
-                    dialogBinding.rbSpam.id -> "Spam"
-                    dialogBinding.rbScam.id -> "Scam"
-                    dialogBinding.rbOffensive.id -> "Offensivo"
-                    dialogBinding.rbOther.id -> "Altro"
-                    else -> dialogBinding.etDescription.text.toString()
-                }
-                //TODO viewModel.reportUser(reason)
-                Toast.makeText(requireContext(), "Segnalazione inviata", Toast.LENGTH_SHORT).show()
-
-            }.show()
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
