@@ -21,7 +21,7 @@ class HomeViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val list = CasaRepository.getTopRatedHouses()
+                val list = CasaRepository.getTopRatedHouses().getOrThrow()
                 _uiState.update { it.copy(isLoading = false, houses = list) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }

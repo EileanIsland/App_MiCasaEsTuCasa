@@ -31,7 +31,7 @@ class BookingViewModel : ViewModel(){
                 } else null
 
                 val booking = bookingDeferred?.await()
-                val casa = casaDef.await()
+                val casa = casaDef.await().getOrThrow()
 
                 _uiState.update {
                     state -> state.copy(

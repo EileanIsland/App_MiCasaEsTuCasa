@@ -63,7 +63,6 @@ class DetailedChatFragment : Fragment(){
 
 
     private fun setupRecyclerView() {
-
         val messageAdapter = MessageAdapter(
             currentUid = viewModel.currentUserID ?: "",
             onImageClick = { imageUrl ->
@@ -107,7 +106,7 @@ class DetailedChatFragment : Fragment(){
             val bundle = Bundle().apply {
                 putString("userId", state.otherUser?.id)
             }
-            findNavController().navigate(com.example.micasaestucasa.R.id.userProfileFragment, bundle)
+            findNavController().navigate(R.id.userProfileFragment, bundle)
 
         }
 
@@ -120,13 +119,23 @@ class DetailedChatFragment : Fragment(){
                 .show()
         }
 
-        binding.chatDetailToolbar.findViewById<View>(com.example.micasaestucasa.R.id.btnRateUser)?.setOnClickListener {
+        binding.chatDetailToolbar.findViewById<View>(R.id.btnRateUser)?.setOnClickListener {
             val state = viewModel.uiState.value
             val bundle = Bundle().apply {
                 putString("targetId", state.otherUser?.id)
                 putString("targetType", "utente")
             }
-            findNavController().navigate(com.example.micasaestucasa.R.id.reviewFragment, bundle)
+            findNavController().navigate(R.id.reviewFragment, bundle)
+        }
+
+
+        binding.btnRateUser.setOnClickListener {
+            val state = viewModel.uiState.value
+            val bundle = Bundle().apply {
+                putString("targetId", state.otherUser?.id)
+                putString("targetType", "utente")
+            }
+            findNavController().navigate(R.id.reviewFragment, bundle)
         }
 
     }

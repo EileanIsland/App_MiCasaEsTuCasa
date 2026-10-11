@@ -3,6 +3,7 @@ package com.example.micasaestucasa.data.repository
 import com.example.micasaestucasa.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -189,6 +190,24 @@ object UsersRepository {
 
             Result.success(Unit)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    /**
+     * Aggiorna il token Firebase Cloud Messaging (FCM) nel profilo dell'utente.
+     * Questo token permette al server di sapere a quale dispositivo inviare le notifiche.
+     */
+    suspend fun updateFcmToken(uid: String, token: String): Result<Unit> {
+        return try {
+            db.collection("users")
+                .document(uid)
+                .update("fcmToken", token)
+                .await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("UsersRepository", "Errore aggiornamento token FCM", e)
             Result.failure(e)
         }
     }

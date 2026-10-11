@@ -11,6 +11,7 @@ import com.example.micasaestucasa.data.repository.ReviewRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
@@ -25,62 +26,67 @@ class DetailedChatViewModel: ViewModel(){
     private var otherUserID : String ? = null
 
 
-    fun initChat(chatId: String?, otherUserId: String, casaId: String?, bookingId: String?){
-
+    fun initChat(chatId: String?, otherUserId: String, casaId: String?, bookingId: String?) {
         if(chatId == null){
             this.currentChatID = ChatRepository.getChatId(currentUserID!!, otherUserId)
-        }else{
+        } else {
             this.currentChatID = chatId
         }
-
         this.otherUserID = otherUserId
 
-        try{
-            viewModelScope.launch {
-                _uiState.update { it.copy(isLoading = true) }
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
 
-                val cid = currentChatID ?: return@launch
-                val uid = currentUserID ?: return@launch
+            val cid = currentChatID ?: return@launch
+            val uid = currentUserID ?: return@launch
 
-                UsersRepository.getUserById(otherUserId).onSuccess { user ->
-                    _uiState.update { it.copy(otherUser = user) }
+            UsersRepository.getUserById(otherUserId)
+                .onSuccess { user -> _uiState.update { it.copy(otherUser = user) } }
+                .onFailure { e -> handleError(e) }
+
+            ChatRepository.getChatMetadata(cid, uid)
+                .catch { e -> handleError(e) }
+                .onEach { preview ->
+                    _uiState.update { it.copy(chatInfo = preview) }
                 }
+                .launchIn(viewModelScope)
 
-                ChatRepository.getChatMetadata(cid, uid)
-                    .onEach { preview ->
-                        _uiState.update { it.copy(chatInfo = preview) }
-                    }
-                    .launchIn(viewModelScope)
-
-                ChatRepository.getMessages(cid)
-                    .onEach { messageList ->
-                        _uiState.update { it.copy(
-                            messages = messageList,
-                            isLoading = false
-                        ) }
-                    }
-                    .launchIn(viewModelScope)
-
-
-                bookingId?.let { id ->
-                    BookingRepository.getBookingById(id).onSuccess { booking ->
-                        _uiState.update { it.copy(booking = booking) }
-                    }
+            ChatRepository.getMessages(cid)
+                .catch { e -> handleError(e) }
+                .onEach { messageList ->
+                    _uiState.update { it.copy(
+                        messages = messageList,
+                        isLoading = false
+                    ) }
                 }
+                .launchIn(viewModelScope)
 
-                casaId?.let{
-                    id-> val casa = CasaRepository.getCasaById(id)
-                    _uiState.update { it.copy(house = casa) }
-                }
-
-                checkReviewEligibility(cid, bookingId)
+            bookingId?.let { id ->
+                BookingRepository.getBookingById(id).onSuccess { booking ->
+                    _uiState.update { it.copy(booking = booking) }
+                }.onFailure { e -> handleError(e) }
             }
-        }catch (e: Exception){
-            _uiState.update { it.copy(errorMessage = e.message) }
-        }
 
+            casaId?.let { id ->
+                CasaRepository.getCasaById(id)
+                    .onSuccess { casa ->
+                        _uiState.update { it.copy(house = casa) }
+                    }
+                    .onFailure { e -> handleError(e) }
+            }
+
+            checkReviewEligibility(bookingId)
+        }
     }
 
+    private fun handleError(e: Throwable) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per accedere a questi dati."
+        } else {
+            e.localizedMessage ?: "Errore di caricamento"
+        }
+        _uiState.update { it.copy(errorMessage = message, isLoading = false) }
+    }
 
     /**
      * Verifica se mostrare l'icona della recensione nella toolbar.
@@ -89,7 +95,7 @@ class DetailedChatViewModel: ViewModel(){
      * 2. Quella specifica prenotazione è passata/conclusa.
      * 3. L'utente non ha già lasciato una recensione per questo target.
      */
-    private fun checkReviewEligibility(chatId: String, bookingId: String?) {
+    private fun checkReviewEligibility(bookingId: String?) {
         val uid = currentUserID ?: return
         val otherId = otherUserID ?: return
 
@@ -146,7 +152,6 @@ class DetailedChatViewModel: ViewModel(){
      */
     fun sendImageMessage(uri: String) {
         val cid = currentChatID ?: return
-        val uid = currentUserID ?: return
         val me = UsersRepository.currentUserProfile.value
         val otherUser = _uiState.value.otherUser ?: return
 

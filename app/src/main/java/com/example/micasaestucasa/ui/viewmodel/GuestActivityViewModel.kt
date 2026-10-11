@@ -45,7 +45,7 @@ class GuestActivityViewModel : ViewModel() {
                 val mappedBookings = rawBookings.map { booking ->
                     async {
                         try {
-                            val casa = CasaRepository.getCasaById(booking.idCasa)//.getOrThrow()
+                            val casa = CasaRepository.getCasaById(booking.idCasa).getOrThrow()
 
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
 

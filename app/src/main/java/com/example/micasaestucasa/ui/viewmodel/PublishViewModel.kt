@@ -65,7 +65,8 @@ class PublishViewModel: ViewModel() {
 
         viewModelScope.launch {
             try {
-                val casa = CasaRepository.getCasaById(houseId)
+                val casaDef= async{CasaRepository.getCasaById(houseId)}
+                val casa = casaDef.await().getOrNull()
 
                 if (casa != null) {
                     originalCasa = casa

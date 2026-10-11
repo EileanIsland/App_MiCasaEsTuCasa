@@ -32,7 +32,7 @@ class DetailedHouseViewModel : ViewModel() {
                 val reviewsDeferred = async { ReviewRepository.getReviewsForHouse(id) }
                 val houseStatsDeferred = async { ReviewRepository.getRatingStats(id, ReviewTarget.CASA) }
 
-                val foundHouse = houseDeferred.await()
+                val foundHouse = houseDeferred.await().getOrThrow()
                 val houseReviews = reviewsDeferred.await().getOrThrow()
                 val houseStats = houseStatsDeferred.await().getOrThrow()
 
@@ -52,7 +52,7 @@ class DetailedHouseViewModel : ViewModel() {
                     val owner = ownerDeferred.await().getOrThrow()
                     val ownerReviews = ownerReviewsDeferred.await().getOrThrow()
                     val (mediaOwner, totaleOwner) = ownerStatsDeferred.await().getOrThrow()
-                    val numeroCase = houseCountDeferred.await()
+                    val numeroCase = houseCountDeferred.await().getOrThrow()
                     val numeroSoggiorni = bookingCountDeferred.await().getOrThrow()
 
                     val userStats = UserStats(

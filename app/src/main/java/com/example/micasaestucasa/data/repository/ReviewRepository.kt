@@ -45,7 +45,20 @@ object ReviewRepository {
         }
     }
 
-    //TODO SALVA RECENSIONE UTENTE
+
+    suspend fun saveReviewUser(review: Review): Result<Unit> {
+        return try {
+            val newReviewRef = db.collection("reviews").document()
+            val finalReview = review.copy(id = newReviewRef.id)
+            newReviewRef.set(finalReview).await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            android.util.Log.e("ReviewRepository", "Errore durante il salvataggio della recensione: ${e.message}", e)
+            Result.failure(e)
+        }
+    }
+
 
 
     /**

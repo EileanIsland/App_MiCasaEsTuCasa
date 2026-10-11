@@ -45,13 +45,13 @@ class OwnerActivityViewModel : ViewModel(){
                 val housesDeferred = async { CasaRepository.getCaseByProprietario(currentUid) }
                 val bookingsDeferred = async { BookingRepository.getBookingByHost(currentUid) }
 
-                val housesList = housesDeferred.await()
+                val housesList = housesDeferred.await().getOrThrow()
                 val bookings = bookingsDeferred.await().getOrThrow()
 
                 val mappedBookings = bookings.map { booking ->
                     async {
                         try {
-                            val casa = CasaRepository.getCasaById(booking.idCasa)
+                            val casa = CasaRepository.getCasaById(booking.idCasa).getOrThrow()
 
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
                             val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()

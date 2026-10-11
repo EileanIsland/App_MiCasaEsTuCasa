@@ -224,6 +224,12 @@
             app:destination="@id/userProfileFragment"
             >
         </action>
+
+        <action
+            android:id="@+id/action_ownerActivitiesFragment_to_detailedChatFragment"
+            app:destination="@id/detailedChatFragment"
+            >
+        </action>
     </fragment>
 
 

@@ -71,7 +71,7 @@ object ChatRepository {
 
                     // Recuperiamo i dati direttamente dal documento chat (zero query extra!)
                     val namesMap = doc.get("userNames") as? Map<String, String>
-                    val photosMap = doc.get("userPhotos") as? Map<String, String>
+                    val photosMap = doc.get("userPhotoUrls") as? Map<String, String>
 
                     ChatPreview(
                         id = doc.id,

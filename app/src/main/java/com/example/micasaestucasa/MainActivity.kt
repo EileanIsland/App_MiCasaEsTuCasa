@@ -3,6 +3,7 @@ package com.example.micasaestucasa
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -31,6 +32,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private var isCheckingSession = true
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            lifecycleScope.launch {
+                updateUserFcmToken()
+            }
+
+        } else {
+            Toast.makeText(this, "Notifiche disattivate. Non riceverai avvisi per i nuovi messaggi.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         installSplashScreen().setKeepOnScreenCondition{isCheckingSession}
@@ -48,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         }
 
         initAppNavigation()
+        askNotificationPermission()
+        handleNotificationIntent(intent)
 
     }
 
@@ -158,6 +174,89 @@ class MainActivity : AppCompatActivity() {
             val item = menu[i]
             if (item.itemId == destinationId) {
                 item.isChecked = true
+            }
+        }
+    }
+
+
+
+
+
+
+    //NOTIFICHE
+
+    private fun updateUserFcmToken() {
+        val uid = UsersRepository.getCurrentUid()
+
+        if (uid == null) {
+            android.util.Log.w("FCM_DEBUG", "Salvataggio token annullato: nessun utente loggato.")
+            return
+        }
+
+        android.util.Log.d("FCM_DEBUG", "Tentativo di recupero token avviato...")
+
+        com.google.firebase.messaging.FirebaseMessaging.getInstance().token
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    android.util.Log.d("FCM_DEBUG", "TOKEN RECUPERATO: $token")
+
+                    lifecycleScope.launch {
+                        UsersRepository.updateFcmToken(uid, token)
+                            .onSuccess {
+                                android.util.Log.d("FCM_DEBUG", "Token aggiornato con successo su Firestore.")
+                            }
+                            .onFailure { e ->
+                                android.util.Log.e("FCM_DEBUG", "Errore salvataggio token su DB: ${e.message}")
+                            }
+                    }
+                } else {
+                    android.util.Log.e("FCM_DEBUG", "ERRORE FIREBASE: ${task.exception?.message}")
+                }
+            }
+    }
+
+    private fun askNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            val permission = android.Manifest.permission.POST_NOTIFICATIONS
+
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, permission) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                updateUserFcmToken()
+            } else {
+                requestPermissionLauncher.launch(permission)
+            }
+        } else {
+            updateUserFcmToken()
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {super.onNewIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: android.content.Intent?) {
+        val type = intent?.getStringExtra("notification_type") ?: return
+
+        lifecycleScope.launch {
+            while (isCheckingSession) kotlinx.coroutines.delay(100)
+
+            when (type) {
+                "CHAT" -> {
+                    val chatId = intent.getStringExtra("chatId")
+                    val otherId = intent.getStringExtra("otherUserId") ?: ""
+                    val bundle = Bundle().apply {
+                        putString("chatId", chatId)
+                        putString("otherUserId", otherId)
+                    }
+                    navController.navigate(R.id.detailedChatFragment, bundle)
+                }
+                "BOOKING" -> {
+                    val isAdmin = UsersRepository.isAdmin()
+                    if (!isAdmin) {
+                        navController.navigate(R.id.ownerActivitiesFragment)
+                    }
+                }
             }
         }
     }

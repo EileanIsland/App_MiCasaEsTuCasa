@@ -5,14 +5,13 @@ import com.google.firebase.firestore.FirebaseFirestore.getInstance
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
-
 object CasaRepository {
 
     private val db = getInstance()
     private val caseCollection = db.collection("case")
 
-    //recupera tutte le case
-    suspend fun getAllCase(): List<Casa> {
+    // Recupera tutte le case
+    suspend fun getAllCase(): Result<List<Casa>> {
         return try {
             android.util.Log.d("FIRESTORE_GET_ALL_CASE", "getAllCase() - tentativo recupero case da Firestore...")
             val snapshot = caseCollection.whereEqualTo("stato", true).get().await()
@@ -21,27 +20,27 @@ object CasaRepository {
 
             val listaCase = snapshot.toObjects(Casa::class.java)
             android.util.Log.d("FIRESTORE_GET", "Conversione riuscita! Case convertite: ${listaCase.size}")
-            listaCase
-
+            Result.success(listaCase)
         } catch (e: Exception) {
             android.util.Log.e("FIRESTORE_GET", "!!! ERRORE CRITICO NEL RECUPERO CASE !!!", e)
-            emptyList()
+            Result.failure(e)
         }
     }
 
-    //recupera casa tramite Id
-    suspend fun getCasaById(id: String): Casa? {
+    // Recupera casa tramite Id
+    suspend fun getCasaById(id: String): Result<Casa?> {
         return try {
             val snapshot = caseCollection.document(id).get().await()
             android.util.Log.d("FIRESTORE_DEBUG", "Data: ${snapshot.data}")
-            snapshot.toObject(Casa::class.java)
+            Result.success(snapshot.toObject(Casa::class.java))
         } catch (e: Exception) {
             android.util.Log.e("FIRESTORE_ERROR", "Error: ${e.message}")
-            null
+            Result.failure(e)
         }
     }
 
-    suspend fun saveCasa(casa: Casa): String {
+    // Salva casa
+    suspend fun saveCasa(casa: Casa): Result<String> {
         return try {
             val docRef = if (casa.id.isEmpty()) {
                 caseCollection.document()
@@ -50,25 +49,26 @@ object CasaRepository {
             }
             val casaFinal = casa.copy(id = docRef.id)
             docRef.set(casaFinal).await()
-            casaFinal.id
+            Result.success(casaFinal.id)
         } catch (e: Exception) {
-            throw e
+            Result.failure(e)
         }
     }
 
-    suspend fun removeCasa(id: String) {
-        try {
+    // Rimuove casa
+    suspend fun removeCasa(id: String): Result<Unit> {
+        return try {
             caseCollection.document(id).delete().await()
+            Result.success(Unit)
         } catch (e: Exception) {
-            throw e
+            Result.failure(e)
         }
     }
 
-
+    // Disattiva casa
     suspend fun deactivateCasa(casaId: String): Result<Unit> {
         return try {
-            db.collection("case")
-                .document(casaId)
+            caseCollection.document(casaId)
                 .update("stato", false)
                 .await()
             Result.success(Unit)
@@ -77,37 +77,37 @@ object CasaRepository {
         }
     }
 
-    suspend fun getCaseByProprietario(ownerId: String): List<Casa> {
+    // Case per proprietario
+    suspend fun getCaseByProprietario(ownerId: String): Result<List<Casa>> {
         return try {
             val snapshot = caseCollection.whereEqualTo("proprietarioId", ownerId).get().await()
-            snapshot.toObjects(Casa::class.java)
+            Result.success(snapshot.toObjects(Casa::class.java))
         } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+            Result.failure(e)
         }
     }
 
-
-    suspend fun getTopRatedHouses(): List<Casa> {
+    // Case con valutazione più alta
+    suspend fun getTopRatedHouses(): Result<List<Casa>> {
         return try {
             val snapshot = caseCollection.orderBy("valutazioneMedia", Query.Direction.DESCENDING).limit(5).get().await()
-            snapshot.toObjects(Casa::class.java)
+            Result.success(snapshot.toObjects(Casa::class.java))
         } catch (e: Exception) {
-            e.printStackTrace()
-            emptyList()
+            Result.failure(e)
         }
     }
 
-    suspend fun getCountHousesByOwner(ownerId: String): Int {
+    // Conteggio case per proprietario
+    suspend fun getCountHousesByOwner(ownerId: String): Result<Int> {
         return try {
             val snapshot = caseCollection.whereEqualTo("proprietarioId", ownerId).get().await()
-            snapshot.size()
+            Result.success(snapshot.size())
         } catch (e: Exception) {
-            0
+            Result.failure(e)
         }
     }
 
-
+    // Ricerca filtrata (LOGICA ORIGINALE PRESERVATA)
     suspend fun searchHouses(
         query: String,
         numPerson: Int,
@@ -118,20 +118,19 @@ object CasaRepository {
         numBathroom: Int,
         numBeds: Int,
         category: String
-    ): List<Casa> {
+    ): Result<List<Casa>> {
         return try {
-            val allHouses = getAllCase()
+            val allHouses = getAllCase().getOrElse { emptyList() }
 
-            val minPrice = priceRange.getOrNull(0) ?: 0 //TODO: non dovrebbero essere double?
+            val minPrice = priceRange.getOrNull(0) ?: 0
             val maxPrice = priceRange.getOrNull(1) ?: 10000
 
-            // Se non ci sono filtri, restituisci tutto
             if (query.isEmpty() && numPerson <= 0 && date.isEmpty() && category.isEmpty() &&
                 services.isEmpty() && experiences.isEmpty() &&
-                numBathroom == 0 && numBeds == 0 && minPrice<= 0 && maxPrice >= 1000
+                numBathroom == 0 && numBeds == 0 && minPrice <= 0 && maxPrice >= 1000
             ) {
                 android.util.Log.d("FIRESTORE_SEARCH", "Nessun filtro applicato. Restituisco tutte le ${allHouses.size} case.")
-                return allHouses
+                return Result.success(allHouses)
             }
 
             val filtered = allHouses.filter { casa ->
@@ -144,7 +143,7 @@ object CasaRepository {
                                 casa.esperienza.any { it.contains(query, ignoreCase = true) }
                         )
 
-                val matchesCategory  = category.isEmpty() || casa.tipo.label.equals(category, ignoreCase = true)
+                val matchesCategory = category.isEmpty() || casa.tipo.label.equals(category, ignoreCase = true)
 
                 val matchesDate = if (date.size >= 2 && date[0] > 0 && date[1] > 0) {
                     casa.disponibilita.any { d ->
@@ -165,205 +164,13 @@ object CasaRepository {
                         matchesServices && matchesExperiences
             }
 
-            android.util.Log.d("SEARCH_DEBUG", "query: $query" +
-                    " numPerson: $numPerson" +
-                    " date: $date" +
-                    " services: $services" +
-                    " experiences: $experiences" +
-                    " priceRange: $priceRange" +
-                    " numBathroom: $numBathroom" +
-                    " numBeds: $numBeds" +
-                    " category: $category"
-            )
             android.util.Log.d("SEARCH_DEBUG", "Case trovate: ${filtered.size} su ${allHouses.size} - Query: $query")
-
-
-            filtered.sortedByDescending{ it.valutazioneMedia }
+            Result.success(filtered.sortedByDescending { it.valutazioneMedia })
         } catch (e: Exception) {
             android.util.Log.e("SEARCH_DEBUG", "Errore durante il filtraggio", e)
-            emptyList()
+            Result.failure(e)
         }
     }
 }
 
-
-
-
-
-    /*
-    private val case = mutableListOf(
-        Casa(
-            id = "casa001",
-            titolo = "Casa al mare",
-            descrizione = "Appartamento luminoso vicino alla spiaggia con balcone vista mare.",
-            proprietarioId = "user001",
-            indirizzo = "Via Roma 25",
-            citta = "Genova",
-            latitudine = 44.4056,
-            longitudine = 8.9463,
-            tipo = EnumHouseType.APPARTAMENTO,
-            ospitiMassimi = 4,
-            numeroCamere = 2,
-            numeroLetti = 3,
-            numeroBagni = 1,
-            prezzoNotte = 70.0,
-            immagini = listOf(
-                "https://example.com/mare1.jpg",
-                "https://example.com/mare2.jpg"
-            ),
-            esperienza = listOf(
-                "Vista mare",
-                "Vicino alla spiaggia",
-                "Ideale per famiglie"
-            ),
-            servizi = listOf(
-                "Wi-Fi",
-                "Balcone",
-                "Cucina attrezzata"
-            ),
-            regole = listOf(
-                "Animali ammessi",
-                "Non fumatori"
-            ),
-            valutazioneMedia = 4.8,
-            disponibilita = listOf(
-                Disponibilita(
-                    "2026-06-01".toLongDate(),
-                    "2026-09-30".toLongDate()
-                )
-            ),
-            recensioni = emptyList()
-        ),
-
-        Casa(
-            id = "casa002",
-            titolo = "Loft moderno in centro",
-
-            descrizione =
-                "Loft elegante nel centro città, perfetto per soggiorni brevi.",
-
-            proprietarioId = "user002",
-
-            indirizzo = "Via Mazzini 10",
-            citta = "Torino",
-
-            latitudine = 45.0703,
-            longitudine = 7.6869,
-
-            tipo = EnumHouseType.LOFT,
-
-            ospitiMassimi = 2,
-            numeroCamere = 1,
-            numeroLetti = 1,
-            numeroBagni = 1,
-
-            prezzoNotte = 85.0,
-
-
-            immagini = listOf(
-                "https://example.com/loft1.jpg"
-            ),
-
-
-            esperienza = listOf(
-                "Centro città",
-                "Soggiorno romantico",
-                "Ideale per coppie"
-            ),
-
-
-            servizi = listOf(
-                "Wi-Fi",
-                "Smart TV",
-                "Self check-in"
-            ),
-
-
-            regole = listOf(
-                "Non fumatori",
-                "No feste"
-            ),
-
-
-            valutazioneMedia = 4.6,
-
-
-            disponibilita = listOf(
-                Disponibilita(
-                    "2026-01-10".toLongDate(),
-                    "2026-12-20".toLongDate()
-                )
-            ),
-            recensioni = emptyList()
-        ),
-
-        Casa(
-            id = "casa003",
-
-            titolo = "Villa con piscina",
-
-            descrizione =
-                "Villa spaziosa con giardino privato e piscina.",
-
-            proprietarioId = "user003",
-
-            indirizzo = "Strada delle Colline 5",
-            citta = "Asti",
-
-            latitudine = 44.9000,
-            longitudine = 8.2064,
-
-            tipo = EnumHouseType.VILLA,
-
-            ospitiMassimi = 8,
-            numeroCamere = 4,
-            numeroLetti = 6,
-            numeroBagni = 3,
-
-            prezzoNotte = 150.0,
-
-
-            immagini = listOf(
-                "https://example.com/villa1.jpg",
-                "https://example.com/villa2.jpg"
-            ),
-
-
-            esperienza = listOf(
-                "Vista panoramica",
-                "Relax nella natura",
-                "Ideale per gruppi"
-            ),
-
-
-            servizi = listOf(
-                "Piscina",
-                "Giardino privato",
-                "Parcheggio",
-                "Aria condizionata"
-            ),
-
-
-            regole = listOf(
-                "Animali ammessi",
-                "Non fumatori",
-                "Rispetto del vicinato"
-            ),
-
-
-            valutazioneMedia = 4.9,
-
-
-            disponibilita = listOf(
-                Disponibilita(
-                    "2026-04-01".toLongDate(),
-                    "2026-10-31".toLongDate()
-                )
-            )
-            ,
-            recensioni = emptyList()
-
-        )
-    )
-     */
 

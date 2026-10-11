@@ -41,7 +41,7 @@ class ActivitiesViewModel : ViewModel() {
 
                 val booking = bookingDef.await().getOrThrow()
                 val recBooking = recBookingDef.await().getOrThrow()
-                val myHouses = myHousesDef.await()
+                val myHouses = myHousesDef.await().getOrThrow()
 
                 _uiState.update {
                     it.copy(

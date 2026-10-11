@@ -65,16 +65,38 @@ class ReviewViewModel : ViewModel() {
                 targetTypeString = state.targetType
             )
 
-            ReviewRepository.saveReviewHouse(review).onSuccess {
-                _uiState.update { it.copy(
-                    isLoading = false,
-                    isSuccess = true
-                ) }
-            }.onFailure { e ->
-                _uiState.update { it.copy(
-                    isLoading = false,
-                    errorMessage = "Errore durante il salvataggio"
-                ) }
+            if(state.targetType == "CASA") {
+                ReviewRepository.saveReviewHouse(review).onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSuccess = true
+                        )
+                    }
+                }.onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Errore durante il salvataggio"
+                        )
+                    }
+                }
+            }else{
+                ReviewRepository.saveReviewUser(review).onSuccess {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSuccess = true
+                        )
+                    }
+                }.onFailure { e ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Errore durante il salvataggio"
+                        )
+                    }
+                }
             }
         }
 
