@@ -211,7 +211,6 @@ class BookingFragment : Fragment(){
             }else{
                 val bookId = arguments?.getString("bookingId")
                 if (bookId != null) {
-                    // dialog conferma
                     androidx.appcompat.app.AlertDialog.Builder(requireContext())
                         .setTitle("Annulla Prenotazione")
                         .setMessage("Sei sicuro di voler eliminare definitivamente questa prenotazione?")

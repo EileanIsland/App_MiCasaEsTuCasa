@@ -27,8 +27,7 @@
 
         android:scaleType="centerCrop"
 
-        android:src="@drawable/ic_persona"
-        android:tint="?attr/colorOnSurface"
+        android:src="@drawable/ic_person"
         app:shapeAppearanceOverlay="@style/CircleImage"
 
         app:layout_constraintStart_toStartOf="parent"

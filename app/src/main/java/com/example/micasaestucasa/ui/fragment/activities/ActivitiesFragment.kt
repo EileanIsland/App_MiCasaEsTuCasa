@@ -53,3 +53,6 @@ class ActivitiesFragment : Fragment() {
         _binding = null
     }
 }
+
+
+

@@ -9,18 +9,18 @@ import com.example.micasaestucasa.data.model.EnumHouseType
 import com.example.micasaestucasa.data.repository.StorageRepository
 import com.example.micasaestucasa.data.repository.TagsRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
-import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 //TODO:
 // 1 - pubblicazione annuncio ora funziona, devo migliorare la navigazione alla pagina di dettaglio
 //      ci sono tempi di latenza tra pubblicazione annuncio e risultato che non sono l'idealte
-// 3 - rivedere metodo Save()
 
 class PublishViewModel: ViewModel() {
 
@@ -45,18 +45,17 @@ class PublishViewModel: ViewModel() {
 
                 _uiState.update {
                     it.copy(
-                        availableService = defServices.await(),
-                        availableExperience = defExperiences.await(),
-                        availableRule = defRules.await(),
+                        availableService = defServices.await().getOrThrow(),
+                        availableExperience = defExperiences.await().getOrThrow(),
+                        availableRule = defRules.await().getOrThrow(),
                         availableCategory = categories,
                         isLoading = false
                     )
                 }
 
             }catch(e : Exception){
-                _uiState.update { it.copy(isLoading =false, errorMessage = "errore nel caricamento dei dati") }
+                handleError(e, "Errore nel caricamento dei dati iniziali")
             }
-
         }
     }
 
@@ -64,42 +63,45 @@ class PublishViewModel: ViewModel() {
         _uiState.update { it.copy(isLoading = true, houseId = houseId) }
 
         viewModelScope.launch {
-            try {
-                val casaDef= async{CasaRepository.getCasaById(houseId)}
-                val casa = casaDef.await().getOrNull()
+            CasaRepository.getCasaById(houseId)
+                .onSuccess { casa ->
+                    if (casa != null) {
+                        originalCasa = casa
 
-                if (casa != null) {
-                    originalCasa = casa
-
-                    _uiState.update {
-                        it.copy(
-                            houseId = casa.id,
-                            titolo = casa.titolo,
-                            tipologia = casa.tipo.label,
-                            descrizione = casa.descrizione,
-                            prezzoNotte = casa.prezzoNotte,
-                            citta = casa.citta,
-                            indirizzo = casa.indirizzo,
-                            latitudine = casa.latitudine,
-                            longitudine = casa.longitudine,
-                            ospitiMassimi = casa.ospitiMassimi,
-                            numeroStanze = casa.numeroCamere,
-                            numeroLetti = casa.numeroLetti,
-                            numeroBagni = casa.numeroBagni,
-                            esperienza = casa.esperienza,
-                            servizi = casa.servizi,
-                            regole = casa.regole,
-                            disponibilita = casa.disponibilita,
-                            images = casa.immagini,
-                            isLoading = false
-                        )
+                        _uiState.update {
+                            it.copy(
+                                houseId = casa.id,
+                                titolo = casa.titolo,
+                                tipologia = casa.tipo.label,
+                                descrizione = casa.descrizione,
+                                prezzoNotte = casa.prezzoNotte,
+                                citta = casa.citta,
+                                indirizzo = casa.indirizzo,
+                                latitudine = casa.latitudine,
+                                longitudine = casa.longitudine,
+                                ospitiMassimi = casa.ospitiMassimi,
+                                numeroStanze = casa.numeroCamere,
+                                numeroLetti = casa.numeroLetti,
+                                numeroBagni = casa.numeroBagni,
+                                esperienza = casa.esperienza,
+                                servizi = casa.servizi,
+                                regole = casa.regole,
+                                disponibilita = casa.disponibilita,
+                                images = casa.immagini,
+                                isLoading = false
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                errorMessage = "Casa non trovata"
+                            )
+                        }
                     }
-                } else {
-                    _uiState.update { it.copy(isLoading = false, errorMessage = "Casa non trovata") }
+                }.onFailure {
+                    handleError(it, "Errore nel caricamento della casa")
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = "Errore durante il caricamento della casa: ${e.message}") }
-            }
         }
     }
 
@@ -259,35 +261,29 @@ class PublishViewModel: ViewModel() {
 
     fun save() {
         val state = _uiState.value
-
         _uiState.update { it.copy(isLoading = true, errorMessage = null, isSuccess = false) }
 
         viewModelScope.launch {
-            try {
-                // Utilizziamo conContext(NonCancellable) per proteggere l'intero processo di pubblicazione
-                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
-                    android.util.Log.d("FIRESTORE_TRACE", "1. Inizio salvataggio protetto. Controllo UID...")
+            withContext(NonCancellable) {
+                try {
                     val currentUid = UsersRepository.getCurrentUid()
-                    if (currentUid == null) {
-                        _uiState.update { it.copy(errorMessage = "Utente non autenticato", isLoading = false) }
-                        return@withContext
-                    }
+                        ?: throw Exception("Utente non autenticato")
 
-                    android.util.Log.d("FIRESTORE_TRACE", "2. Recupero immagini locali...")
                     val localUris = state.images.filter { it.startsWith("content://") || it.startsWith("file://") }
                     val existingRemoteUrls = state.images.filter { it.startsWith("http") }
 
-                    android.util.Log.d("FIRESTORE_TRACE", "3. Avvio upload su Storage di ${localUris.size} foto...")
-                    val uploadResult = StorageRepository.upLoadImages(localUris)
-                    val newlyUploadedUrls = uploadResult.getOrNull() ?: emptyList()
+                    val newlyUploadedUrls = if (localUris.isNotEmpty()) {
+                        StorageRepository.upLoadImages(localUris).getOrThrow()
+                    } else emptyList()
+
                     val finalImages = existingRemoteUrls + newlyUploadedUrls
 
-                    android.util.Log.d("FIRESTORE_TRACE", "4. Foto pronte (Totale: ${finalImages.size}). Creo oggetto Casa...")
-                    val houseId = if (state.houseId.isNotBlank()) state.houseId else UUID.randomUUID().toString()
+                    val houseId = state.houseId.ifBlank { "" }
 
                     val nuovaCasa = Casa(
                         id = houseId,
                         proprietarioId = currentUid,
+                        immagini = finalImages,
                         titolo = state.titolo,
                         descrizione = state.descrizione,
                         prezzoNotte = state.prezzoNotte,
@@ -303,114 +299,35 @@ class PublishViewModel: ViewModel() {
                         servizi = state.servizi,
                         regole = state.regole,
                         disponibilita = state.disponibilita,
-                        immagini = finalImages,
                         tipoString = state.tipologia
                     )
 
-                    android.util.Log.d("FIRESTORE_TRACE", "5. Chiamata a CasaRepository.saveCasa()...")
                     CasaRepository.saveCasa(nuovaCasa)
+                        .onSuccess {
+                            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                        }
+                        .onFailure { e ->
+                            handleError(e, "Errore durante il salvataggio su database")
+                        }
 
-                    android.util.Log.d("FIRESTORE_TRACE", "6. SALVATAGGIO RIUSCITO CON SUCCESSO!")
-                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                } catch (e: Exception) {
+                    handleError(e, "Errore durante la pubblicazione")
                 }
-
-            } catch (e: Exception) {
-                android.util.Log.e("FIRESTORE_TRACE", "!!! ERRORE DURANTE LA PUBBLICAZIONE !!!", e)
-                _uiState.update { it.copy(errorMessage = e.localizedMessage, isLoading = false) }
             }
         }
     }
 
 
-
-    /*
-    fun save() {
-        val state = _uiState.value
-
-        if (!state.isFormValid) {
-            _uiState.update { it.copy(errorMessage = "Compilare tutti i campi obbligatori") }
-            return
+    private fun handleError(e: Throwable, contextMessage: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi necessari per questa operazione."
+        } else {
+            "$contextMessage: ${e.localizedMessage}"
         }
-
-        _uiState.update { it.copy(isLoading = true) }
-
-        viewModelScope.launch {
-
-            try {
-                val currentUid = UsersRepository.getCurrentUid()
-                if (currentUid == null) {
-                    _uiState.update { it.copy(errorMessage = "Utente non autenticato") }
-                    return@launch
-                }
-
-                val localUris = state.images.filter { it.startsWith("content://") || it.startsWith("file://") }
-                val existingRemoteUrls = state.images.filter { it.startsWith("http") }
-                val newlyUploadedUrls = StorageRepository.upLoadImages(localUris).getOrThrow()
-
-                val remoteImageUrls = existingRemoteUrls + newlyUploadedUrls
-
-                val casaDaSalvare = if (originalCasa == null) {
-                    Casa(
-                        id = UUID.randomUUID().toString(),
-                        titolo = state.titolo,
-                        descrizione = state.descrizione,
-                        prezzoNotte = state.prezzoNotte,
-                        citta = state.citta,
-                        indirizzo = state.indirizzo,
-                        latitudine = state.latitudine,
-                        longitudine = state.longitudine,
-                        ospitiMassimi = state.ospitiMassimi,
-                        numeroCamere = state.numeroStanze,
-                        numeroLetti = state.numeroLetti,
-                        numeroBagni = state.numeroBagni,
-                        tipo = EnumHouseType.entries.find { it.label == state.tipologia }
-                            ?: EnumHouseType.ALTRO,
-                        immagini = remoteImageUrls,
-                        servizi = state.servizi,
-                        esperienza = state.esperienza,
-                        regole = state.regole,
-                        disponibilita = state.disponibilita,
-                        proprietarioId = currentUid
-                    )
-                } else {
-                    originalCasa!!.copy(
-                        titolo = state.titolo,
-                        descrizione = state.descrizione,
-                        prezzoNotte = state.prezzoNotte,
-                        citta = state.citta,
-                        indirizzo = state.indirizzo,
-                        latitudine = state.latitudine,
-                        longitudine = state.longitudine,
-                        ospitiMassimi = state.ospitiMassimi,
-                        numeroCamere = state.numeroStanze,
-                        numeroLetti = state.numeroLetti,
-                        numeroBagni = state.numeroBagni,
-                        tipo = EnumHouseType.entries.find { it.label == state.tipologia }
-                            ?: EnumHouseType.ALTRO,
-                        immagini = remoteImageUrls,
-                        servizi = state.servizi,
-                        esperienza = state.esperienza,
-                        regole = state.regole,
-                        disponibilita = state.disponibilita
-                    )
-                }
-
-                CasaRepository.saveCasa(casaDaSalvare)
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Errore durante il salvataggio: ${e.message}"
-                    )
-                }
-            }
-
-        }
+        _uiState.update { it.copy(isLoading = false, errorMessage = message) }
     }
 
-*/
+
     fun clearError(){
         _uiState.update { it.copy(errorMessage = null) }
     }

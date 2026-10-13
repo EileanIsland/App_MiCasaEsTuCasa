@@ -2,9 +2,7 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.data.model.ReviewTarget
 import com.example.micasaestucasa.data.repository.AuthRepository
-import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.async
@@ -18,84 +16,74 @@ class ProfileViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    fun loadProfile(){
+    fun loadProfile() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val currentUid = AuthRepository.getCurrentIUD()
             if (currentUid == null) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Errore: Utente non autenticato"
-                    )
+                    it.copy(isLoading = false, errorMessage = "Errore: Utente non autenticato")
                 }
                 return@launch
             }
 
-            try{
-
+            try {
                 val user = UsersRepository.currentUserProfile.value
-
-                if(user == null){
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Errore: utente non trovato"
-                        )
-                    }
+                if (user == null) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Errore: profilo non trovato") }
                     return@launch
-                }else if(!user.stato){
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Errore: Utente disattivato"
-                        )
-                    }
-                    return@launch
-                }else{
-                    val userReviewsReceivedDef = async{ ReviewRepository.getReviewsForUser(currentUid)}
-                    val staysDef = async{ BookingRepository.getBookingByGuest(currentUid)}
-                    val adsDef = async{ BookingRepository.getBookingByHost(currentUid)}
-                    val statsDef = async{ ReviewRepository.getRatingStats(currentUid, ReviewTarget.UTENTE)}
-
-                    val userReviewsReceived = userReviewsReceivedDef.await().getOrThrow()
-                    val stays = staysDef.await().getOrThrow()
-                    val ads = adsDef.await().getOrThrow()
-                    val (rating, numeroRec) = statsDef.await().getOrThrow()
-                    val stats = UserStats(
-                        ratingMedia = rating,
-                        numeroRecensioni = numeroRec,
-                        numeroSoggiorni = stays.size,
-                        numeroAnnunci = ads.size
-                    )
-
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            user = user,
-                            userStats = stats,
-                            userReviewsReceived = userReviewsReceived,
-                            errorMessage = null
-                        )
-                    }
-
                 }
-            }catch (e: Exception){
+
+                if (!user.stato) {
+                    _uiState.update {
+                        it.copy(isLoading = false, errorMessage = "Errore: Utente disattivato")
+                    }
+                    return@launch
+                }
+
+                val userReviewsDef = async { ReviewRepository.getReviewsForUser(currentUid) }
+                val userReviewsReceived = userReviewsDef.await().getOrThrow()
+
+                val stats = UserStats(
+                    ratingMedia = user.valutazioneMedia,
+                    numeroRecensioni = user.numeroRecensioni,
+                    numeroSoggiorni = user.numeroSoggiorni,
+                    numeroAnnunci = user.numeroAnnunci
+                )
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Errore durante caricamento profilo: ${e.message}"
+                        user = user,
+                        userStats = stats,
+                        userReviewsReceived = userReviewsReceived,
+                        errorMessage = null
                     )
                 }
 
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileViewModel", "Errore durante il caricamento del profilo", e)
+                handleError(e, "Errore durante il caricamento del profilo")
             }
-
         }
-
     }
 
-    fun errorShown(){
+    /**
+     * Gestione centralizzata degli errori per intercettare violazioni delle regole Firestore
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi necessari per visualizzare questi dati del profilo."
+        } else {
+            "$context: ${e.localizedMessage}"
+        }
+        _uiState.update {
+            it.copy(isLoading = false, errorMessage = message)
+        }
+    }
+
+    fun errorShown() {
         _uiState.update { it.copy(errorMessage = null) }
     }
 
@@ -103,16 +91,17 @@ class ProfileViewModel : ViewModel() {
         _uiState.update { it.copy(isShowingAllReviews = !it.isShowingAllReviews) }
     }
 
-
-    fun logout(){
+    fun logout() {
         AuthRepository.signOut()
         UsersRepository.clearCache()
-
         _uiState.update {
-            it.copy(user = null,
-            userStats = null,
-            isLoggedOut = true) }
+            it.copy(
+                user = null,
+                userStats = null,
+                isLoggedOut = true
+            )
+        }
     }
-
-
 }
+
+

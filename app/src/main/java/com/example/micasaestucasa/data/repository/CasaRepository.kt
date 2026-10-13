@@ -1,6 +1,7 @@
 package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Casa
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore.getInstance
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -42,13 +43,18 @@ object CasaRepository {
     // Salva casa
     suspend fun saveCasa(casa: Casa): Result<String> {
         return try {
-            val docRef = if (casa.id.isEmpty()) {
-                caseCollection.document()
-            } else {
-                caseCollection.document(casa.id)
-            }
+            val isNew = casa.id.isEmpty()
+            val docRef = if (isNew) caseCollection.document() else caseCollection.document(casa.id)
             val casaFinal = casa.copy(id = docRef.id)
-            docRef.set(casaFinal).await()
+
+            db.runTransaction { transaction ->
+                transaction.set(docRef, casaFinal)
+
+                if (isNew) {
+                    val ownerRef = db.collection("users").document(casa.proprietarioId)
+                    transaction.update(ownerRef, "numeroAnnunci", FieldValue.increment(1))
+                }
+            }.await()
             Result.success(casaFinal.id)
         } catch (e: Exception) {
             Result.failure(e)
@@ -56,13 +62,16 @@ object CasaRepository {
     }
 
     // Rimuove casa
-    suspend fun removeCasa(id: String): Result<Unit> {
+    suspend fun removeCasa(casa: Casa): Result<Unit> {
         return try {
-            caseCollection.document(id).delete().await()
+            db.runTransaction { transaction ->
+                transaction.delete(caseCollection.document(casa.id))
+
+                val ownerRef = db.collection("users").document(casa.proprietarioId)
+                transaction.update(ownerRef, "numeroAnnunci", com.google.firebase.firestore.FieldValue.increment(-1))
+            }.await()
             Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        } catch (e: Exception) { Result.failure(e) }
     }
 
     // Disattiva casa
@@ -107,7 +116,6 @@ object CasaRepository {
         }
     }
 
-    // Ricerca filtrata (LOGICA ORIGINALE PRESERVATA)
     suspend fun searchHouses(
         query: String,
         numPerson: Int,

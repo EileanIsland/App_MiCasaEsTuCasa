@@ -61,7 +61,6 @@ class ProfileFragment : Fragment(){
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
                 viewModel.uiState.collect{ state->
-
                     //logout
                     if (state.isLoggedOut) {
                         val intent = requireActivity().intent
@@ -73,69 +72,79 @@ class ProfileFragment : Fragment(){
                         return@collect
                     }
 
-                    //Caricamento
-                    binding.progressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
+                    if(state.isLoading){
+                        binding.progressBar.visibility = View.VISIBLE
+                        binding.mainContent.visibility = View.GONE
+                    }else {
 
-                    //utente
-                    state.user?.let{ user ->
-                        binding.profileInfo.tvUserName.text = getString(R.string.nome_cognome_user, user.name, user.surname)
+                        //Caricamento
+                        binding.progressBar.visibility = View.GONE
+                        binding.mainContent.visibility = View.VISIBLE
 
-                        binding.tvBio.text = state.user.bio ?: getString(R.string.nessuna_biografia)
 
-                        Glide.with(
-                            this@ProfileFragment
-                        )
-                            .load(user.profileImageUrl)
-                            .placeholder(R.drawable.ic_person)
-                            .circleCrop()
-                            .into(
-                                binding.profileInfo.ivUserPhoto
-                        )
+                        //utente
+                        state.user?.let { user ->
+                            binding.profileInfo.tvUserName.text =
+                                getString(R.string.nome_cognome_user, user.name, user.surname)
 
-                        if (user.badge.isNotEmpty()) {
-                            binding.profileBadges.visibility = View.VISIBLE
-                            binding.profileBadges.setupUserBadges(user.badge)
-                        } else {
-                            binding.profileBadges.visibility = View.GONE
+                            binding.tvBio.text =
+                                state.user.bio ?: getString(R.string.nessuna_biografia)
+
+                            Glide.with(
+                                this@ProfileFragment
+                            )
+                                .load(user.profileImageUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(
+                                    binding.profileInfo.ivUserPhoto
+                                )
+
+                            if (user.badge.isNotEmpty()) {
+                                binding.profileBadges.visibility = View.VISIBLE
+                                binding.profileBadges.setupUserBadges(user.badge)
+                            } else {
+                                binding.profileBadges.visibility = View.GONE
+                            }
+
                         }
 
-                    }
+                        //statistiche
+                        state.userStats.let { stats ->
+                            binding.profileInfo.tvUserRole.visibility = View.VISIBLE
+                            binding.profileInfo.tvUserRole.text = getString(R.string.proprietario)
 
-                    //statistiche
-                    state.userStats.let{
-                        stats ->
-                        binding.profileInfo.tvUserRole.visibility = View.VISIBLE
-                        binding.profileInfo.tvUserRole.text = getString(R.string.proprietario)
+                            binding.profileInfo.tvUserRating.visibility = View.VISIBLE
+                            binding.profileInfo.tvUserRating.text = getString(
+                                R.string.rating_num_rec,
+                                stats?.ratingMedia,
+                                stats?.numeroRecensioni
+                            )
 
-                        binding.profileInfo.tvUserRating.visibility = View.VISIBLE
-                        binding.profileInfo.tvUserRating.text = getString(
-                            R.string.rating_num_rec,
-                            stats?.ratingMedia,
-                            stats?.numeroRecensioni
+                            binding.profileInfo.tvUserStats.visibility = View.VISIBLE
+                            binding.profileInfo.tvUserStats.text = getString(
+                                R.string.num_soggiorni_annunci,
+                                stats?.numeroSoggiorni,
+                                stats?.numeroAnnunci
+                            )
+                        }
+
+                        //recensioni
+                        manageReviewsDisplay(
+                            state.userReviewsReceived,
+                            state.isShowingAllReviews,
+                            reviewAdapter,
+                            binding.reviewsRecyclerView,
+                            binding.tvNoReviews,
+                            binding.showAllReviewsButton
                         )
 
-                        binding.profileInfo.tvUserStats.visibility = View.VISIBLE
-                        binding.profileInfo.tvUserStats.text = getString(
-                            R.string.num_soggiorni_annunci,
-                            stats?.numeroSoggiorni,
-                            stats?.numeroAnnunci
-                        )
-                    }
-
-                    //recensioni
-                    manageReviewsDisplay(
-                        state.userReviewsReceived,
-                        state.isShowingAllReviews,
-                        reviewAdapter,
-                        binding.reviewsRecyclerView,
-                        binding.tvNoReviews,
-                        binding.showAllReviewsButton
-                    )
-
-                    //gestione errori
-                    if(state.errorMessage != null){
-                        Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG).show()
-                        viewModel.errorShown()
+                        //gestione errori
+                        if (state.errorMessage != null) {
+                            Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG)
+                                .show()
+                            viewModel.errorShown()
+                        }
                     }
 
                 }

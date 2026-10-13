@@ -5,8 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
-
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -15,39 +13,37 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
+import com.example.micasaestucasa.R
 import com.example.micasaestucasa.databinding.FragmentDetailedChatBinding
 import com.example.micasaestucasa.ui.adapter.MessageAdapter
 import com.example.micasaestucasa.ui.viewmodel.DetailedChatViewModel
 import com.example.micasaestucasa.utils.ViewUtils.showReportUserDialog
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
-import com.example.micasaestucasa.R
 
-class DetailedChatFragment : Fragment(){
+class DetailedChatFragment : Fragment() {
 
     private var _binding: FragmentDetailedChatBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel: DetailedChatViewModel by viewModels()
+    private lateinit var messageAdapter: MessageAdapter
 
     private val imagePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            uri?.let{ viewModel.sendImageMessage(it.toString()) }
-        }
-
+        uri?.let { viewModel.sendImageMessage(it.toString()) }
+    }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentDetailedChatBinding.inflate(inflater, container, false)
         return binding.root
     }
 
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Recupero argomenti senza SafeArgs
         val chatId = arguments?.getString("chatId")
         val otherUserId = arguments?.getString("otherUserId") ?: ""
         val casaId = arguments?.getString("casaId")
@@ -61,26 +57,26 @@ class DetailedChatFragment : Fragment(){
         viewModel.initChat(chatId, otherUserId, casaId, bookingId)
     }
 
-
     private fun setupRecyclerView() {
-        val messageAdapter = MessageAdapter(
+        // Inizializziamo l'adapter con le 3 azioni: Click immagine, Click Card Contesto
+        messageAdapter = MessageAdapter(
             currentUid = viewModel.currentUserID ?: "",
             onImageClick = { imageUrl ->
-                val images = arrayListOf(imageUrl)
-                PhotoGalleryDialogFragment.newInstance(
-                    images,
-                    0
-                ).show(
-                    childFragmentManager,
-                    "photoGallery"
-                )
+                PhotoGalleryDialogFragment.newInstance(arrayListOf(imageUrl), 0)
+                    .show(childFragmentManager, "photoGallery")
+            },
+            onContextClick = { id, type ->
+                val bundle = Bundle().apply { putString(if(type == "HOUSE") "houseId" else "bookingId", id) }
+                val actionId = if(type == "HOUSE") R.id.detailedHouseFragment else R.id.bookingFragment
+                findNavController().navigate(actionId, bundle)
             }
+
         )
 
         binding.rvMessages.apply {
             adapter = messageAdapter
             layoutManager = LinearLayoutManager(requireContext()).apply {
-                stackFromEnd = true
+                stackFromEnd = true // I messaggi partono dal basso
             }
         }
     }
@@ -92,23 +88,14 @@ class DetailedChatFragment : Fragment(){
             }
         }
 
-        binding.tvChatUserName.setOnClickListener {
+        // Navigazione al profilo dell'altro utente
+        val navigateToProfile = View.OnClickListener {
             val state = viewModel.uiState.value
-            val bundle = Bundle().apply {
-                putString("userId", state.otherUser?.id)
-            }
-            findNavController().navigate(com.example.micasaestucasa.R.id.userProfileFragment, bundle)
-
-        }
-
-        binding.ivUserProfile.setOnClickListener {
-            val state = viewModel.uiState.value
-            val bundle = Bundle().apply {
-                putString("userId", state.otherUser?.id)
-            }
+            val bundle = Bundle().apply { putString("userId", state.otherUser?.id) }
             findNavController().navigate(R.id.userProfileFragment, bundle)
-
         }
+        binding.tvChatUserName.setOnClickListener(navigateToProfile)
+        binding.ivUserProfile.setOnClickListener(navigateToProfile)
 
         binding.btnDeleteChat.setOnClickListener {
             com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
@@ -119,25 +106,15 @@ class DetailedChatFragment : Fragment(){
                 .show()
         }
 
-        binding.chatDetailToolbar.findViewById<View>(R.id.btnRateUser)?.setOnClickListener {
-            val state = viewModel.uiState.value
-            val bundle = Bundle().apply {
-                putString("targetId", state.otherUser?.id)
-                putString("targetType", "utente")
-            }
-            findNavController().navigate(R.id.reviewFragment, bundle)
-        }
-
-
+        // Tasto stella per recensione (Toolbar)
         binding.btnRateUser.setOnClickListener {
             val state = viewModel.uiState.value
             val bundle = Bundle().apply {
                 putString("targetId", state.otherUser?.id)
-                putString("targetType", "utente")
+                putString("targetType", "UTENTE")
             }
             findNavController().navigate(R.id.reviewFragment, bundle)
         }
-
     }
 
     private fun setupInputListeners() {
@@ -159,62 +136,28 @@ class DetailedChatFragment : Fragment(){
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
 
-                    (binding.rvMessages.adapter as? MessageAdapter)?.submitList(state.messages) {
+                    // 1. Aggiornamento lista messaggi (ora include la Card di contesto)
+                    messageAdapter.submitList(state.messages) {
                         if (state.messages.isNotEmpty()) {
                             binding.rvMessages.scrollToPosition(state.messages.size - 1)
                         }
                     }
 
+                    // 2. Toolbar (Dati utente)
                     state.otherUser?.let { user ->
                         binding.tvChatUserName.text = "${user.name} ${user.surname}"
                         Glide.with(this@DetailedChatFragment)
                             .load(user.profileImageUrl)
-                            .placeholder(com.example.micasaestucasa.R.drawable.ic_person)
+                            .placeholder(R.drawable.ic_person)
                             .circleCrop()
                             .into(binding.ivUserProfile)
                     }
 
-                    state.house?.let { house ->
-                        binding.chatHeaderInfo.isVisible = true
-                        binding.tvContextTitle.text = house.titolo
+                    // 3. Stella recensione (Toolbar)
+                    binding.btnRateUser.visibility = if (state.canReview && !state.hasAlreadyReviewed)
+                        View.VISIBLE else View.GONE
 
-                        Glide.with(this@DetailedChatFragment)
-                            .load(house.immagini.firstOrNull()).centerCrop()
-                            .into(binding.ivContextHouse)
-
-                        if(state.booking != null){
-                            binding.tvContextSubtitle.text = "Vedi i dettagli della prenotazione"
-                            binding.chatHeaderInfo.setOnClickListener {
-                                val bundle = Bundle().apply {
-                                    putString("bookingId", state.booking.idBooking)
-                                    putString("houseId", house.id)
-                                    putBoolean("isReadOnly", true)
-                                }
-                                findNavController().navigate(com.example.micasaestucasa.R.id.bookingFragment, bundle)
-                            }
-                        }else {
-                            binding.tvContextSubtitle.text = "In riferimento a questo annuncio"
-
-                            binding.chatHeaderInfo.setOnClickListener {
-                                val bundle = Bundle().apply {
-                                    putString("houseId", house.id)
-                                }
-                                findNavController().navigate(com.example.micasaestucasa.R.id.detailedHouseFragment, bundle)
-                            }
-                        }
-
-
-
-                    } ?: run {
-                        binding.chatHeaderInfo.isVisible = false
-                    }
-
-
-                    // Gestione visibilità icona recensione
-                    binding.chatDetailToolbar.findViewById<View>(com.example.micasaestucasa.R.id.btnRateUser)?.isVisible =
-                        state.canReview && !state.hasAlreadyReviewed
-
-                    // Gestione Feedback e Errori (Snackbar)
+                    // 4. Feedback e Errori
                     state.userFeedback?.let {
                         Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
                         viewModel.clearFeedback()
@@ -225,26 +168,17 @@ class DetailedChatFragment : Fragment(){
                         viewModel.clearError()
                     }
 
-                    //Navigazione in caso di successo (es. chat eliminata)
-                    if (state.actionSuccess) {
-                        findNavController().popBackStack()
-                    }
+                    if (state.actionSuccess) findNavController().popBackStack()
                 }
             }
         }
     }
 
-
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-
-
-
 }
-
 
 
 

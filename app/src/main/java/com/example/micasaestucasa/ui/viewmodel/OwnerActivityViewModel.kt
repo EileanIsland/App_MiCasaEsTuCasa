@@ -1,10 +1,6 @@
 package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.model.BookingUi
 import com.example.micasaestucasa.data.repository.AuthRepository
@@ -13,31 +9,33 @@ import com.example.micasaestucasa.data.repository.CasaRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OwnerActivityViewModel : ViewModel(){
-    private val _uiState = MutableStateFlow(OwnerActivityUiState())
-    val uiState : StateFlow<OwnerActivityUiState> = _uiState.asStateFlow()
+class OwnerActivityViewModel : ViewModel() {
 
-    init{
+    private val _uiState = MutableStateFlow(OwnerActivityUiState())
+    val uiState: StateFlow<OwnerActivityUiState> = _uiState.asStateFlow()
+
+    init {
         loadOwnerActivities()
     }
 
     /**
-     * Carica i dati nel Uistate per OwnerFragment
+     * Carica i dati delle attività del proprietario (le sue case e le prenotazioni ricevute).
      */
     fun loadOwnerActivities() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
+        viewModelScope.launch {
             try {
-                val currentUid = AuthRepository.getCurrentIUD()
+                val currentUid = UsersRepository.getCurrentUid()
                 if (currentUid == null) {
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Utente non autenticato"
-                        )
+                        it.copy(isLoading = false, errorMessage = "Utente non autenticato")
                     }
                     return@launch
                 }
@@ -52,7 +50,6 @@ class OwnerActivityViewModel : ViewModel(){
                     async {
                         try {
                             val casa = CasaRepository.getCasaById(booking.idCasa).getOrThrow()
-
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
                             val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()
 
@@ -63,8 +60,8 @@ class OwnerActivityViewModel : ViewModel(){
                                 guest = guest
                             )
                         } catch (e: Exception) {
-                            // Se fallisce il recupero di un dettaglio, creiamo comunque l'oggetto
-                            // per non far sparire l'intera prenotazione dalla lista
+                            // Se fallisce il recupero di un dettaglio di una riga,
+                            // restituisce un oggetto parziale per non rompere l'intera lista
                             BookingUi(booking = booking, casa = null, owner = null, guest = null)
                         }
                     }
@@ -79,83 +76,91 @@ class OwnerActivityViewModel : ViewModel(){
                 }
 
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "Errore durante il caricamento delle attività"
-                    )
-                }
+                handleError(e, "Errore durante il caricamento delle attività")
             }
         }
     }
-
-    fun deleteHouse(houseId: String) {
-        viewModelScope.launch {_uiState.update { it.copy(isLoading = true) }
-            try {
-                CasaRepository.deactivateCasa(houseId).getOrThrow()
-
-                loadOwnerActivities()
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
-            }
-        }
-    }
-
 
     /**
-     * Accetta una prenotazione impostando lo stato su "Confermata"
+     * Disattiva un annuncio (Soft Delete)
      */
-    fun acceptBooking(bookingId: String){
-        if(bookingId.isEmpty()) return
-
+    fun deleteHouse(houseId: String) {
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            try {
-                BookingRepository.acceptBooking(bookingId).getOrThrow()
-                loadOwnerActivities()
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
-            }catch(e: Exception){
-                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la conferma della prenotazione", isLoading = false, isSuccess = false)}
-            }
+            CasaRepository.deactivateCasa(houseId)
+                .onSuccess {
+                    loadOwnerActivities() // Ricarichiamo i dati aggiornati
+                }
+                .onFailure { e ->
+                    handleError(e, "Errore durante l'eliminazione dell'annuncio")
+                }
         }
     }
 
-
-    fun refuseBooking(bookingId: String){
-        if(bookingId.isEmpty()) return
-
+    /**
+     * Accetta una prenotazione (Incrementa anche il contatore soggiorni dell'utente)
+     */
+    fun acceptBooking(bookingId: String) {
+        if (bookingId.isEmpty()) return
         _uiState.update { it.copy(isLoading = true) }
+
         viewModelScope.launch {
-            try {
-                BookingRepository.refuseBooking(bookingId).getOrThrow()
-                loadOwnerActivities()
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
-            }catch(e: Exception){
-                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la gestione della prenotazione", isLoading = false, isSuccess = false)}
-            }
+            BookingRepository.acceptBooking(bookingId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                    loadOwnerActivities()
+                }
+                .onFailure { e ->
+                    handleError(e, "Errore durante la conferma della prenotazione")
+                }
         }
+    }
 
+    /**
+     * Rifiuta una prenotazione
+     */
+    fun refuseBooking(bookingId: String) {
+        if (bookingId.isEmpty()) return
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            BookingRepository.refuseBooking(bookingId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                    loadOwnerActivities()
+                }
+                .onFailure { e ->
+                    handleError(e, "Errore durante il rifiuto della prenotazione")
+                }
+        }
+    }
+
+    /**
+     * Gestione centralizzata degli errori per intercettare PERMISSION_DENIED
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per gestire queste attività. Verifica il login."
+        } else {
+            "$context: ${e.localizedMessage ?: "Errore imprevisto"}"
+        }
+        _uiState.update { it.copy(isLoading = false, errorMessage = message) }
     }
 
     fun resetSuccess() {
         _uiState.update { it.copy(isSuccess = false) }
     }
 
-    fun clearMessage(){
-        _uiState.update{
-            it.copy(message = null)
-        }
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
     }
 
-    fun clearError(){
-        _uiState.update{
-            it.copy(errorMessage = null)
-        }
+    fun clearMessage() {
+        _uiState.update { it.copy(message = null) }
     }
-
 }
+
+
 
 
 

@@ -147,6 +147,7 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
                         }
                     }
 
+
                     //GESTIONE ERRORI
                     state.errorMessage?.let {
                         Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()

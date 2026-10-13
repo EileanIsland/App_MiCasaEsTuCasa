@@ -16,82 +16,94 @@ import kotlinx.coroutines.launch
 class UserProfileViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(UserProfileUiState())
-    val uiState : StateFlow<UserProfileUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<UserProfileUiState> = _uiState.asStateFlow()
 
-    fun loadUserProfile(userId: String){
-        viewModelScope.launch{
-            _uiState.update{it.copy(isLoading = true, errorMessage = null)}
+    /**
+     * Carica il profilo di un altro utente (Guest o Host).
+     * Utilizza async per caricare recensioni, soggiorni e annunci in parallelo.
+     */
+    fun loadUserProfile(userId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            try{
-                val userDef = async { UsersRepository.getUserById(userId)}
-                val userReviewsDef = async { ReviewRepository.getReviewsForUser(userId)}
-                val staysDef = async { BookingRepository.getBookingByGuest(userId)}
-                val adsDef = async { BookingRepository.getBookingByHost(userId)}
-
+            try {
+                val userDef = async { UsersRepository.getUserById(userId) }
+                val userReviewsDef = async { ReviewRepository.getReviewsForUser(userId) }
 
                 val user = userDef.await().getOrThrow()
+                if (user == null) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = "Utente non trovato") }
+                    return@launch
+                }
+
                 val userReviews = userReviewsDef.await().getOrThrow()
-                val (media, totale) = ReviewRepository.getRatingStats(user?.id ?: "", ReviewTarget.UTENTE).getOrThrow()
-                val stays = staysDef.await().getOrThrow()
-                val ads = adsDef.await().getOrThrow()
-
                 val stats = UserStats(
-                    ratingMedia = media,
-                    numeroRecensioni = totale,
-                    numeroSoggiorni = stays.size,
-                    numeroAnnunci = ads.size
-
+                    ratingMedia = user.valutazioneMedia,
+                    numeroRecensioni = user.numeroRecensioni,
+                    numeroSoggiorni = user.numeroSoggiorni,
+                    numeroAnnunci = user.numeroAnnunci
                 )
 
-                _uiState.update{
+                _uiState.update {
                     it.copy(
                         isLoading = false,
                         user = user,
                         userStats = stats,
                         reviews = userReviews,
-                        errorMessage = if (user == null) "Utente non trovato" else null
+                        errorMessage = null
                     )
                 }
 
-            }catch (e: Exception){
-                _uiState.update{
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Errore durante il caricamento del profilo: ${e.message}"
-                    )
-                }
+            } catch (e: Exception) {
+                handleError(e, "Errore durante il caricamento del profilo")
             }
         }
-
     }
 
-    fun toggleReviews(){
-        _uiState.update { it.copy(isShowingAllReviews = !it.isShowingAllReviews) }
-    }
-
-
+    /**
+     * Segnala un utente.
+     */
     fun reportUser(reason: String) {
+        val targetUserId = _uiState.value.user?.id ?: return
+
         viewModelScope.launch {
-            val state = _uiState.value
-            UsersRepository.reportUser(state.user?.id ?: "", reason).onSuccess {
-                _uiState.update { it.copy(
-                    feedback = "Utente segnalato con successo"
-                ) }
-            }.onFailure {
-                _uiState.update { it.copy(
-                    errorMessage = "Errore durante segnalazione dell'utente"
-                ) }
-            }
+            UsersRepository.reportUser(targetUserId, reason)
+                .onSuccess {
+                    _uiState.update { it.copy(feedback = "Utente segnalato con successo") }
+                }
+                .onFailure { e ->
+                    handleError(e, "Errore durante la segnalazione dell'utente")
+                }
         }
+    }
+
+    /**
+     * Gestione centralizzata degli errori per catturare Permission Denied.
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per visualizzare i dettagli di questo profilo."
+        } else {
+            "$context: ${e.localizedMessage}"
+        }
+        _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+    }
+
+    fun toggleReviews() {
+        _uiState.update { it.copy(isShowingAllReviews = !it.isShowingAllReviews) }
     }
 
     fun clearFeedback() {
         _uiState.update { it.copy(feedback = null) }
     }
 
-
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
-
 }
+
+
+
+
+
+

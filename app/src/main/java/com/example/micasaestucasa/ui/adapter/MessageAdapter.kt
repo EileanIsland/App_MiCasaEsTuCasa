@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.micasaestucasa.data.model.Message
+import com.example.micasaestucasa.databinding.ItemChatContextBinding
 import com.example.micasaestucasa.databinding.ItemMessageReceivedBinding
 import com.example.micasaestucasa.databinding.ItemMessageSentBinding
 import java.text.SimpleDateFormat
@@ -16,7 +17,8 @@ import java.util.Locale
 
 class MessageAdapter(
     private val currentUid: String,
-    private val onImageClick: (String) -> Unit
+    private val onImageClick: (String) -> Unit,
+    private val onContextClick: (String, String) -> Unit
     ): ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
 
     private val VIEW_TYPE_SENT_TEXT = 1
@@ -24,9 +26,13 @@ class MessageAdapter(
     private val VIEW_TYPE_SENT_IMAGE = 3
     private val VIEW_TYPE_RECEIVED_IMAGE = 4
 
+    private val VIEW_TYPE_CONTEXT = 5
+
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
         val isMe = message.senderId == currentUid
+
+        if (message.type == "context") return VIEW_TYPE_CONTEXT
 
         return if(message.type == "image"){
             if(isMe) VIEW_TYPE_SENT_IMAGE else VIEW_TYPE_RECEIVED_IMAGE
@@ -44,6 +50,7 @@ class MessageAdapter(
             VIEW_TYPE_RECEIVED_TEXT -> ReceivedViewHolder(ItemMessageReceivedBinding.inflate(inflater, parent, false))
             VIEW_TYPE_SENT_IMAGE -> SentImageViewHolder(ItemMessageSentBinding.inflate(inflater, parent, false))
             VIEW_TYPE_RECEIVED_IMAGE -> ReceivedImageViewHolder(ItemMessageReceivedBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_CONTEXT -> ContextViewHolder(ItemChatContextBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -55,6 +62,31 @@ class MessageAdapter(
             is ReceivedViewHolder -> holder.bind(message)
             is SentImageViewHolder -> holder.bind(message)
             is ReceivedImageViewHolder -> holder.bind(message)
+            is ContextViewHolder -> holder.bind(message)
+        }
+    }
+
+    inner class ContextViewHolder(private val binding: ItemChatContextBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(message: Message) {
+            binding.tvContextTitle.text = message.text
+            binding.tvContextSubtitle.text = when(message.contextType) {
+                "HOUSE" -> "In merito a questa casa"
+                "BOOKING" -> "Dettagli della prenotazione"
+                else -> "Contesto conversazione"
+            }
+
+            Glide.with(binding.ivContextHouse.context)
+                .load(message.url)
+                .centerCrop()
+                .into(binding.ivContextHouse)
+
+            binding.root.setOnClickListener {
+                val contextId = message.contextId
+                val contextType = message.contextType
+                if (contextId != null && contextType != null) {
+                    onContextClick(contextId, contextType)
+                }
+            }
         }
     }
 
@@ -124,9 +156,6 @@ class MessageAdapter(
         }
 
     }
-
-
-
 
 }
 

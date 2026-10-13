@@ -18,24 +18,25 @@ import kotlinx.coroutines.launch
 class GuestActivityViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(GuestActivityUiState())
-    val uiState : StateFlow<GuestActivityUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<GuestActivityUiState> = _uiState.asStateFlow()
 
     init {
         loadGuestActivities()
     }
 
+    /**
+     * Carica le attività dell'ospite (prenotazioni effettuate).
+     * Gestisce il mapping parallelo dei dati della casa e dei profili.
+     */
     fun loadGuestActivities() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
+        viewModelScope.launch {
             try {
                 val currentUid = AuthRepository.getCurrentIUD()
                 if (currentUid == null) {
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Utente non autenticato"
-                        )
+                        it.copy(isLoading = false, errorMessage = "Utente non autenticato")
                     }
                     return@launch
                 }
@@ -46,9 +47,7 @@ class GuestActivityViewModel : ViewModel() {
                     async {
                         try {
                             val casa = CasaRepository.getCasaById(booking.idCasa).getOrThrow()
-
                             val owner = UsersRepository.getUserById(casa?.proprietarioId ?: "").getOrThrow()
-
                             val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()
 
                             BookingUi(
@@ -76,22 +75,30 @@ class GuestActivityViewModel : ViewModel() {
                 }
 
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "Errore durante il caricamento delle attività"
-                    )
-                }
+                handleError(e, "Errore durante il caricamento delle attività")
             }
         }
     }
 
-    fun clearError(){
+    /**
+     * Gestione centralizzata degli errori per la SnackBar.
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per visualizzare queste attività."
+        } else {
+            "$context: ${e.localizedMessage ?: "Errore imprevisto"}"
+        }
         _uiState.update {
-            it.copy(errorMessage = null)
+            it.copy(isLoading = false, errorMessage = message)
         }
     }
+
+    fun clearError() {
+        _uiState.update { it.copy(errorMessage = null) }
+    }
 }
+
 
 
 

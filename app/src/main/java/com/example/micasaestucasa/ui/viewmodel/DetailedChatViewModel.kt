@@ -2,12 +2,14 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.data.repository.ChatRepository
-import com.example.micasaestucasa.data.repository.UsersRepository
+import com.example.micasaestucasa.R
 import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.CasaRepository
+import com.example.micasaestucasa.data.repository.ChatRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
+import com.example.micasaestucasa.data.repository.UsersRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,169 +19,138 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class DetailedChatViewModel: ViewModel(){
+class DetailedChatViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DetailedChatUiState())
     val uiState: StateFlow<DetailedChatUiState> = _uiState.asStateFlow()
 
-    private var currentChatID : String ? = null
-    val currentUserID = UsersRepository.currentUserProfile.value?.id
-    private var otherUserID : String ? = null
+    private var _currentChatID: String? = null
+    val currentChatID: String? get() = _currentChatID
 
+    private var _otherUserID: String? = null
+    val otherUserID: String? get() = _otherUserID
 
+    val currentUserID: String?
+        get() = UsersRepository.getCurrentUid()
+
+    /**
+     * Inizializza la chat caricando messaggi, profili e dettagli transazione.
+     */
     fun initChat(chatId: String?, otherUserId: String, casaId: String?, bookingId: String?) {
-        if(chatId == null){
-            this.currentChatID = ChatRepository.getChatId(currentUserID!!, otherUserId)
-        } else {
-            this.currentChatID = chatId
-        }
-        this.otherUserID = otherUserId
+        this._currentChatID = chatId ?: ChatRepository.getChatId(currentUserID ?: "", otherUserId)
+        this._otherUserID = otherUserId
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val cid = currentChatID ?: return@launch
             val uid = currentUserID ?: return@launch
 
-            UsersRepository.getUserById(otherUserId)
-                .onSuccess { user -> _uiState.update { it.copy(otherUser = user) } }
-                .onFailure { e -> handleError(e) }
+            try {
+                UsersRepository.getUserById(otherUserId)
+                    .onSuccess { user -> _uiState.update { it.copy(otherUser = user) } }
+                    .onFailure { e -> handleError(e, "Errore profilo interlocutore") }
 
-            ChatRepository.getChatMetadata(cid, uid)
-                .catch { e -> handleError(e) }
-                .onEach { preview ->
-                    _uiState.update { it.copy(chatInfo = preview) }
+                ChatRepository.getChatMetadata(cid, uid)
+                    .catch { e -> handleError(e, "Errore metadati chat") }
+                    .onEach { preview -> _uiState.update { it.copy(chatInfo = preview) } }
+                    .launchIn(viewModelScope)
+
+                ChatRepository.getMessages(cid)
+                    .catch { e -> handleError(e, "Errore caricamento messaggi") }
+                    .onEach { messageList -> _uiState.update { it.copy(messages = messageList, isLoading = false) } }
+                    .launchIn(viewModelScope)
+
+                bookingId?.let { id ->
+                    BookingRepository.getBookingById(id)
+                        .onSuccess { booking -> _uiState.update { it.copy(booking = booking) } }
+                        .onFailure { e -> handleError(e, "Errore dati prenotazione") }
                 }
-                .launchIn(viewModelScope)
 
-            ChatRepository.getMessages(cid)
-                .catch { e -> handleError(e) }
-                .onEach { messageList ->
-                    _uiState.update { it.copy(
-                        messages = messageList,
-                        isLoading = false
-                    ) }
+                casaId?.let { id ->
+                    CasaRepository.getCasaById(id)
+                        .onSuccess { casa -> _uiState.update { it.copy(house = casa) } }
+                        .onFailure { e -> handleError(e, "Errore dati casa") }
                 }
-                .launchIn(viewModelScope)
 
-            bookingId?.let { id ->
-                BookingRepository.getBookingById(id).onSuccess { booking ->
-                    _uiState.update { it.copy(booking = booking) }
-                }.onFailure { e -> handleError(e) }
+                checkReviewEligibility(bookingId)
+
+            } catch (e: Exception) {
+                handleError(e, "Errore durante l'inizializzazione")
             }
-
-            casaId?.let { id ->
-                CasaRepository.getCasaById(id)
-                    .onSuccess { casa ->
-                        _uiState.update { it.copy(house = casa) }
-                    }
-                    .onFailure { e -> handleError(e) }
-            }
-
-            checkReviewEligibility(bookingId)
         }
-    }
-
-    private fun handleError(e: Throwable) {
-        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
-            "Non hai i permessi per accedere a questi dati."
-        } else {
-            e.localizedMessage ?: "Errore di caricamento"
-        }
-        _uiState.update { it.copy(errorMessage = message, isLoading = false) }
     }
 
     /**
-     * Verifica se mostrare l'icona della recensione nella toolbar.
-     * La stella appare se:
-     * 1. C'è un bookingId passato alla chat.
-     * 2. Quella specifica prenotazione è passata/conclusa.
-     * 3. L'utente non ha già lasciato una recensione per questo target.
+     * Invia un messaggio di testo, inizializzando la chat se è il primo contatto.
      */
-    private fun checkReviewEligibility(bookingId: String?) {
-        val uid = currentUserID ?: return
-        val otherId = otherUserID ?: return
-
-        if (bookingId == null) {
-            _uiState.update { it.copy(canReview = false) }
-            return
-        }
-
-        viewModelScope.launch {
-            val alreadyReviewed = ReviewRepository.hasAlreadyReviewedUser(otherId, uid).getOrDefault(false)
-
-            val isBookingReviewable = BookingRepository.getBookingById(bookingId).map { booking ->
-                val isExpired = (booking?.dataFine ?: Long.MAX_VALUE) < System.currentTimeMillis()
-                val isConfirmed = booking?.stato == "Confermata" || booking?.stato == "Rifiutata"
-                isConfirmed && isExpired
-            }.getOrDefault(false)
-
-            _uiState.update { it.copy(
-                canReview = isBookingReviewable,
-                hasAlreadyReviewed = alreadyReviewed
-            )}
-        }
-    }
-
-
     fun sendMessage(text: String) {
-        if (text.isBlank() || currentUserID == null || otherUserID == null) return
-
+        val uid = currentUserID ?: return
         val cid = currentChatID ?: return
-        val otherUser = _uiState.value.otherUser ?: return
+        if (text.isBlank()) return
 
+        val state = _uiState.value
         val me = UsersRepository.currentUserProfile.value
+        val other = state.otherUser
 
         viewModelScope.launch {
-            // Se la chat non è ancora stata inizializzata su Firestore (chatInfo è null)
-            if (_uiState.value.chatInfo == null && me != null) {
-                ChatRepository.initializeChat(me, otherUser).onSuccess {
-                    executeSend(cid, text)
-                }
-            } else if (_uiState.value.chatInfo != null) {
-                // Chat già esistente, inviamo il messaggio direttamente
-                executeSend(cid, text)
+            if (_uiState.value.chatInfo == null && me != null && other != null) {
+
+                val contextId = state.booking?.idBooking ?: state.house?.id
+                val contextType = if (state.booking != null) "BOOKING" else if (state.house != null) "HOUSE" else null
+                val contextTitle = state.house?.titolo ?: "Richiesta informazioni"
+                val contextUrl = state.house?.immagini?.firstOrNull() ?: ""
+
+                ChatRepository.initializeChat(
+                    currentUser = me,
+                    otherUser = other,
+                    contextId = contextId,
+                    contextType = contextType,
+                    contextTitle = contextTitle,
+                    contextImageUrl = contextUrl
+                ).onSuccess {
+                    executeSend(cid, text, uid)
+                }.onFailure { e -> handleError(e, "Impossibile avviare la conversazione") }
             } else {
-                // Caso limite: me è null (sessione scaduta o profilo non caricato)
-                _uiState.update { it.copy(errorMessage = "Errore: profilo utente non trovato") }
+                executeSend(cid, text, uid)
             }
         }
     }
 
+    private suspend fun executeSend(chatId: String, text: String, senderId: String) {
+        val message = Message(senderId = senderId, text = text)
+        ChatRepository.sendMessage(chatId, message)
+    }
 
     /**
-     * Gestisce l'invio di un'immagine.
-     * Carica il file su Storage e poi invia il messaggio con l'URL risultante.
+     * Carica un'immagine su Storage e invia il relativo messaggio.
      */
     fun sendImageMessage(uri: String) {
         val cid = currentChatID ?: return
+        val uid = currentUserID ?: return
         val me = UsersRepository.currentUserProfile.value
-        val otherUser = _uiState.value.otherUser ?: return
+        val other = _uiState.value.otherUser
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
             ChatRepository.uploadImage(cid, uri).onSuccess { imageUrl ->
-
-                if (_uiState.value.chatInfo == null && me != null) {
-                    ChatRepository.initializeChat(me, otherUser).onSuccess {
-                        executeSendImage(cid, imageUrl)
+                if (_uiState.value.chatInfo == null && me != null && other != null) {
+                    ChatRepository.initializeChat(me, other).onSuccess {
+                        executeSendImage(cid, imageUrl, uid)
                     }
                 } else {
-                    executeSendImage(cid, imageUrl)
+                    executeSendImage(cid, imageUrl, uid)
                 }
                 _uiState.update { it.copy(isLoading = false) }
-            }.onFailure {
-                _uiState.update { it.copy(
-                    isLoading = false,
-                    errorMessage = "Errore durante l'upload dell'immagine"
-                ) }
+            }.onFailure { e ->
+                handleError(e, "Errore durante l'invio dell'immagine")
             }
         }
     }
 
-    private suspend fun executeSendImage(chatId: String, imageUrl: String) {
+    private suspend fun executeSendImage(chatId: String, imageUrl: String, senderId: String) {
         val message = Message(
-            senderId = currentUserID!!,
+            senderId = senderId,
             text = "",
             url = imageUrl,
             type = "image"
@@ -187,15 +158,49 @@ class DetailedChatViewModel: ViewModel(){
         ChatRepository.sendMessage(chatId, message)
     }
 
+    /**
+     * Logica per determinare se l'utente può recensire l'altro utente.
+     */
+    private fun checkReviewEligibility(bookingId: String?) {
+        val uid = currentUserID ?: return
+        val otherId = otherUserID ?: return
+        if (bookingId == null) return
 
-    private suspend fun executeSend(chatId: String, text: String) {
-        val message = Message(
-            senderId = currentUserID!!,
-            text = text
-        )
-        ChatRepository.sendMessage(chatId, message)
+        viewModelScope.launch {
+            try {
+                val alreadyReviewedDef = async { ReviewRepository.hasAlreadyReviewedUser(otherId, uid) }
+                val bookingDef = async { BookingRepository.getBookingById(bookingId) }
+
+                val alreadyReviewed = alreadyReviewedDef.await().getOrDefault(false)
+                val bookingResult = bookingDef.await().getOrNull()
+
+                val isBookingReviewable = bookingResult?.let {
+                    val isExpired = it.dataFine < System.currentTimeMillis()
+                    val isConfirmed = it.stato == "Confermata"
+                    isConfirmed && isExpired
+                } ?: false
+
+                _uiState.update { it.copy(
+                    canReview = isBookingReviewable,
+                    hasAlreadyReviewed = alreadyReviewed
+                )}
+            } catch (e: Exception) {
+                android.util.Log.e("ChatViewModel", "Eligibility check failed", e)
+            }
+        }
     }
 
+    /**
+     * Gestione centralizzata errori per SnackBar (con focus su PERMISSION_DENIED).
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Accesso negato: non hai i permessi per questa operazione."
+        } else {
+            "$context: ${e.localizedMessage ?: "Errore imprevisto"}"
+        }
+        _uiState.update { it.copy(errorMessage = message, isLoading = false) }
+    }
 
     fun deleteChat() {
         val cid = currentChatID ?: return
@@ -203,6 +208,8 @@ class DetailedChatViewModel: ViewModel(){
             _uiState.update { it.copy(isDeleting = true) }
             if (ChatRepository.deleteChat(cid)) {
                 _uiState.update { it.copy(actionSuccess = true) }
+            } else {
+                _uiState.update { it.copy(errorMessage = "Errore durante l'eliminazione") }
             }
             _uiState.update { it.copy(isDeleting = false) }
         }
@@ -212,30 +219,17 @@ class DetailedChatViewModel: ViewModel(){
         val tid = otherUserID ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isReporting = true) }
-            UsersRepository.reportUser(tid, reason).onSuccess {
-                _uiState.update { it.copy(
-                    isReporting = false,
-                    userFeedback = "Utente segnalato con successo"
-                ) }
-            }.onFailure {
-                _uiState.update { it.copy(
-                    errorMessage = "Errore durante segnalazione dell'utente"
-                ) }
-            }
+            UsersRepository.reportUser(tid, reason)
+                .onSuccess {
+                    _uiState.update { it.copy(isReporting = false, userFeedback = "Utente segnalato") }
+                }
+                .onFailure { e -> handleError(e, "Segnalazione fallita") }
         }
     }
 
-
-    fun clearError() {
-        _uiState.update { it.copy(errorMessage = null) }
-    }
-
-    fun clearFeedback() {
-        _uiState.update { it.copy(userFeedback = null) }
-    }
-
+    fun clearError() = _uiState.update { it.copy(errorMessage = null) }
+    fun clearFeedback() = _uiState.update { it.copy(userFeedback = null) }
 }
-
 
 
 

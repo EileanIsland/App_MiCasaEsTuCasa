@@ -51,7 +51,7 @@ class BookingViewModel : ViewModel(){
                 }
 
             }catch(e: Exception){
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                handleError(e, "Errore nel caricamento dei dati")
             }
 
         }
@@ -86,25 +86,19 @@ class BookingViewModel : ViewModel(){
 
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            try {
-                BookingRepository.deleteBooking(bookingId).getOrThrow()
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isSuccess = false,
-                        errorMessage = e.message
-                            ?: "Errore durante la cancellazione della prenotazione"
-                    )
+            BookingRepository.deleteBooking(bookingId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 }
-            }
+                .onFailure { e -> handleError(e, "Errore durante l'eliminazione") }
         }
-
 
     }
 
 
+    //TODO: il fragment per ora è utile solo al guest che prenota, non all'host, non ci
+    // sono button per accettare/rifiutare, pensare di aggiungerli
+    /*
     fun acceptBooking(bookingId: String){
         if(bookingId.isEmpty()) return
 
@@ -115,13 +109,11 @@ class BookingViewModel : ViewModel(){
 
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            try {
-                BookingRepository.acceptBooking(bookingId).getOrThrow()
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
-            }catch(e: Exception){
-                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante la conferma della prenotazione", isLoading = false, isSuccess = false)}
-            }
+            BookingRepository.acceptBooking(bookingId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                }
+                .onFailure { e -> handleError(e, "Errore durante la conferma") }
         }
     }
 
@@ -134,16 +126,15 @@ class BookingViewModel : ViewModel(){
 
         _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
-            try {
-                BookingRepository.refuseBooking(bookingId).getOrThrow()
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
-            }catch(e: Exception){
-                _uiState.update{it.copy(errorMessage=e.message ?: "Errore durante il rifiuto della prenotazione", isLoading = false, isSuccess = false)}
-            }
+            BookingRepository.refuseBooking(bookingId)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                }
+                .onFailure { e -> handleError(e, "Errore durante cancellazione prenotazione") }
         }
 
     }
+    */
 
     private fun validateForm(){
         val s = _uiState.value
@@ -188,9 +179,21 @@ class BookingViewModel : ViewModel(){
     }
 
 
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per questa operazione. Verifica di essere il proprietario o l'ospite corretto."
+        } else {
+            "$context: ${e.localizedMessage ?: "Errore imprevisto"}"
+        }
+        _uiState.update { it.copy(isLoading = false, errorMessage = message, isSuccess = false) }
+    }
+
+
     fun clearError(){
         _uiState.update { it.copy(errorMessage = null) }
     }
 
 
 }
+
+

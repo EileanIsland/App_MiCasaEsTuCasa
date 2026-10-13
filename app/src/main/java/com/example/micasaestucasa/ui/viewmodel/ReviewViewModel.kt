@@ -10,15 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-
 data class ReviewUiState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val errorMessage: String? = null,
-
     val targetId: String = "",
     val targetType: String = "",
-
     val rating: Float = 0f,
     val reviewText: String = "",
     val isPublishEnabled: Boolean = false
@@ -28,11 +25,16 @@ class ReviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReviewUiState())
     val uiState = _uiState.asStateFlow()
 
-
     fun initialize(targetId: String, targetType: String) {
-        _uiState.update { it.copy(targetId = targetId, targetType = targetType) }
+        _uiState.update {
+            it.copy(
+                targetId = targetId,
+                targetType = targetType,
+                isSuccess = false,
+                errorMessage = null
+            )
+        }
     }
-
 
     fun updateRating(rating: Float) {
         _uiState.update { it.copy(rating = rating, isPublishEnabled = rating > 0f) }
@@ -42,67 +44,80 @@ class ReviewViewModel : ViewModel() {
         _uiState.update { it.copy(reviewText = text) }
     }
 
-
+    /**
+     * Invia la recensione (a una Casa o a un Utente).
+     * Gestisce i controlli di sicurezza e i permessi Firestore.
+     */
     fun submitReview() {
         val state = _uiState.value
         if (!state.isPublishEnabled) return
 
-        val currentUid = UsersRepository.getCurrentUid() ?: throw Exception("Effettuare il login per pubblicare una recensione")
-        val currentUserName = UsersRepository.currentUserProfile.value?.name ?: throw Exception("Effettuare il login per pubblicare una recensione")
-        val currentUserImageUrl = UsersRepository.currentUserProfile.value?.profileImageUrl ?: throw Exception("Effettuare il login per pubblicare una recensione")
-
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
         viewModelScope.launch {
+            val currentUid = UsersRepository.getCurrentUid()
+            val profile = UsersRepository.currentUserProfile.value
+
+            if (currentUid == null || profile == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Effettuare il login per pubblicare una recensione"
+                    )
+                }
+                return@launch
+            }
+
             val review = Review(
                 id = "",
                 targetId = state.targetId,
                 rating = state.rating,
                 testo = state.reviewText,
                 reviewerId = currentUid,
-                reviewerName = currentUserName,
-                reviewerImageUrl = currentUserImageUrl,
+                reviewerName = profile.name,
+                reviewerImageUrl = profile.profileImageUrl,
                 targetTypeString = state.targetType
             )
 
-            if(state.targetType == "CASA") {
-                ReviewRepository.saveReviewHouse(review).onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isSuccess = true
-                        )
-                    }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Errore durante il salvataggio"
-                        )
-                    }
+            val result = if (state.targetType == "CASA") {
+                ReviewRepository.saveReviewHouse(review)
+            } else {
+                ReviewRepository.saveReviewUser(review)
+            }
+
+            result.onSuccess {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isSuccess = true
+                    )
                 }
-            }else{
-                ReviewRepository.saveReviewUser(review).onSuccess {
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isSuccess = true
-                        )
-                    }
-                }.onFailure { e ->
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            errorMessage = "Errore durante il salvataggio"
-                        )
-                    }
-                }
+            }.onFailure { e ->
+                handleError(e, "Errore durante il salvataggio della recensione")
             }
         }
+    }
 
+    /**
+     * Gestione centralizzata degli errori per intercettare PERMISSION_DENIED
+     */
+    private fun handleError(e: Throwable, context: String) {
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi per pubblicare questa recensione. Controlla di aver completato il soggiorno."
+        } else {
+            "$context: ${e.localizedMessage}"
+        }
+        _uiState.update {
+            it.copy(isLoading = false, errorMessage = message)
+        }
     }
 
     fun clearErrorMessage() {
         _uiState.update { it.copy(errorMessage = null) }
     }
 }
+
+
+
+
+

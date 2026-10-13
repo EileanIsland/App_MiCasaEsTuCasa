@@ -48,15 +48,26 @@ object ReviewRepository {
 
     suspend fun saveReviewUser(review: Review): Result<Unit> {
         return try {
-            val newReviewRef = db.collection("reviews").document()
-            val finalReview = review.copy(id = newReviewRef.id)
-            newReviewRef.set(finalReview).await()
+            val userRef = db.collection("users").document(review.targetId)
 
+            db.runTransaction { transaction ->
+                val newReviewRef = db.collection("reviews").document()
+                transaction.set(newReviewRef, review.copy(id = newReviewRef.id))
+
+                val userSnapshot = transaction.get(userRef)
+                val currentRating = userSnapshot.getDouble("valutazioneMedia") ?: 0.0
+                val currentNumReviews = userSnapshot.getLong("numeroRecensioni") ?: 0L
+
+                val newNumReviews = currentNumReviews + 1
+                val newRating = ((currentRating * currentNumReviews) + review.rating) / newNumReviews
+
+                transaction.update(userRef,
+                    "numeroRecensioni", newNumReviews,
+                    "valutazioneMedia", newRating
+                )
+            }.await()
             Result.success(Unit)
-        } catch (e: Exception) {
-            android.util.Log.e("ReviewRepository", "Errore durante il salvataggio della recensione: ${e.message}", e)
-            Result.failure(e)
-        }
+        } catch (e: Exception) { Result.failure(e) }
     }
 
 

@@ -25,7 +25,12 @@ data class User(
     val stato: Boolean = true, //indica se utente attivo
 
     val badge : List<String> = emptyList(),
-    val ruolo: String = "client"
+    val ruolo: String = "client",
+    val numeroSoggiorni: Int = 0,
+    val numeroRecensioni: Int = 0,
+    val valutazioneMedia: Double = 0.0,
+    val numeroAnnunci: Int = 0
+
 
 )
 

@@ -4,7 +4,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 
-
 object AuthRepository {
 
     private val auth = FirebaseAuth.getInstance()
@@ -13,32 +12,46 @@ object AuthRepository {
 
     fun getCurrentIUD(): String? = auth.currentUser?.uid
 
-    suspend fun signInWithEmailAndPassword(email: String, password: String): FirebaseUser? {
+    /**
+     * Esegue il login.
+     * Restituisce Result per permettere al ViewModel di gestire i vari tipi di errore
+     * (es. Password errata, utente non trovato, rete assente).
+     */
+    suspend fun signInWithEmailAndPassword(email: String, password: String): Result<FirebaseUser> {
         return try {
             val authResult = auth.signInWithEmailAndPassword(email, password).await()
-            authResult.user
+            val user = authResult.user
+            if (user != null) {
+                Result.success(user)
+            } else {
+                Result.failure(Exception("Utente non trovato dopo il login"))
+            }
         } catch (e: Exception) {
-            null
+            Result.failure(e)
         }
-
     }
 
-    suspend fun createUserWithEmailAndPassword(email: String, password: String): FirebaseUser? {
+    /**
+     * Crea un nuovo account.
+     */
+    suspend fun createUserWithEmailAndPassword(email: String, password: String): Result<FirebaseUser> {
         return try {
             val authResult = auth.createUserWithEmailAndPassword(email, password).await()
-            authResult.user
+            val user = authResult.user
+            if (user != null) {
+                Result.success(user)
+            } else {
+                Result.failure(Exception("Errore durante la creazione dell'utente"))
+            }
         } catch (e: Exception) {
-            null
+            Result.failure(e)
         }
     }
-
-
 
     fun signOut() {
         auth.signOut()
     }
-
-
 }
+
 
 

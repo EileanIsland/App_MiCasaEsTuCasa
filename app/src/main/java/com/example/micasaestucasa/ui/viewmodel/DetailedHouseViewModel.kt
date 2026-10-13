@@ -20,46 +20,40 @@ class DetailedHouseViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(DetailedHouseUiState())
     val uiState: StateFlow<DetailedHouseUiState> = _uiState.asStateFlow()
 
+    /**
+     * Carica i dettagli completi della casa, incluse le recensioni e i dati del proprietario.
+     * Utilizza async per massimizzare la velocità di caricamento parallelo.
+     */
     fun loadHouseById(id: String) {
+        _uiState.update {
+            it.copy(isLoading = true, errorMessage = null)
+        }
+
         viewModelScope.launch {
-            _uiState.update {
-                it.copy(isLoading = true, errorMessage = null)
-            }
-
             try {
-
-                val houseDeferred = async{ CasaRepository.getCasaById(id) }
+                val houseDeferred = async { CasaRepository.getCasaById(id) }
                 val reviewsDeferred = async { ReviewRepository.getReviewsForHouse(id) }
-                val houseStatsDeferred = async { ReviewRepository.getRatingStats(id, ReviewTarget.CASA) }
 
                 val foundHouse = houseDeferred.await().getOrThrow()
                 val houseReviews = reviewsDeferred.await().getOrThrow()
-                val houseStats = houseStatsDeferred.await().getOrThrow()
+
 
                 if (foundHouse != null) {
                     val ownerId = foundHouse.proprietarioId
                     val currentUid = AuthRepository.getCurrentIUD()
                     val isOwner = ownerId == currentUid
 
-                    val ownerDeferred = async{UsersRepository.getUserById(foundHouse.proprietarioId)}
+                    val ownerDeferred = async { UsersRepository.getUserById(ownerId) }
                     val ownerReviewsDeferred = async { ReviewRepository.getReviewsForUser(ownerId) }
-                    val ownerStatsDeferred = async { ReviewRepository.getRatingStats(ownerId, ReviewTarget.UTENTE) }
-
-                    val houseCountDeferred = async { CasaRepository.getCountHousesByOwner(ownerId) }
-                    val bookingCountDeferred = async { BookingRepository.getBookingCountByGuest(ownerId) }
-
 
                     val owner = ownerDeferred.await().getOrThrow()
                     val ownerReviews = ownerReviewsDeferred.await().getOrThrow()
-                    val (mediaOwner, totaleOwner) = ownerStatsDeferred.await().getOrThrow()
-                    val numeroCase = houseCountDeferred.await().getOrThrow()
-                    val numeroSoggiorni = bookingCountDeferred.await().getOrThrow()
 
                     val userStats = UserStats(
-                        ratingMedia = mediaOwner,
-                        numeroRecensioni = totaleOwner,
-                        numeroSoggiorni = numeroSoggiorni,
-                        numeroAnnunci = numeroCase
+                        ratingMedia = owner?.valutazioneMedia,
+                        numeroRecensioni = owner?.numeroRecensioni,
+                        numeroSoggiorni = owner?.numeroSoggiorni,
+                        numeroAnnunci = owner?.numeroAnnunci
                     )
 
                     _uiState.update {
@@ -70,38 +64,44 @@ class DetailedHouseViewModel : ViewModel() {
                             ownerReviews = ownerReviews,
                             houseReviews = houseReviews,
                             ownerStat = userStats,
-                            houseRating = houseStats.first,
-                            numRec = houseStats.second,
+                            houseRating = foundHouse.valutazioneMedia,
+                            numRec = foundHouse.numeroRecensioni,
                             isHouseNotFound = false,
                             isOwner = isOwner
                         )
                     }
 
                 } else {
-                    //CaSA non trovata
                     _uiState.update {
                         it.copy(
                             isLoading = false,
                             isHouseNotFound = true,
-                            errorMessage = "Casa non trovata"
+                            errorMessage = "Questa casa non è più disponibile"
                         )
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update {
-                    android.util.Log.d("DEBUG_DETAILED_HOUSE", "Errore durante il caricamento della casa: ${e.message}")
-
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Errore durante il caricamento della casa"
-                    )
-                }
+                handleError(e, "Errore durante il caricamento della casa")
             }
-
         }
     }
 
+    /**
+     * Traduce l'eccezione in un messaggio leggibile per la SnackBar.
+     */
+    private fun handleError(e: Throwable, context: String) {
+        android.util.Log.e("DEBUG_DETAILED_HOUSE", "$context: ${e.message}", e)
 
+        val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
+            "Non hai i permessi necessari per visualizzare questi dettagli."
+        } else {
+            "$context: ${e.localizedMessage ?: "Errore imprevisto"}"
+        }
+
+        _uiState.update {
+            it.copy(isLoading = false, errorMessage = message)
+        }
+    }
 
     fun toggleReviews() {
         _uiState.update { it.copy(isShowingAllReviews = !it.isShowingAllReviews) }
@@ -110,6 +110,7 @@ class DetailedHouseViewModel : ViewModel() {
     fun errorShown() {
         _uiState.update { it.copy(errorMessage = null) }
     }
-
-
 }
+
+
+

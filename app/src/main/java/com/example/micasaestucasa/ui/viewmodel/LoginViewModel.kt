@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.repository.AuthRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,44 +31,57 @@ class LoginViewModel: ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            try{
-                val firebaseUser = AuthRepository.signInWithEmailAndPassword(email, password)
-                if(firebaseUser != null){
-                    //login ok ha avuto successo
+                AuthRepository.signInWithEmailAndPassword(email, password)
+                    .onSuccess { firebaseUser ->
+                        loadUserProfile(firebaseUser.uid)
+                    }
+                    .onFailure { error->
+                        handleError(error)
+                    }
+        }
+    }
 
-                    UsersRepository.loadAndCacheProfile(firebaseUser.uid)
-                    //TODO: soluzione veloce per sistemare errore cache dopo login MIGLIORARE
-                    val userProfile = UsersRepository.getUserById(firebaseUser.uid)
-                        .onSuccess{ user ->
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    isSuccess = true,
-                                    isAdmin = user?.ruolo == "admin"
-                                )
-                            }
-                        }.onFailure{error->
-                            _uiState.update {
-                                it.copy(
-                                    isLoading = false,
-                                    errorMessage = "Errore nel caricamento del profilo utente"
-                                )}
-                        }
-
-                }else{
-                    //login fallito
+    private suspend fun loadUserProfile(uid: String) {
+        UsersRepository.getUserById(uid)
+            .onSuccess { user ->
+                if (user != null) {
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            errorMessage = "Credenziali non valide"
+                            isSuccess = true,
+                            isAdmin = user.ruolo == "admin"
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = "Profilo utente non trovato."
                         )
                     }
                 }
-            }catch(e: Exception){
-                _uiState.update {
-                    it.copy(isLoading = false, errorMessage = e.message ?: "Errore di connessione")
+            }
+            .onFailure { error ->
+                handleError(error)
+            }
+    }
+
+
+    private fun handleError(e: Throwable) {
+        val message = when (e) {
+            is FirebaseAuthInvalidUserException -> "L'account non esiste."
+            is FirebaseAuthInvalidCredentialsException -> "Email o password errati."
+            else -> {
+                if (e.message?.contains("PERMISSION_DENIED") == true) {
+                    "Errore di accesso al database. Controlla la tua connessione."
+                } else {
+                    e.localizedMessage ?: "Si è verificato un errore imprevisto."
                 }
             }
+        }
+
+        _uiState.update {
+            it.copy(isLoading = false, errorMessage = message)
         }
     }
 
@@ -77,7 +92,6 @@ class LoginViewModel: ViewModel() {
     fun errorShown() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
     }
-
 
 }
 

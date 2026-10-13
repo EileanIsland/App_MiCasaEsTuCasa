@@ -16,8 +16,6 @@ object BookingRepository {
         return try {
             val snapshot = bookingCollection
                 .whereEqualTo("idUtente", guestId)
-                // Se vuoi mostrare solo quelle accettate, mantieni il filtro,
-                // altrimenti toglilo per mostrare anche quelle in attesa/rifiutate
                 .get()
                 .await()
             val bookings = snapshot.toObjects(Booking::class.java)
@@ -62,19 +60,6 @@ object BookingRepository {
         }
     }
 
-    /**
-     * Aggiorna lo stato di una prenotazione (es: Accettata, Rifiutata)
-     */
-    //TODO: CAMBIARE CON ACCEPT BOOKING e CON REFUSE BOOKING
-
-    suspend fun updateBookingStatus(bookingId: String, newStatus: String): Result<Unit> {
-        return try {
-            bookingCollection.document(bookingId).update("stato", newStatus).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
 
     /**
@@ -90,6 +75,7 @@ object BookingRepository {
                 val bookingRef = bookingCollection.document(bookingId)
                 val bookingSnapshot = transaction.get(bookingRef)
                 val booking = bookingSnapshot.toObject(Booking::class.java) ?: throw Exception("Prenotazione non trovata")
+                val hostRef = db.collection("users").document(booking.idHost)
 
                 if (booking.stato != "In attesa" && booking.stato != "Pending") {
                     throw Exception("La prenotazione non è più in attesa.")
@@ -122,9 +108,9 @@ object BookingRepository {
                     newAvailableList.add(mapOf("inizio" to endB, "fine" to fineA))
                 }
 
-                // 4. ESECUZIONE AGGIORNAMENTI
                 transaction.update(bookingRef, "stato", "Confermata")
                 transaction.update(houseRef, "disponibilita", newAvailableList)
+                transaction.update(hostRef, "numeroSoggiorni", com.google.firebase.firestore.FieldValue.increment(1))
             }.await()
 
             Result.success(Unit)
@@ -179,7 +165,7 @@ object BookingRepository {
         return try {
             val snapshot = bookingCollection
                 .whereEqualTo("idUtente", guestId)
-                .whereEqualTo("stato", "accepted")
+                .whereEqualTo("stato", "Confermata")
                 .get()
                 .await()
             Result.success(snapshot.size())

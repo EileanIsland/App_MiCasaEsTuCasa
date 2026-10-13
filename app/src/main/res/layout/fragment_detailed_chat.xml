@@ -97,63 +97,13 @@
         android:background="?attr/colorOutlineVariant"
         app:layout_constraintTop_toBottomOf="@id/chat_detail_toolbar" />
 
-    <!--  BAR Header Casa/Prenotazione -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/chatHeaderInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceVariant"
-        android:padding="8dp"
-        android:visibility="visible"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_divider">
-
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivContextHouse"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:scaleType="centerCrop"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
-            tools:src="@tools:sample/backgrounds/scenic" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/ivContextHouse"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/tvContextTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textAppearance="?attr/textAppearanceTitleSmall"
-                tools:text="Loft moderno in centro" />
-
-            <TextView
-                android:id="@+id/tvContextSubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceLabelSmall"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                tools:text="In riferimento a questa casa" />
-        </LinearLayout>
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <View
         android:id="@+id/header_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="?attr/colorOutlineVariant"
-        app:layout_constraintTop_toBottomOf="@id/chatHeaderInfo" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar_divider" />
 
     <!-- MESSAGGI -->
     <androidx.recyclerview.widget.RecyclerView

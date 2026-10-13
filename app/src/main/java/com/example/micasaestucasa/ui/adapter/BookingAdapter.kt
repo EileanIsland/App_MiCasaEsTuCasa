@@ -80,6 +80,12 @@ class BookingAdapter(
                 tvUserName.text = (user.name + " " + user.surname)
                 tvUserRole.text = ruolo
                 tvUserRole.visibility = View.VISIBLE
+                Glide.with(context)
+                    .load(user.profileImageUrl)
+                    .placeholder(R.drawable.ic_person)
+                    .error(R.drawable.ic_person)
+                    .circleCrop()
+                    .into(ivUserPhoto)
             }
 
             if (isHostView) {
