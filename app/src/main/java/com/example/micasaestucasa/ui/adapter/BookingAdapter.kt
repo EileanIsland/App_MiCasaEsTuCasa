@@ -57,6 +57,11 @@ class BookingAdapter(
             val user = if(isHostView) uiModel.guest!! else uiModel.owner!!
             val ruolo = if(isHostView) "Ospite" else "Proprietario"
 
+            val now = System.currentTimeMillis()
+            val isPast = (booking?.dataFine ?: 0) < now
+            val isNotPending = booking?.stato != "In attesa"
+            val alreadyReviewd = booking?.isReviewed ?: false
+
 
             binding.tvHouseName.text = casa?.titolo ?: context.getString(R.string.segnaposto)
             binding.tvLocation.text = casa?.citta ?: "Posizione non specificata"
@@ -92,7 +97,6 @@ class BookingAdapter(
                 binding.btnModify.visibility = View.GONE
                 binding.btnReview.visibility = View.GONE
 
-
                 if (booking?.stato == "In attesa" || booking?.stato == "Pending") {
                     binding.layoutActions.visibility = View.VISIBLE
                     binding.btnAccept.visibility = View.VISIBLE
@@ -106,15 +110,24 @@ class BookingAdapter(
 
                 // si può modificare la prenotazione solo se è in attesa o pending
                 val canModify = booking?.stato == "In attesa" || booking?.stato == "Pending"
+                val canReview = isNotPending && isPast && !alreadyReviewd
 
-                if (canModify) {
-                    binding.layoutActions.visibility = View.VISIBLE
-                    binding.btnModify.visibility = View.VISIBLE
-                    binding.btnReview.visibility = View.GONE
-
-                } else {
-                    binding.btnReview.visibility = View.VISIBLE
-                    binding.btnModify.visibility = View.GONE
+                when {
+                    canModify -> {
+                        binding.layoutActions.visibility = View.VISIBLE
+                        binding.btnModify.visibility = View.VISIBLE
+                        binding.btnReview.visibility = View.GONE
+                    }
+                    canReview -> {
+                        binding.layoutActions.visibility = View.VISIBLE
+                        binding.btnReview.visibility = View.VISIBLE
+                        binding.btnModify.visibility = View.GONE
+                    }
+                    else -> {
+                        binding.layoutActions.visibility = View.GONE
+                        binding.btnReview.visibility = View.GONE
+                        binding.btnModify.visibility = View.GONE
+                    }
                 }
             }
 

@@ -3,6 +3,7 @@ package com.example.micasaestucasa.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.model.Review
+import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,18 +19,20 @@ data class ReviewUiState(
     val targetType: String = "",
     val rating: Float = 0f,
     val reviewText: String = "",
-    val isPublishEnabled: Boolean = false
+    val isPublishEnabled: Boolean = false,
+    val bookingId: String = ""
 )
 
 class ReviewViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReviewUiState())
     val uiState = _uiState.asStateFlow()
 
-    fun initialize(targetId: String, targetType: String) {
+    fun initialize(targetId: String, targetType: String, bookingId: String) {
         _uiState.update {
             it.copy(
                 targetId = targetId,
                 targetType = targetType,
+                bookingId = bookingId,
                 isSuccess = false,
                 errorMessage = null
             )
@@ -86,11 +89,26 @@ class ReviewViewModel : ViewModel() {
             }
 
             result.onSuccess {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isSuccess = true
-                    )
+                if (state.bookingId.isNotEmpty()) {
+                    BookingRepository.markAsReviewed(state.bookingId)
+                        .onSuccess {
+                            _uiState.update {
+                                it.copy(
+                                    isLoading = false,
+                                    isSuccess = true
+                                )
+                            }
+                        }
+                        .onFailure { e ->
+                            handleError(e, "Recensione inviata, ma errore nell'aggiornamento prenotazione")
+                        }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSuccess = true
+                        )
+                    }
                 }
             }.onFailure { e ->
                 handleError(e, "Errore durante il salvataggio della recensione")
@@ -103,7 +121,7 @@ class ReviewViewModel : ViewModel() {
      */
     private fun handleError(e: Throwable, context: String) {
         val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
-            "Non hai i permessi per pubblicare questa recensione. Controlla di aver completato il soggiorno."
+            "Non hai i permessi per pubblicare questa recensione."
         } else {
             "$context: ${e.localizedMessage}"
         }

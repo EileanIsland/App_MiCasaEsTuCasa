@@ -38,8 +38,9 @@ class ReviewFragment : Fragment() {
 
         val targetId = arguments?.getString("targetId") ?: ""
         val targetType = arguments?.getString("targetType") ?: ""
+        val bookingId = arguments?.getString("bookingId") ?: ""
 
-        viewModel.initialize(targetId, targetType)
+        viewModel.initialize(targetId, targetType, bookingId)
 
         setupListeners()
         observeUiState()

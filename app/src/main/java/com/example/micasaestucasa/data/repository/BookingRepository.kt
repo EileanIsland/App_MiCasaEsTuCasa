@@ -25,6 +25,18 @@ object BookingRepository {
         }
     }
 
+
+    suspend fun markAsReviewed(bookingId: String): Result<Unit> {
+        return try {
+            val bookingRef = bookingCollection.document(bookingId)
+
+            bookingRef.update("isReviewed", true).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     /**
      * Recupera tutte le prenotazioni ricevute da un proprietario (Host)
      */

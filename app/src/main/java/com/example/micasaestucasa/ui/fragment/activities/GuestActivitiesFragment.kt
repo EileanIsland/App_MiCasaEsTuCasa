@@ -68,6 +68,7 @@ class GuestActivitiesFragment : Fragment() {
                 val bundle = Bundle().apply {
                     putString("targetId", uiModel.casa?.id)
                     putString("targetType", "CASA")
+                    putString("bookingId", uiModel.booking?.idBooking)
 
                 }
                 findNavController().navigate(R.id.action_guestActivitiesFragment_to_reviewFragment, bundle)
@@ -103,8 +104,13 @@ class GuestActivitiesFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
 
-                    // TODO: Gestione progress bar (non mi ricordo se l'ho messa nel fragment xml controllare)
-                    // binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    if(state.isLoading){
+                        binding.tvEmpty.visibility = View.GONE
+                        binding.rvBookings.visibility = View.GONE
+                        binding.progressBar.visibility = View.VISIBLE
+                    }else{
+                        binding.progressBar.visibility = View.GONE
+                    }
 
                     bookingAdapter.submitList(state.bookingList)
 
@@ -129,6 +135,12 @@ class GuestActivitiesFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.loadGuestActivities()
+    }
+
 }
 
 

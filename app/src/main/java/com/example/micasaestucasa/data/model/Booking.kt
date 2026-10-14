@@ -1,5 +1,7 @@
 package com.example.micasaestucasa.data.model
 
+import com.google.firebase.firestore.PropertyName
+
 /**
  * Rappresenta la prenotazione di una casa all'interno dell'applicazione.
  *
@@ -24,6 +26,10 @@ data class Booking (
     var dataFine: Long = 0,
     var prezzoTotale: Double = 0.0,
     var numeroOspiti: Int = 1,
-    var stato: String = ""
+    var stato: String = "",
+
+    @get:PropertyName("isReviewed")
+    @set:PropertyName("isReviewed")
+    var isReviewed : Boolean = false
 
 )
