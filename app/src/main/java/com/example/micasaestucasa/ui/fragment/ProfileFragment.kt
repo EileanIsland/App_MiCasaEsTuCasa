@@ -100,12 +100,13 @@ class ProfileFragment : Fragment(){
                                     binding.profileInfo.ivUserPhoto
                                 )
 
-                            if (user.badge.isNotEmpty()) {
-                                binding.profileBadges.visibility = View.VISIBLE
-                                binding.profileBadges.setupUserBadges(user.badge)
+                            if (user.badges.isNotEmpty()) {
+                                binding.chipScrollView.visibility = View.VISIBLE
+                                binding.profileBadges.setupUserBadges(user.badges)
                             } else {
-                                binding.profileBadges.visibility = View.GONE
+                                binding.chipScrollView.visibility = View.GONE
                             }
+
 
                         }
 

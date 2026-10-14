@@ -65,10 +65,29 @@ class DetailedChatFragment : Fragment() {
                 PhotoGalleryDialogFragment.newInstance(arrayListOf(imageUrl), 0)
                     .show(childFragmentManager, "photoGallery")
             },
+
             onContextClick = { id, type ->
-                val bundle = Bundle().apply { putString(if(type == "HOUSE") "houseId" else "bookingId", id) }
-                val actionId = if(type == "HOUSE") R.id.detailedHouseFragment else R.id.bookingFragment
-                findNavController().navigate(actionId, bundle)
+                android.util.Log.d("NAV_DEBUG", "Cliccato contesto: ID=$id, TYPE=$type")
+                val bundle = Bundle()
+                val state = viewModel.uiState.value
+                android.util.Log.d("NAV_DEBUG", "ID casa: $state")
+
+
+                when (type.uppercase()) {
+                    "HOUSE" -> {
+                        bundle.putString("houseId", id)
+                        findNavController().navigate(R.id.detailedHouseFragment, bundle)
+                    }
+                    "BOOKING" -> {
+                        val houseId = state.house?.id ?: state.booking?.idCasa
+                        android.util.Log.d("NAV_DEBUG", "ID casa: $houseId")
+                        bundle.putString("bookingId", id)
+                        bundle.putBoolean("isReadOnly", true)
+                        bundle.putString("houseId", houseId)
+                        findNavController().navigate(R.id.bookingFragment, bundle)
+                    }
+                    else -> android.util.Log.e("NAV_DEBUG", "Tipo di contesto sconosciuto: $type")
+                }
             }
 
         )

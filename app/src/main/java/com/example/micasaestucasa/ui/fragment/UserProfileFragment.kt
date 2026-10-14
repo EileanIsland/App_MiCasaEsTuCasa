@@ -90,7 +90,7 @@ class UserProfileFragment : Fragment() {
                                 binding.profileInfo.ivUserPhoto
                             )
 
-                        binding.badges.setupUserBadges(user.badge)
+                        binding.badges.setupUserBadges(user.badges)
                     }
 
 

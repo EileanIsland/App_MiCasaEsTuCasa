@@ -11,6 +11,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import com.example.micasaestucasa.R
 import com.example.micasaestucasa.databinding.FragmentBookingBinding
 import com.example.micasaestucasa.ui.viewmodel.BookingViewModel
 import com.google.android.material.snackbar.Snackbar
@@ -87,7 +88,7 @@ class BookingFragment : Fragment(){
             binding.guestsNumber.isEnabled = false
             binding.guestsNumber.inputType = android.text.InputType.TYPE_NULL
 
-            binding.cancelBookingButton.text = "Torna indietro"
+            binding.cancelBookingButton.text = getString(R.string.torna_indietro)
         }
     }
 

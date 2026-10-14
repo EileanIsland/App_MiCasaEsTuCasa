@@ -10,15 +10,19 @@
     android:background="?attr/android:colorBackground"
     >
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="?attr/android:colorBackground"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/mainContent"
@@ -38,6 +42,7 @@
             android:layout_height="wrap_content"
 
             android:orientation="vertical"
+            android:paddingBottom="40dp"
             android:gravity="center">
 
 
@@ -51,16 +56,23 @@
 
 
             <!-- Badge -->
-            <com.google.android.material.chip.ChipGroup
-                android:id="@+id/profileBadges"
-                android:layout_width="wrap_content"
+            <HorizontalScrollView
+                android:id="@+id/chipScrollView"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
-                android:layout_gravity="center"
-
                 android:layout_marginTop="16dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:scrollbars="none"
+                android:overScrollMode="never">
 
-                app:singleLine="true"/>
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/profileBadges"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:singleLine="true" />
+
+            </HorizontalScrollView>
 
 
             <!-- Bio -->
@@ -72,13 +84,7 @@
                 android:layout_marginTop="12dp"
                 android:paddingHorizontal="36dp"
 
-                android:gravity="center"
-
                 android:textColor="?attr/colorOnSurfaceVariant"
-
-                android:visibility="gone"
-
-                tools:visibility="visible"
                 tools:text="Amo viaggiare e conoscere persone provenienti da tutto il mondo."/>
 
 

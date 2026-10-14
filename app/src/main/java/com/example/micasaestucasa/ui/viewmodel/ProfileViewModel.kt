@@ -61,6 +61,8 @@ class ProfileViewModel : ViewModel() {
                         errorMessage = null
                     )
                 }
+                android.util.Log.d("ProfileViewModel", "Profilo caricato correttamente: ${user}")
+
 
             } catch (e: Exception) {
                 android.util.Log.e("ProfileViewModel", "Errore durante il caricamento del profilo", e)

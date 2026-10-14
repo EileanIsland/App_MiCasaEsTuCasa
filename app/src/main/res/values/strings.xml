@@ -215,5 +215,6 @@
     <string name="pubblica">Pubblica</string>
     <string name="annulla">Annulla</string>
     <string name="invia">Invia</string>
+    <string name="torna_indietro">Torna indietro</string>
 
 </resources>

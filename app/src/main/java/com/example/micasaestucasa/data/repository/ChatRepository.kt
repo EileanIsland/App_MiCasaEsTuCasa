@@ -4,8 +4,11 @@ import androidx.core.net.toUri
 import com.example.micasaestucasa.data.model.ChatPreview
 import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.model.User
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -18,11 +21,8 @@ object ChatRepository {
     private val chatsCollection = firestore.collection("chats")
 
     /**
-     * Inizializza una chat - salvando anche i dati degli utenti.
-     */
-    /**
-     * Inizializza una chat in modo ATOMICO.
-     * Crea il documento chat e il messaggio di contesto insieme per evitare errori di permessi.
+     * Inizializza una chat in modo ATOMICO e RESILIENTE.
+     * Non usa .get() preventivo per evitare PERMISSION_DENIED.
      */
     suspend fun initializeChat(
         currentUser: User,
@@ -35,63 +35,55 @@ object ChatRepository {
         return try {
             val chatId = getChatId(currentUser.id, otherUser.id)
             val chatRef = chatsCollection.document(chatId)
+            val batch = firestore.batch()
 
-            val snapshot = chatRef.get().await()
+            val chatData = mutableMapOf(
+                "id" to chatId,
+                "users" to listOf(currentUser.id, otherUser.id),
+                "userNames" to mapOf(
+                    currentUser.id to (currentUser.name),
+                    otherUser.id to (otherUser.name)
+                ),
+                "userPhotoUrls" to mapOf(
+                    currentUser.id to (currentUser.profileImageUrl),
+                    otherUser.id to (otherUser.profileImageUrl )
+                ),
+                "lastTimestamp" to System.currentTimeMillis(),
+                "hiddenBy" to emptyList<String>()
+            )
 
-            if (!snapshot.exists()) {
-                val batch = firestore.batch()
+            chatData["lastMessage"] = contextTitle ?: "Nuova conversazione"
 
-                val newChat = mapOf(
-                    "id" to chatId,
-                    "users" to listOf(currentUser.id, otherUser.id),
-                    "userNames" to mapOf(
-                        currentUser.id to (currentUser.name),
-                        otherUser.id to (otherUser.name)
-                    ),
-                    "userPhotoUrls" to mapOf(
-                        currentUser.id to (currentUser.profileImageUrl),
-                        otherUser.id to (otherUser.profileImageUrl)
-                    ),
-                    "lastMessage" to (contextTitle ?: "Nuova conversazione"),
-                    "lastTimestamp" to System.currentTimeMillis()
+            batch.set(chatRef, chatData, SetOptions.merge())
+
+            if (contextId != null && contextType != null) {
+                val messagesRef = chatRef.collection("messages").document()
+                val contextMessage = Message(
+                    id = messagesRef.id,
+                    senderId = currentUser.id,
+                    text = contextTitle ?: "",
+                    type = "context",
+                    contextId = contextId,
+                    contextType = contextType,
+                    url = contextImageUrl,
+                    timestamp = System.currentTimeMillis()
                 )
-
-                batch.set(chatRef, newChat)
-
-                if (contextId != null && contextType != null) {
-                    val messagesRef = chatRef.collection("messages").document()
-                    val contextMessage = Message(
-                        id = messagesRef.id,
-                        senderId = currentUser.id,
-                        text = contextTitle ?: "",
-                        type = "context",
-                        contextId = contextId,
-                        contextType = contextType,
-                        url = contextImageUrl,
-                        timestamp = System.currentTimeMillis()
-                    )
-                    batch.set(messagesRef, contextMessage)
-                }
-
-                batch.commit().await()
-                android.util.Log.d("CHAT_REPO", "Chat e contesto creati atomicamente")
+                batch.set(messagesRef, contextMessage)
             }
-            Result.success(chatId)
 
+            batch.commit().await()
+            Result.success(chatId)
         } catch (e: Exception) {
-            android.util.Log.e("CHAT_REPO", "Errore inizializzazione atomica", e)
             Result.failure(e)
         }
     }
 
     /**
-     * Invia un messaggio in una chat specifica.
-     * Gestisce l'anteprima (lastMessage) in base al tipo di messaggio.
+     * Invia un messaggio e "riattiva" la chat per tutti (svuota hiddenBy).
      */
     suspend fun sendMessage(chatId: String, message: Message): Result<Unit> {
         return try {
             val batch = firestore.batch()
-
             val messagesRef = chatsCollection.document(chatId).collection("messages")
             val newMsgDoc = messagesRef.document()
             val finalMessage = message.copy(id = newMsgDoc.id)
@@ -106,11 +98,11 @@ object ChatRepository {
 
             val chatUpdate = mapOf(
                 "lastMessage" to previewText,
-                "lastTimestamp" to finalMessage.timestamp
+                "lastTimestamp" to finalMessage.timestamp,
+                "hiddenBy" to emptyList<String>()
             )
 
             batch.update(chatsCollection.document(chatId), chatUpdate)
-
             batch.commit().await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -118,10 +110,8 @@ object ChatRepository {
         }
     }
 
-
-
     /**
-     * Recupera la lista delle chat in TEMPO REALE.
+     * Recupera le chat e FILTRA quelle che l'utente ha scelto di nascondere.
      */
     fun getChatByUser(userId: String): Flow<List<ChatPreview>> = callbackFlow {
         val subscription = chatsCollection
@@ -133,9 +123,11 @@ object ChatRepository {
                     return@addSnapshotListener
                 }
                 val previews = snapshot?.documents?.mapNotNull { doc ->
+                    val hiddenBy = doc.get("hiddenBy") as? List<String> ?: emptyList()
+                    if (userId in hiddenBy) return@mapNotNull null
+
                     val users = doc.get("users") as? List<String> ?: return@mapNotNull null
                     val otherUserId = users.find { it != userId } ?: return@mapNotNull null
-
                     val namesMap = doc.get("userNames") as? Map<String, String>
                     val photosMap = doc.get("userPhotoUrls") as? Map<String, String>
 
@@ -154,142 +146,107 @@ object ChatRepository {
         awaitClose { subscription.remove() }
     }
 
-
     /**
-     * Invio contesto
-     *
+     * Nasconde la chat per l'utente corrente aggiungendo il suo ID a hiddenBy.
      */
-    suspend fun sendContextMessage(
-        chatId: String,
-        senderId: String,
-        contextId: String,
-        contextType: String,
-        contextTitle: String,
-        contextImageUrl: String?
-    ): Result<Unit>{
+    suspend fun deleteChat(chatId: String): Boolean {
+        val currentUid = UsersRepository.getCurrentUid() ?: return false
         return try {
-            val messagesRef = chatsCollection.document(chatId).collection("messages").document()
-            val contextMessage = Message(
-                id = messagesRef.id,
-                senderId = senderId,
-                text = contextTitle,
-                type = "context",
-                contextId = contextId,
-                contextType = contextType,
-                url = contextImageUrl,
-                timestamp = System.currentTimeMillis()
-            )
-            sendMessage(chatId, contextMessage)
+            chatsCollection.document(chatId)
+                .update("hiddenBy", FieldValue.arrayUnion(currentUid))
+                .await()
+            true
         } catch (e: Exception) {
-            Result.failure(e)
+            false
         }
+    }
+
+
+    suspend fun sendContextMessage(
+        chatId: String, senderId: String, contextId: String,
+        contextType: String, contextTitle: String, contextImageUrl: String?
+    ): Result<Unit> {
+        val contextMessage = Message(
+            senderId = senderId, text = contextTitle, type = "context",
+            contextId = contextId, contextType = contextType,
+            url = contextImageUrl, timestamp = System.currentTimeMillis()
+        )
+        return sendMessage(chatId, contextMessage)
     }
 
     fun getChatId(uid1: String, uid2: String): String {
         if (uid1 == uid2) throw IllegalArgumentException("Utenti uguali")
-        if (uid1.isBlank() || uid2.isBlank()) throw IllegalArgumentException("Utenti vuoti")
         val sortedIds = listOf(uid1, uid2).sorted()
         return "${sortedIds[0]}_${sortedIds[1]}"
     }
 
     fun getMessages(chatId: String): Flow<List<Message>> = callbackFlow {
-        val subscription = chatsCollection.document(chatId)
-            .collection("messages")
-            .orderBy("timestamp", Query.Direction.ASCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                val messages = snapshot?.toObjects(Message::class.java) ?: emptyList()
-                trySend(messages)
+        val chatRef = firestore.collection("chats").document(chatId)
+        var messagesListener: ListenerRegistration? = null
+
+        val chatListener = chatRef.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                close(error)
+                return@addSnapshotListener
             }
-        awaitClose { subscription.remove() }
+
+            if (snapshot != null && snapshot.exists()) {
+                if (messagesListener == null) {
+                    messagesListener = chatRef.collection("messages")
+                        .orderBy("timestamp", Query.Direction.ASCENDING)
+                        .addSnapshotListener { querySnapshot, msgError ->
+                            if (msgError != null) return@addSnapshotListener
+                            val msgs = querySnapshot?.toObjects(Message::class.java) ?: emptyList()
+                            trySend(msgs)
+                        }
+                }
+            } else {
+                trySend(emptyList())
+            }
+        }
+
+        awaitClose {
+            chatListener.remove()
+            messagesListener?.remove()
+        }
     }
 
     suspend fun uploadImage(chatId: String, imageUri: String): Result<String> {
         return try {
-            val fileName = java.util.UUID.randomUUID().toString() + ".jpg"
+            val fileName = "${java.util.UUID.randomUUID()}.jpg"
             val ref = storage.reference.child("chats/$chatId/images/$fileName")
             ref.putFile(imageUri.toUri()).await()
-            val url = ref.downloadUrl.await()
-            Result.success(url.toString())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+            Result.success(ref.downloadUrl.await().toString())
+        } catch (e: Exception) { Result.failure(e) }
     }
 
     fun getChatMetadata(chatId: String, currentUserId: String): Flow<ChatPreview?> = callbackFlow {
-        val subscription = chatsCollection.document(chatId)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-                if (snapshot == null || !snapshot.exists()) {
-                    trySend(null)
-                    return@addSnapshotListener
-                }
-                val users = snapshot.get("users") as? List<String> ?: emptyList()
-                val otherUserId = users.find { it != currentUserId } ?: ""
-                val namesMap = snapshot.get("userNames") as? Map<String, String>
-                val photosMap = snapshot.get("userPhotoUrls") as? Map<String, String>
-
-                trySend(ChatPreview(
-                    id = snapshot.id,
-                    lastMessage = snapshot.getString("lastMessage") ?: "",
-                    lastTimestamp = snapshot.getLong("lastTimestamp") ?: 0L,
-                    otherUserName = namesMap?.get(otherUserId) ?: "Utente",
-                    otherUserPhoto = photosMap?.get(otherUserId),
-                    otherUserId = otherUserId
-                ))
-            }
+        val subscription = chatsCollection.document(chatId).addSnapshotListener { snapshot, _ ->
+            if (snapshot == null || !snapshot.exists()) { trySend(null); return@addSnapshotListener }
+            val users = snapshot.get("users") as? List<String> ?: emptyList()
+            val otherId = users.find { it != currentUserId } ?: ""
+            val names = snapshot.get("userNames") as? Map<String, String>
+            val photos = snapshot.get("userPhotoUrls") as? Map<String, String>
+            trySend(ChatPreview(
+                id = snapshot.id, lastMessage = snapshot.getString("lastMessage") ?: "",
+                lastTimestamp = snapshot.getLong("lastTimestamp") ?: 0L,
+                otherUserName = names?.get(otherId) ?: "Utente",
+                otherUserPhoto = photos?.get(otherId), otherUserId = otherId
+            ))
+        }
         awaitClose { subscription.remove() }
     }
 
-    suspend fun deleteChat(chatId: String): Boolean {
-        return try {
-            val batch = firestore.batch()
-            val chatRef = chatsCollection.document(chatId)
-            val messages = chatRef.collection("messages").get().await()
-            for (doc in messages) { batch.delete(doc.reference) }
-            batch.delete(chatRef)
-            batch.commit().await()
-            true
-        } catch (e: Exception) { false }
-    }
-
-
-    /**
-     * Sincronizza i dati dell'utente (nome e foto) in tutte le sue chat aperte.
-     * Firestore permette di aggiornare campi nidificati usando la "dot notation".
-     */
     suspend fun syncUserImageDataInChats(uid: String, newPhotoUrl: String): Result<Unit> {
         return try {
-            val chatsToUpdate = chatsCollection
-                .whereArrayContains("users", uid)
-                .get()
-                .await()
-
-            if (chatsToUpdate.isEmpty) return Result.success(Unit)
-
+            val chats = chatsCollection.whereArrayContains("users", uid).get().await()
             val batch = firestore.batch()
-
-            for (doc in chatsToUpdate.documents) {
-                val chatRef = doc.reference
-                batch.update(chatRef, "userPhotoUrls.$uid", newPhotoUrl)
-            }
-
+            for (doc in chats.documents) { batch.update(doc.reference, "userPhotoUrls.$uid", newPhotoUrl) }
             batch.commit().await()
             Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
+        } catch (e: Exception) { Result.failure(e) }
     }
-
-
 }
-
 
 
 

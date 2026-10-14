@@ -23,30 +23,43 @@ data class User(
     val bio: String = "Nessuna bio",
     val profileImageUrl: String = "",
     val stato: Boolean = true, //indica se utente attivo
-
-    val badge : List<String> = emptyList(),
     val ruolo: String = "client",
     val numeroSoggiorni: Int = 0,
     val numeroRecensioni: Int = 0,
     val valutazioneMedia: Double = 0.0,
     val numeroAnnunci: Int = 0
+){
+
+    val badges: List<String>
+        get(){
+
+            val badgeList = mutableListOf<String>()
+
+            if(valutazioneMedia>= 4.5 && numeroRecensioni >= 0){
+                badgeList.add("Top Rated")
+            }
+
+            if (numeroAnnunci > 0 && valutazioneMedia >= 4.8 && numeroRecensioni >= 5) {
+                badgeList.add("Super Host")
+            }
+
+            //almeno 3 soggiorni
+            if (numeroSoggiorni >= 3) {
+                badgeList.add("Frequent Traveller")
+            }
+
+            //almeno 3 case pubblicate
+            if (numeroAnnunci >= 3) {
+                badgeList.add("Experienced Host")
+            }
+
+            return badgeList
+        }
+
+}
 
 
-)
 
 
 
-// riferimenti alle case pubblicate dall'utente
-//val publishedHouseIds: List<String> = emptyList(),
-
-// riferimenti alle prenotazioni effettuate
-//val bookingIds: List<String> = emptyList(),
-
-//val receivedBookingIds: List<String> = emptyList(),
-
-// recensioni scritte
-//val writtenReviewIds: List<String> = emptyList(),
-
-//recensioni ricevute
-//val receivedReviewIds: List<String> = emptyList(),
 

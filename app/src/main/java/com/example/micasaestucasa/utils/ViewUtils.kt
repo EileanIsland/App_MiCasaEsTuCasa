@@ -88,6 +88,7 @@ object ViewUtils {
                 text = badgeText
                 isClickable = false
                 isCheckable = false
+                textSize = 12f
 
                 val iconRes = when (badgeText.lowercase()) {
                     "super host" -> R.drawable.ic_super_host
@@ -98,7 +99,7 @@ object ViewUtils {
                 }
 
                 setChipIconResource(iconRes)
-                setChipIconTintResource(R.color.rose)
+                setChipIconTintResource(R.color.azzurro)
                 isChipIconVisible = true
             }
             this.addView(chip)

@@ -2,7 +2,6 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.R
 import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.CasaRepository
@@ -29,6 +28,8 @@ class DetailedChatViewModel : ViewModel() {
     private var _otherUserID: String? = null
     val otherUserID: String? get() = _otherUserID
 
+    private var isContextChecked = false
+
     val currentUserID: String?
         get() = UsersRepository.getCurrentUid()
 
@@ -50,6 +51,15 @@ class DetailedChatViewModel : ViewModel() {
                     .onSuccess { user -> _uiState.update { it.copy(otherUser = user) } }
                     .onFailure { e -> handleError(e, "Errore profilo interlocutore") }
 
+                if (bookingId != null) {
+                    BookingRepository.getBookingById(bookingId).onSuccess { b ->
+                        _uiState.update { it.copy(booking = b) }
+                        b?.idCasa?.let { loadHouseData(it) }
+                    }
+                } else if (casaId != null) {
+                    loadHouseData(casaId)
+                }
+
                 ChatRepository.getChatMetadata(cid, uid)
                     .catch { e -> handleError(e, "Errore metadati chat") }
                     .onEach { preview -> _uiState.update { it.copy(chatInfo = preview) } }
@@ -57,26 +67,46 @@ class DetailedChatViewModel : ViewModel() {
 
                 ChatRepository.getMessages(cid)
                     .catch { e -> handleError(e, "Errore caricamento messaggi") }
-                    .onEach { messageList -> _uiState.update { it.copy(messages = messageList, isLoading = false) } }
+                    .onEach { messageList ->
+                        if(messageList.isNotEmpty() && !isContextChecked){
+                            checkAndSendContext(cid, uid)
+                            isContextChecked = true
+                        }
+                        _uiState.update { it.copy(messages = messageList, isLoading = false) }
+                        if (_uiState.value.house == null && _uiState.value.booking == null) {
+                            loadCardDataFromMessages(messageList)
+                        }
+                    }
                     .launchIn(viewModelScope)
-
-                bookingId?.let { id ->
-                    BookingRepository.getBookingById(id)
-                        .onSuccess { booking -> _uiState.update { it.copy(booking = booking) } }
-                        .onFailure { e -> handleError(e, "Errore dati prenotazione") }
-                }
-
-                casaId?.let { id ->
-                    CasaRepository.getCasaById(id)
-                        .onSuccess { casa -> _uiState.update { it.copy(house = casa) } }
-                        .onFailure { e -> handleError(e, "Errore dati casa") }
-                }
 
                 checkReviewEligibility(bookingId)
 
             } catch (e: Exception) {
-                handleError(e, "Errore durante l'inizializzazione")
+                handleError(e, "Errore caricamento chat")
             }
+        }
+    }
+
+    private suspend fun loadCardDataFromMessages(messages: List<Message>) {
+        val lastContextMsg = messages.lastOrNull { it.type == "context" } ?: return
+        val contextId = lastContextMsg.contextId ?: return
+
+        if(lastContextMsg.contextType == "BOOKING"){
+            BookingRepository.getBookingById(lastContextMsg.contextId).onSuccess { b ->
+                _uiState.update { it.copy(booking = b) }
+                b?.idCasa?.let{ loadHouseData(it)}
+
+            }
+        }else{
+            CasaRepository.getCasaById(contextId).onSuccess { casa ->
+                _uiState.update { it.copy(house = casa) }
+            }
+        }
+    }
+
+    private suspend fun loadHouseData(id: String) {
+        CasaRepository.getCasaById(id).onSuccess { casa ->
+            _uiState.update { it.copy(house = casa) }
         }
     }
 
@@ -87,12 +117,14 @@ class DetailedChatViewModel : ViewModel() {
         val uid = currentUserID ?: return
         val cid = currentChatID ?: return
         if (text.isBlank()) return
+        this.isContextChecked = false
 
         val state = _uiState.value
         val me = UsersRepository.currentUserProfile.value
         val other = state.otherUser
 
         viewModelScope.launch {
+            //CHAT non esiste sul db, inizializzazione
             if (_uiState.value.chatInfo == null && me != null && other != null) {
 
                 val contextId = state.booking?.idBooking ?: state.house?.id
@@ -111,10 +143,39 @@ class DetailedChatViewModel : ViewModel() {
                     executeSend(cid, text, uid)
                 }.onFailure { e -> handleError(e, "Impossibile avviare la conversazione") }
             } else {
+                //TODO
+                //checkAndSendContext(cid, uid)
                 executeSend(cid, text, uid)
             }
         }
     }
+
+
+    private suspend fun checkAndSendContext(chatId: String, senderId: String) {
+        val state = _uiState.value
+
+        //id passato dal fragment
+        val currentContextId = state.booking?.idBooking ?: state.house?.id
+        val currentContextType = if (state.booking != null) "BOOKING" else if (state.house != null) "HOUSE" else null
+
+        if (currentContextId != null && currentContextType != null) {
+            // ultimo messaggio di tipo context nella lista messaggi
+            val lastContextMsg = state.messages.lastOrNull { it.type == "context" }
+
+            // Se l'ultimo contesto è diverso da quello attuale, allora nuova card
+            if (lastContextMsg?.contextId != currentContextId) {
+                ChatRepository.sendContextMessage(
+                    chatId = chatId,
+                    senderId = senderId,
+                    contextId = currentContextId,
+                    contextType = currentContextType,
+                    contextTitle = state.house?.titolo ?: "Info",
+                    contextImageUrl = state.house?.immagini?.firstOrNull()
+                )
+            }
+        }
+    }
+
 
     private suspend fun executeSend(chatId: String, text: String, senderId: String) {
         val message = Message(senderId = senderId, text = text)
@@ -191,7 +252,7 @@ class DetailedChatViewModel : ViewModel() {
     }
 
     /**
-     * Gestione centralizzata errori per SnackBar (con focus su PERMISSION_DENIED).
+     * Gestione centralizzata errori.
      */
     private fun handleError(e: Throwable, context: String) {
         val message = if (e.message?.contains("PERMISSION_DENIED") == true) {
