@@ -14,8 +14,15 @@ object TagsRepository {
      */
     suspend fun getTagsByType(tipo: String): Result<List<String>> {
         return try {
+            val dbValue = when (tipo.lowercase().trim()) {
+                "services", "servizi" -> "SERVIZIO"
+                "rules", "regole" -> "REGOLA"
+                "features", "esperienza" -> "ESPERIENZA"
+                else -> tipo.uppercase().trim()
+            }
+
             val querySnapshot = tagsCollection
-                .whereEqualTo("tipo", tipo.trim().lowercase())
+                .whereEqualTo("categoria", dbValue)
                 .get()
                 .await()
             val tags = querySnapshot.documents.mapNotNull { it.getString("nome") }
@@ -34,6 +41,7 @@ object TagsRepository {
 
         return try {
             val newDocRef = tagsCollection.document()
+            android.util.Log.d("TAG_DEBUG", "Tag: ${tag.lowercase()} - tipo: ${tipo.lowercase()} - id: ${newDocRef.id} - path: ${newDocRef.path}")
 
             val categoria = when (tipo.lowercase()) {
                 "servizi" -> TagCategory.SERVIZIO
@@ -55,10 +63,27 @@ object TagsRepository {
     /**
      * Elimina un tag esistente
      */
-    suspend fun deleteTag(tag: Tag): Result<Unit> {
+    suspend fun deleteTag(tag: String, tipo: String): Result<Unit> {
         return try {
-            tagsCollection.document(tag.nome).delete().await()
-            Result.success(Unit)
+            val dbValue = when (tipo.lowercase().trim()) {
+                "services", "servizi" -> "SERVIZIO"
+                "rules", "regole" -> "REGOLA"
+                "features", "esperienza" -> "ESPERIENZA"
+                else -> tipo.uppercase().trim()
+            }
+            val querySnapshot = tagsCollection
+                .whereEqualTo("nome", tag)
+                .whereEqualTo("categoria", dbValue)
+                .get()
+                .await()
+
+            if (querySnapshot.isEmpty) {
+                Result.failure(IllegalArgumentException("Tag non trovato"))
+            } else {
+                val docRef = querySnapshot.documents[0].reference
+                docRef.delete().await()
+                Result.success(Unit)
+            }
         } catch (e: Exception) {
             Result.failure(e)
         }

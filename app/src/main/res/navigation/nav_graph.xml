@@ -21,7 +21,7 @@
 
         <action
             android:id="@+id/action_loginFragment_to_adminFragment"
-            app:destination="@id/adminFragment" />
+            app:destination="@id/statisticheFragment" />
     </fragment>
 
 
@@ -331,19 +331,35 @@
         android:name="com.example.micasaestucasa.ui.fragment.ModifyProfileFragment"/>
 
 
-    <!--ADMIN-->
-    <fragment
-        android:id="@+id/adminFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.AdiminFragment"
-        >
-
-    </fragment>
-
-
     <!-- NOTIFICATIONS
     <fragment
         android:id="@+id/notificationsFragment"
         android:name="com.example.micasaestucasa.ui.NotificationsFragment"/>-->
+
+
+
+    <!--ADMIN-->
+    <fragment
+        android:id="@+id/statisticheFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.AdStatsFragment"
+        >
+    </fragment>
+
+    <fragment
+        android:id="@+id/AdminGestioneUtenti"
+        android:name="com.example.micasaestucasa.ui.fragment.AdUserFragment"
+        >
+    </fragment>
+
+    <fragment
+        android:id="@+id/AdminTag"
+        android:name="com.example.micasaestucasa.ui.fragment.AdTagFragment"
+        >
+    </fragment>
+
+
+
+
 
 
 </navigation>

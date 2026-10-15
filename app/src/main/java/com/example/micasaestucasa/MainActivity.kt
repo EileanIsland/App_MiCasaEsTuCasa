@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity() {
 
                 result.onSuccess {
                     val isAdmin = UsersRepository.isAdmin()
-                    val startDest = if (isAdmin) R.id.AdminStatistiche else R.id.homeFragment
+                    val startDest = if (isAdmin) R.id.statisticheFragment else R.id.homeFragment
                     navigationSetUp(navGraph, startDest, isAdmin)
 
                 }.onFailure{
@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             //  SICUREZZA ADMIN
-            val adminFragments = setOf(R.id.AdminStatistiche, R.id.AdminGestioneUtenti, R.id.AdminGestioneCase)
+            val adminFragments = setOf(R.id.statisticheFragment, R.id.AdminGestioneUtenti, R.id.AdminTag)
             if (destination.id in adminFragments && !UsersRepository.isAdmin()) {
                 Toast.makeText(this, "Accesso negato", Toast.LENGTH_SHORT).show()
                 navController.navigate(R.id.homeFragment)

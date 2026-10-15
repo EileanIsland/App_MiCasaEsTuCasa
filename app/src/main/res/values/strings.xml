@@ -216,5 +216,10 @@
     <string name="annulla">Annulla</string>
     <string name="invia">Invia</string>
     <string name="torna_indietro">Torna indietro</string>
+    <string name="segnalazioni">Segnalazioni</string>
+    <string name="gestione_keywords">Gestione Keywords</string>
+    <string name="aggiungi_tag">Aggiungi Tag</string>
+    <string name="elimina_tag">Elimina keyword</string>
+    <string name="button">Bottone azioni\n</string>
 
 </resources>
