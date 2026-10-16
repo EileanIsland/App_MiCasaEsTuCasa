@@ -61,7 +61,7 @@ data class User(
             "suspended" if now < suspendedUntil -> {
                 val diff = suspendedUntil - now
                 val days = diff / (24 * 60 * 60 * 1000)
-                "Account sospeso per ancora $days giorni."
+                "Account sospeso per ancora ${days+1} giorni."
             }
             else -> null
         }

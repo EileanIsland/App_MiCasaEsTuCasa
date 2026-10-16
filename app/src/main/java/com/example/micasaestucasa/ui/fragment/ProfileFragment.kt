@@ -187,34 +187,40 @@ class ProfileFragment : Fragment(){
     }
 
 
-    private fun showAppearanceDialog(){
-        val dialogBinding =
-            DialogAppearanceBinding.inflate(layoutInflater)
+    private fun showAppearanceDialog() {
+        val themePrefs = com.example.micasaestucasa.data.local.ThemePreferences(requireContext())
+        val dialogBinding = DialogAppearanceBinding.inflate(layoutInflater)
 
+        when (themePrefs.getTheme()) {
+            com.example.micasaestucasa.data.local.ThemePreferences.LIGHT -> {
+                dialogBinding.radioLight.isChecked = true
+            }
+            com.example.micasaestucasa.data.local.ThemePreferences.DARK -> {
+                dialogBinding.radioDark.isChecked = true
+            }
+            else -> {
+                dialogBinding.radioSystem.isChecked = true
+            }
+        }
 
         MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.aspetto))
             .setView(dialogBinding.root)
             .setNegativeButton("Annulla", null)
-            .setPositiveButton("Salva"){ _, _ ->
+            .setPositiveButton("Salva") { _, _ ->
+                val mode = when (dialogBinding.themeRadioGroup.checkedRadioButtonId) {
+                    R.id.radioLight -> com.example.micasaestucasa.data.local.ThemePreferences.LIGHT
+                    R.id.radioDark -> com.example.micasaestucasa.data.local.ThemePreferences.DARK
+                    else -> com.example.micasaestucasa.data.local.ThemePreferences.SYSTEM
+                }
 
-                val theme =
-                    when(dialogBinding.themeRadioGroup.checkedRadioButtonId){
-                        R.id.radioLight -> "Chiaro"
-                        R.id.radioDark -> "Scuro"
-                        else -> "Sistema"
-                    }
+                themePrefs.setTheme(mode)
 
-                Toast.makeText(
-                    requireContext(),
-                    "Tema: $theme",
-                    Toast.LENGTH_SHORT
-                ).show()
-
+                Toast.makeText(requireContext(), "Tema aggiornato", Toast.LENGTH_SHORT).show()
             }
             .show()
-        //TODO AppCompatDelegate.setDefaultNightMode(...)
-
     }
+
 
     //DIALOG PER IL LOGOUT
     private fun showLogOutDialog(){

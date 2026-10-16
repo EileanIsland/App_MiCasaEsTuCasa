@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -20,6 +21,7 @@ import kotlinx.coroutines.launch
 import androidx.core.view.size
 import androidx.core.view.get
 import androidx.navigation.NavGraph
+import com.example.micasaestucasa.data.local.ThemePreferences
 
 //TODO:
 // 1 aggiornare i repository per usere Result<Unit>
@@ -46,6 +48,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        val themePrefs = ThemePreferences(this)
+        AppCompatDelegate.setDefaultNightMode(themePrefs.getTheme())
 
         installSplashScreen().setKeepOnScreenCondition{isCheckingSession}
         super.onCreate(savedInstanceState)
