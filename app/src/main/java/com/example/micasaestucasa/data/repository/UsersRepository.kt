@@ -1,9 +1,10 @@
 package com.example.micasaestucasa.data.repository
 
+import com.example.micasaestucasa.data.model.Report
+import com.example.micasaestucasa.data.model.ReportedUser
 import com.example.micasaestucasa.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,9 +36,16 @@ object UsersRepository {
         return getUserById(uid).fold(
             onSuccess = { user ->
                 if (user != null) {
-                    _currentUserProfile.value = user
+                    if (user.isRestricted()) {
+                        val errorMessage = user.getStatusMessage() ?: "Accesso negato"
+                        Result.failure(Exception(errorMessage))
+                    } else {
+                        _currentUserProfile.value = user
+                        Result.success(Unit)
+                    }
+                } else {
+                    Result.failure(Exception("Profilo non trovato nel database"))
                 }
-                Result.success(Unit)
             },
             onFailure = { exception ->
                 Result.failure(exception)
@@ -129,22 +137,6 @@ object UsersRepository {
         }
     }
 
-    /**
-     * Disattiva l'utente (Soft Delete).
-     */
-    suspend fun deactivateUser(userId: String): Result<Unit> {
-        return try {
-            usersCollection.document(userId).update("stato", false).await()
-
-            // Aggiorna la cache se è l'utente corrente
-            if (userId == getCurrentUid()) {
-                _currentUserProfile.value = _currentUserProfile.value?.copy(stato = false)
-            }
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
     /**
      * Recupera tutti gli utenti registrati.
@@ -174,7 +166,7 @@ object UsersRepository {
      * @param reason La motivazione della segnalazione.
      * @return [Result] di tipo [Unit].
      */
-    suspend fun reportUser(reportedUserId: String, reason: String): Result<Unit> {
+    suspend fun reportUser(reportedUserId: String, reporterName: String, reason: String): Result<Unit> {
         return try {
             val reporterId = getCurrentUid() ?: return Result.failure(Exception("Utente non autenticato"))
 
@@ -182,6 +174,7 @@ object UsersRepository {
                 "reportedUserId" to reportedUserId,
                 "reporterUserId" to reporterId,
                 "reason" to reason,
+                "reporterName" to reporterName,
                 "timestamp" to System.currentTimeMillis(),
                 "status" to "pending"
             )
@@ -193,6 +186,70 @@ object UsersRepository {
             Result.failure(e)
         }
     }
+
+
+    suspend fun getUsersWithReports(): Result<List<ReportedUser>> {
+        return try{
+            val reportesSnapshot = db.collection("user_reports").get().await()
+            val reports = reportesSnapshot.toObjects(Report::class.java)
+
+            val reportsByUserId = reports.groupBy { it.reportedUserId }
+
+            if(reportsByUserId.isEmpty()){
+                return Result.success(emptyList())
+            }
+
+            val userIds = reportsByUserId.keys.toList()
+            val usersSnapshot = usersCollection.whereIn("id", userIds).get().await()
+
+            val users = usersSnapshot.toObjects(User::class.java)
+
+            val resultList = users.map{
+                user->
+                ReportedUser(
+                    user = user,
+                    reports = reportsByUserId[user.id] ?: emptyList(),
+                    isExpanded = false
+                )
+            }
+
+            Result.success(resultList)
+
+        }catch (e: Exception){
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun suspendUser(userId: String, days: Int): Result<Unit> {
+        return try {
+            val calendar = java.util.Calendar.getInstance()
+            calendar.add(java.util.Calendar.DAY_OF_YEAR, days)
+            val suspendedUntil = calendar.timeInMillis
+
+            usersCollection.document(userId).update(
+                "accountStatus", "suspended",
+                "suspendedUntil", suspendedUntil
+            ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    suspend fun blockUser(userId: String): Result<Unit> {
+        return try {
+            usersCollection.document(userId).update(
+                "accountStatus", "blocked"
+            ).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
 
 
     /**

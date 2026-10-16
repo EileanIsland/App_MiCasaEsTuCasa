@@ -33,8 +33,8 @@ class RegistrationViewModel : ViewModel() {
                         name = name,
                         surname = surname,
                         email = email,
-                        ruolo = "user",
-                        stato = true
+                        ruolo = "user"
+
                     )
 
                     UsersRepository.saveUser(newUser)

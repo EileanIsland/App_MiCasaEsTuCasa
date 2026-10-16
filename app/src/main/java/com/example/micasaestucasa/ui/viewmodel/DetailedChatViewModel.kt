@@ -278,9 +278,12 @@ class DetailedChatViewModel : ViewModel() {
 
     fun reportUser(reason: String) {
         val tid = otherUserID ?: return
+        //TODO CREDO SI POSSA MIGLIORARE la gestione di current User e currentUserId
+        val currentUser = UsersRepository.currentUserProfile.value ?: return
+
         viewModelScope.launch {
             _uiState.update { it.copy(isReporting = true) }
-            UsersRepository.reportUser(tid, reason)
+            UsersRepository.reportUser(tid, currentUser.name, reason)
                 .onSuccess {
                     _uiState.update { it.copy(isReporting = false, userFeedback = "Utente segnalato") }
                 }

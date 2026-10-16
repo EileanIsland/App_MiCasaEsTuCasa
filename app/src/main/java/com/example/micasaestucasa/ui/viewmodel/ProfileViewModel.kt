@@ -35,7 +35,7 @@ class ProfileViewModel : ViewModel() {
                     return@launch
                 }
 
-                if (!user.stato) {
+                if (user.accountStatus!="active") {
                     _uiState.update {
                         it.copy(isLoading = false, errorMessage = "Errore: Utente disattivato")
                     }

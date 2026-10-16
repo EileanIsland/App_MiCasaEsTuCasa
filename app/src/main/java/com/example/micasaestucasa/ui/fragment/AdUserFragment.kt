@@ -2,59 +2,115 @@ package com.example.micasaestucasa.ui.fragment
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
+import androidx.compose.ui.semantics.text
 import com.example.micasaestucasa.R
+import androidx.core.view.isVisible
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
+import com.example.micasaestucasa.databinding.FragmentAdUserBinding
+import com.example.micasaestucasa.ui.adapter.ReportedUserAdapter
+import com.example.micasaestucasa.ui.viewmodel.AdUsersViewMod
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+class AdUserFragment : Fragment(R.layout.fragment_ad_user) {
 
-/**
- * A simple [Fragment] subclass.
- * Use the [AdUserFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-class AdUserFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var _binding: FragmentAdUserBinding? = null
+    private val binding get() = _binding!!
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
+    private val viewModel: AdUsersViewMod by viewModels()
+
+    private lateinit var adapter: ReportedUserAdapter
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentAdUserBinding.bind(view)
+
+        setupRecyclerView()
+        observeUiState()
+    }
+
+    private fun setupRecyclerView() {
+        adapter = ReportedUserAdapter(
+            onSuspend = { reportedUser ->
+                showSuspendDialog(reportedUser.user.id, reportedUser.user.name)
+            },
+            onBlock = { reportedUser ->
+                showBlockConfirmationDialog(reportedUser.user.id, reportedUser.user.name)
+            }
+        )
+        binding.rvReportedUsers.adapter = adapter
+    }
+
+    private fun observeUiState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                // Gestione Caricamento
+                binding.progressBar.isVisible = state.isLoading
+
+                // Gestione Lista e Badge
+                adapter.submitList(state.reportedUsers)
+                binding.countUsers.text = state.count.toString()
+                binding.countUsers.isVisible = state.count > 0
+
+                // Stato Vuoto
+                binding.tvEmptyState.isVisible = !state.isLoading && state.reportedUsers.isEmpty()
+
+                // Messaggi di Feedback
+                state.userFeedback?.let {
+                    Snackbar.make(binding.root, it, Snackbar.LENGTH_SHORT).show()
+                    viewModel.clearUserFeedback()
+                }
+
+                // Messaggi di Errore
+                state.errorMessage?.takeIf { it.isNotBlank() }?.let {
+                    Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
+                        .setBackgroundTint(resources.getColor(R.color.error_Red, null))
+                        .show()
+                    viewModel.clearErrorMessage()
+                }
+            }
         }
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_ad_user, container, false)
+    /**
+     * Dialog per selezionare la durata della sospensione
+     */
+    private fun showSuspendDialog(userId: String, userName: String) {
+        val durations = arrayOf("1 Giorno", "3 Giorni", "7 Giorni", "30 Giorni")
+        val daysValues = intArrayOf(1, 3, 7, 30)
+        var selectedDays = daysValues[0]
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Sospendi $userName")
+            .setSingleChoiceItems(durations, 0) { _, which ->
+                selectedDays = daysValues[which]
+            }
+            .setPositiveButton("Sospendi") { _, _ ->
+                viewModel.suspendUser(userId, selectedDays)
+            }
+            .setNegativeButton("Annulla", null)
+            .show()
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AdUserFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            AdUserFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+    /**
+     * Dialog di conferma per il blocco definitivo
+     */
+    private fun showBlockConfirmationDialog(userId: String, userName: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Blocca Definitivamente")
+            .setMessage("Sei sicuro di voler bloccare $userName? L'utente non potrà più accedere all'app.")
+            .setPositiveButton("Blocca") { _, _ ->
+                viewModel.blockUser(userId)
             }
+            .setNegativeButton("Annulla", null)
+            .show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

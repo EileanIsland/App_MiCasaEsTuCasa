@@ -86,8 +86,12 @@ class MainActivity : AppCompatActivity() {
                     val isAdmin = UsersRepository.isAdmin()
                     val startDest = if (isAdmin) R.id.statisticheFragment else R.id.homeFragment
                     navigationSetUp(navGraph, startDest, isAdmin)
+                }.onFailure { exception ->
+                    val errorMessage = exception.message ?: "Errore durante il caricamento del profilo"
+                    Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_LONG).show()
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                    UsersRepository.clearCache()
 
-                }.onFailure{
                     navigationSetUp(navGraph, R.id.loginFragment, isAdmin = false)
                 }
             }

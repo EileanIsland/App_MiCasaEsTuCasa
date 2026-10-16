@@ -2,8 +2,6 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.data.model.ReviewTarget
-import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.async
@@ -65,9 +63,10 @@ class UserProfileViewModel : ViewModel() {
      */
     fun reportUser(reason: String) {
         val targetUserId = _uiState.value.user?.id ?: return
+        val currentUser = UsersRepository.currentUserProfile.value ?: return
 
         viewModelScope.launch {
-            UsersRepository.reportUser(targetUserId, reason)
+            UsersRepository.reportUser(targetUserId, currentUser.name, reason)
                 .onSuccess {
                     _uiState.update { it.copy(feedback = "Utente segnalato con successo") }
                 }
