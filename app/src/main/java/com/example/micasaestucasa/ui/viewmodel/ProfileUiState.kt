@@ -5,6 +5,7 @@ import com.example.micasaestucasa.data.model.User
 
 data class ProfileUiState(
     val isLoading: Boolean = true,
+    val isAdmin: Boolean = false,
     val user: User? = null,
     val userReviewsReceived: List<Review> = emptyList(),
     val userStats: UserStats? = null,

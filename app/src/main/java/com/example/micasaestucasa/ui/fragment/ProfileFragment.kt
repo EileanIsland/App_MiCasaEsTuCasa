@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -57,99 +58,83 @@ class ProfileFragment : Fragment(){
     }
 
 
-    private fun observeViewModel(){
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
-                viewModel.uiState.collect{ state->
-                    //logout
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
                     if (state.isLoggedOut) {
                         val intent = requireActivity().intent
-                        requireActivity().finish() // Chiude l'app
-                        startActivity(intent)      // riapre app
-
-                        //TODO: inserire animazione?
-
+                        requireActivity().finish()
+                        startActivity(intent)
                         return@collect
                     }
 
-                    if(state.isLoading){
-                        binding.progressBar.visibility = View.VISIBLE
-                        binding.mainContent.visibility = View.GONE
-                    }else {
+                    binding.loadingOverlay.isVisible = state.isLoading
+                    binding.userSection.isVisible = !state.isAdmin
+                    binding.adminSection.isVisible = state.isAdmin
 
-                        //Caricamento
-                        binding.progressBar.visibility = View.GONE
-                        binding.mainContent.visibility = View.VISIBLE
+                    state.user?.let { user ->
+                        binding.profileInfo.tvUserName.text =
+                            getString(R.string.nome_cognome_user, user.name, user.surname)
 
+                        binding.tvBio.text = user.bio
 
-                        //utente
-                        state.user?.let { user ->
-                            binding.profileInfo.tvUserName.text =
-                                getString(R.string.nome_cognome_user, user.name, user.surname)
+                        Glide.with(this@ProfileFragment)
+                            .load(user.profileImageUrl)
+                            .placeholder(R.drawable.ic_person)
+                            .circleCrop()
+                            .into(binding.profileInfo.ivUserPhoto)
 
-                            binding.tvBio.text =
-                                state.user.bio ?: getString(R.string.nessuna_biografia)
-
-                            Glide.with(
-                                this@ProfileFragment
-                            )
-                                .load(user.profileImageUrl)
-                                .placeholder(R.drawable.ic_person)
-                                .circleCrop()
-                                .into(
-                                    binding.profileInfo.ivUserPhoto
-                                )
-
-                            if (user.badges.isNotEmpty()) {
-                                binding.chipScrollView.visibility = View.VISIBLE
-                                binding.profileBadges.setupUserBadges(user.badges)
-                            } else {
-                                binding.chipScrollView.visibility = View.GONE
-                            }
-
-
+                        binding.chipScrollView.isVisible = user.badges.isNotEmpty()
+                        if (user.badges.isNotEmpty()) {
+                            binding.profileBadges.setupUserBadges(user.badges)
                         }
 
-                        //statistiche
-                        state.userStats.let { stats ->
-                            binding.profileInfo.tvUserRole.visibility = View.VISIBLE
+                        if (state.isAdmin) {
+                            binding.profileInfo.tvUserRole.isVisible = true
+                            binding.profileInfo.tvUserRole.text = getString(R.string.administrator)
+
+                            binding.profileInfo.tvUserRating.isVisible = false
+                            binding.profileInfo.tvUserStats.isVisible = false
+                        } else {
+                            // Layout Utente Standard
+                            binding.profileInfo.tvUserRole.isVisible = true
                             binding.profileInfo.tvUserRole.text = getString(R.string.proprietario)
 
-                            binding.profileInfo.tvUserRating.visibility = View.VISIBLE
-                            binding.profileInfo.tvUserRating.text = getString(
-                                R.string.rating_num_rec,
-                                stats?.ratingMedia,
-                                stats?.numeroRecensioni
-                            )
+                            state.userStats?.let { stats ->
+                                binding.profileInfo.tvUserRating.isVisible = true
+                                binding.profileInfo.tvUserRating.text = getString(
+                                    R.string.rating_num_rec,
+                                    stats.ratingMedia,
+                                    stats.numeroRecensioni
+                                )
 
-                            binding.profileInfo.tvUserStats.visibility = View.VISIBLE
-                            binding.profileInfo.tvUserStats.text = getString(
-                                R.string.num_soggiorni_annunci,
-                                stats?.numeroSoggiorni,
-                                stats?.numeroAnnunci
+                                binding.profileInfo.tvUserStats.isVisible = true
+                                binding.profileInfo.tvUserStats.text = getString(
+                                    R.string.num_soggiorni_annunci,
+                                    stats.numeroSoggiorni,
+                                    stats.numeroAnnunci
+                                )
+                            }
+
+                            // Recensioni (Solo per utenti non admin)
+                            manageReviewsDisplay(
+                                state.userReviewsReceived,
+                                state.isShowingAllReviews,
+                                reviewAdapter,
+                                binding.reviewsRecyclerView,
+                                binding.tvNoReviews,
+                                binding.showAllReviewsButton
                             )
                         }
 
-                        //recensioni
-                        manageReviewsDisplay(
-                            state.userReviewsReceived,
-                            state.isShowingAllReviews,
-                            reviewAdapter,
-                            binding.reviewsRecyclerView,
-                            binding.tvNoReviews,
-                            binding.showAllReviewsButton
-                        )
-
-                        //gestione errori
-                        if (state.errorMessage != null) {
-                            Toast.makeText(requireContext(), state.errorMessage, Toast.LENGTH_LONG)
-                                .show()
+                        // 5. Gestione Errori
+                        state.errorMessage?.let { error ->
+                            Toast.makeText(requireContext(), error, Toast.LENGTH_LONG).show()
                             viewModel.errorShown()
                         }
                     }
-
                 }
-
             }
         }
     }

@@ -14,7 +14,8 @@ import com.example.micasaestucasa.databinding.ItemReportedUserBinding
 
 class ReportedUserAdapter(
     private val onSuspend: (ReportedUser) -> Unit,
-    private val onBlock: (ReportedUser) -> Unit
+    private val onBlock: (ReportedUser) -> Unit,
+    private val onDismiss: (ReportedUser) -> Unit
 ) : ListAdapter<ReportedUser, ReportedUserAdapter.ViewHolder>(DiffCallback) {
 
     inner class ViewHolder(private val binding: ItemReportedUserBinding) :
@@ -48,6 +49,7 @@ class ReportedUserAdapter(
 
             binding.btnSuspend.setOnClickListener { onSuspend(item) }
             binding.btnBlock.setOnClickListener { onBlock(item) }
+            binding.btnDismiss.setOnClickListener { onDismiss(item) }
         }
     }
 

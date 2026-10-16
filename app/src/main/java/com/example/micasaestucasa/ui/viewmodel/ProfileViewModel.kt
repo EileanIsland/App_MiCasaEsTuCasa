@@ -42,30 +42,41 @@ class ProfileViewModel : ViewModel() {
                     return@launch
                 }
 
-                val userReviewsDef = async { ReviewRepository.getReviewsForUser(currentUid) }
-                val userReviewsReceived = userReviewsDef.await().getOrThrow()
+                val isAdmin = user.ruolo == "admin"
 
-                val stats = UserStats(
-                    ratingMedia = user.valutazioneMedia,
-                    numeroRecensioni = user.numeroRecensioni,
-                    numeroSoggiorni = user.numeroSoggiorni,
-                    numeroAnnunci = user.numeroAnnunci
-                )
+                if (isAdmin) {
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = user,
+                            isAdmin = true,
+                            userStats = null,
+                            userReviewsReceived = emptyList()
+                        )
+                    }
+                }else {
+                    val userReviewsDef = async { ReviewRepository.getReviewsForUser(currentUid) }
+                    val userReviewsReceived = userReviewsDef.await().getOrDefault(emptyList())
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        user = user,
-                        userStats = stats,
-                        userReviewsReceived = userReviewsReceived,
-                        errorMessage = null
+                    val stats = UserStats(
+                        ratingMedia = user.valutazioneMedia,
+                        numeroRecensioni = user.numeroRecensioni,
+                        numeroSoggiorni = user.numeroSoggiorni,
+                        numeroAnnunci = user.numeroAnnunci
                     )
-                }
-                android.util.Log.d("ProfileViewModel", "Profilo caricato correttamente: ${user}")
 
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            user = user,
+                            userStats = stats,
+                            userReviewsReceived = userReviewsReceived,
+                            isAdmin = false,
+                        )
+                    }
+                }
 
             } catch (e: Exception) {
-                android.util.Log.e("ProfileViewModel", "Errore durante il caricamento del profilo", e)
                 handleError(e, "Errore durante il caricamento del profilo")
             }
         }

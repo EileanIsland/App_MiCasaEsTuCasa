@@ -39,6 +39,9 @@ class AdUserFragment : Fragment(R.layout.fragment_ad_user) {
             },
             onBlock = { reportedUser ->
                 showBlockConfirmationDialog(reportedUser.user.id, reportedUser.user.name)
+            },
+            onDismiss = { reportedUser ->
+                viewModel.dismissReports(reportedUser.user.id)
             }
         )
         binding.rvReportedUsers.adapter = adapter
@@ -66,6 +69,7 @@ class AdUserFragment : Fragment(R.layout.fragment_ad_user) {
 
                 // Messaggi di Errore
                 state.errorMessage?.takeIf { it.isNotBlank() }?.let {
+                    android.util.Log.d("report_user_error", "$it")
                     Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
                         .setBackgroundTint(resources.getColor(R.color.error_Red, null))
                         .show()

@@ -77,11 +77,22 @@
             app:layout_constraintTop_toBottomOf="@id/rvReports">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDismiss"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ignora"
+                app:strokeColor="?attr/colorPrimary"
+                app:strokeWidth="1dp"
+                android:textColor="?attr/colorPrimary" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSuspend"
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sospendi"
+                android:layout_marginStart="8dp"
                 app:strokeColor="?attr/colorTertiary"
                 app:strokeWidth="1dp"
                 android:textColor="?attr/colorTertiary" />

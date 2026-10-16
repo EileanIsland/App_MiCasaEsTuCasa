@@ -190,7 +190,8 @@ object UsersRepository {
 
     suspend fun getUsersWithReports(): Result<List<ReportedUser>> {
         return try{
-            val reportesSnapshot = db.collection("user_reports").get().await()
+            val reportesSnapshot = db.collection("user_reports").
+                whereEqualTo("status", "pending").get().await()
             val reports = reportesSnapshot.toObjects(Report::class.java)
 
             val reportsByUserId = reports.groupBy { it.reportedUserId }
@@ -248,6 +249,31 @@ object UsersRepository {
             Result.failure(e)
         }
     }
+
+
+    suspend fun markReportsAsHandled(userId: String): Result<Unit> {
+        return try {
+            val db = FirebaseFirestore.getInstance()
+            val reports = db.collection("user_reports")
+                .whereEqualTo("reportedUserId", userId)
+                .whereEqualTo("status", "pending")
+                .get()
+                .await()
+
+            if (reports.isEmpty) return Result.success(Unit)
+
+            val batch = db.batch()
+            for (doc in reports.documents) {
+                batch.update(doc.reference, "status", "handled")
+            }
+            batch.commit().await()
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
 
 
 

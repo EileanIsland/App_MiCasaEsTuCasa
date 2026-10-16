@@ -221,5 +221,7 @@
     <string name="aggiungi_tag">Aggiungi Tag</string>
     <string name="elimina_tag">Elimina keyword</string>
     <string name="button">Bottone azioni\n</string>
+    <string name="ignora">Ignora</string>
+    <string name="administrator">Amministratore</string>
 
 </resources>

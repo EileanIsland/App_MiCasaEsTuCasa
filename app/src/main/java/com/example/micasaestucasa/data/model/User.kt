@@ -37,6 +37,9 @@ data class User(
             if (numeroSoggiorni >= 3)
                 badgeList.add("Frequent Traveller")
 
+            if(ruolo=="admin"){
+                badgeList.add("Amministrator")
+            }
 
             //almeno 3 case pubblicate
             if (numeroAnnunci >= 3)

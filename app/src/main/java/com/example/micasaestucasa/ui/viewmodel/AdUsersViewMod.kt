@@ -44,25 +44,31 @@ class AdUsersViewMod : ViewModel() {
         }
     }
 
-    fun toggleUserExpansion(userId: String) {
-        _uiState.update { state ->
-            val newList = state.reportedUsers.map {
-                if (it.user.id == userId) it.copy(isExpanded = !it.isExpanded)
-                else it
-            }
-            state.copy(reportedUsers = newList)
-        }
-    }
 
     fun suspendUser(userId: String, days: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            UsersRepository.suspendUser(userId, days).onSuccess {
+            val suspendResult = UsersRepository.suspendUser(userId, days)
+            val reportsResult = UsersRepository.markReportsAsHandled(userId)
+
+            if (suspendResult.isSuccess && reportsResult.isSuccess) {
                 loadReportedUsers()
-                _uiState.update { it.copy(userFeedback = "Utente sospeso per $days giorni") }
-            }.onFailure { exception ->
-                handleError(exception, "Errore nel sospendere l'utente")
+                _uiState.update { it.copy(userFeedback = "Utente sospeso e segnalazioni archiviate") }
+            } else {
+                handleError(Exception("Errore durante l'operazione"), "Riprova più tardi")
+            }
+        }
+    }
+
+    fun dismissReports(userId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            UsersRepository.markReportsAsHandled(userId).onSuccess {
+                loadReportedUsers()
+                _uiState.update { it.copy(userFeedback = "Segnalazioni archiviate") }
+            }.onFailure { e ->
+                handleError(e as Exception, "Errore nell'archiviazione")
             }
         }
     }
@@ -71,11 +77,17 @@ class AdUsersViewMod : ViewModel() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
 
-            UsersRepository.blockUser(userId).onSuccess {
+            val blockResult = UsersRepository.blockUser(userId)
+            val reportsResult = UsersRepository.markReportsAsHandled(userId)
+
+            if (blockResult.isSuccess && reportsResult.isSuccess) {
                 loadReportedUsers()
-                _uiState.update { it.copy(userFeedback = "Utente bloccato") }
-            }.onFailure { exception ->
-                handleError(exception, "Errore nel bloccare l'utente")
+                _uiState.update {
+                    it.copy(userFeedback = "Utente bloccato e segnalazioni archiviate")
+                }
+            } else {
+                val error = blockResult.exceptionOrNull() ?: reportsResult.exceptionOrNull() ?: Exception("Errore sconosciuto")
+                handleError(error, "Errore durante il blocco dell'utente")
             }
         }
     }
