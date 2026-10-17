@@ -198,8 +198,8 @@ class HomeFragment : Fragment() {
 
             val iconColor = MaterialColors.getColor(
                 context,
-                com.google.android.material.R.attr.colorOnSurface,
-                android.graphics.Color.BLACK
+                com.google.android.material.R.attr.colorSecondary,
+                android.graphics.Color.WHITE
             )
             setColorFilter(iconColor)
 

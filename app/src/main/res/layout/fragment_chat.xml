@@ -54,6 +54,7 @@
         android:paddingBottom="8dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:background="?attr/colorSurface"
 
         app:layout_constraintTop_toBottomOf="@id/chat_toolbar"
         app:layout_constraintBottom_toBottomOf="parent"

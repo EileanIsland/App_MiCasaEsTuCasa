@@ -48,9 +48,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         val themePrefs = ThemePreferences(this)
-        AppCompatDelegate.setDefaultNightMode(themePrefs.getTheme())
+        val currentTheme = themePrefs.getTheme()
+        AppCompatDelegate.setDefaultNightMode(currentTheme)
 
         installSplashScreen().setKeepOnScreenCondition{isCheckingSession}
         super.onCreate(savedInstanceState)
