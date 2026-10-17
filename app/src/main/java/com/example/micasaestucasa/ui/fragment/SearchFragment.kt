@@ -313,7 +313,6 @@ class SearchFragment : Fragment(), OnMapReadyCallback {
         binding.btnDecreaseBeds.setOnClickListener {
             val current = viewModel.uiState.value.numBeds
             if (current > 0) viewModel.updateBeds(current - 1)
-            //TODO sarebbe più sicuro decrementare nel viewmodel, fare i calcoli nel view model RICORDARSI DI CAMBIARE
         }
 
         //bagni

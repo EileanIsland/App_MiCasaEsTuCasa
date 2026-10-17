@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="24dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:cardBackgroundColor="?attr/colorSecondaryContainer"
+    app:strokeColor="?attr/colorOutlineVariant">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_context_gradient"
+        android:padding="12dp">
+
+        <!-- Header: Immagine -->
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/ivContextHouse"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:scaleType="centerCrop"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+            tools:src="@tools:sample/backgrounds/scenic" />
+
+        <!-- Header: Info Casa -->
+        <LinearLayout
+            android:id="@+id/infoContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="@id/ivContextHouse"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivContextHouse"
+            app:layout_constraintTop_toTopOf="@id/ivContextHouse">
+
+            <TextView
+                android:id="@+id/tvContextTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="?attr/textAppearanceLabelLarge"
+                android:textStyle="bold"
+                tools:text="Loft moderno in centro" />
+
+            <TextView
+                android:id="@+id/tvContextSubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:text="Riepilogo prenotazione" />
+        </LinearLayout>
+
+        <!-- SEZIONE BOTTONI -->
+        <!-- SEZIONE BOTTONI: Più raffinata e allineata a destra -->
+        <LinearLayout
+            android:id="@+id/layoutReviewActions"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivContextHouse"
+            tools:visibility="visible">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:layout_marginBottom="4dp"
+                android:background="?attr/colorOutlineVariant"
+                android:alpha="0.3" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReviewHouse"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="Recensisci casa"
+                    android:textSize="10sp"
+                    android:textAllCaps="false"
+                    android:letterSpacing="0.02"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    app:icon="@drawable/ic_star"
+                    app:iconSize="12dp"
+                    app:iconPadding="4dp"
+                    android:textColor="?attr/colorSecondary"
+                    app:iconTint="?attr/colorSecondary" />
+
+                <!-- Bottone Utente -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReviewUser"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="4dp"
+                    android:paddingHorizontal="8dp"
+                    android:text="Recensisci utente"
+                    android:textSize="10sp"
+                    android:textAllCaps="false"
+                    android:letterSpacing="0.02"
+                    android:minHeight="0dp"
+                    android:minWidth="0dp"
+                    app:icon="@drawable/ic_person"
+                    app:iconSize="12dp"
+                    app:iconPadding="4dp"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    app:iconTint="?attr/colorOnSurfaceVariant" />
+
+            </LinearLayout>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
+
+
+
+
+
+
+
+
+
+
+
+

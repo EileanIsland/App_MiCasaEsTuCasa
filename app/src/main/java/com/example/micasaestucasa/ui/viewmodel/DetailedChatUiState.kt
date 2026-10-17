@@ -7,22 +7,21 @@ import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.model.User
 
 data class DetailedChatUiState(
+    val isLoading: Boolean = false,
     val chatInfo: ChatPreview? = null,
     val messages: List<Message> = emptyList(),
-    val isLoading: Boolean = false,
     val otherUser: User? = null,
     val errorMessage: String? = null,
+    val userFeedback: String? = null,
 
+    //QUESTE MI SERVONO PER IL CONTESTO - ES CHIEDO INFO SU UNA CASA, contesto -> house
     val house: Casa? = null,
     val booking: Booking? = null,
 
-    val isDeleting: Boolean = false,       // Indica se l'eliminazione è in corso
-    val isReporting: Boolean = false,      // Indica se la segnalazione è in corso
-    val actionSuccess: Boolean = false,    // Utile per chiudere la chat dopo l'eliminazione
-    val userFeedback: String? = null,      // Per mostrare un messaggio (es. "Chat segnalata")
+    //NUOVE PER GESTIRE STORICO PRENOTAZIONI
+    val bookingsMap: Map<String, Booking> = emptyMap(),
+    val isHost: Boolean = false,
 
-    val canReview: Boolean = false,       // Determina se mostrare l'icona/pulsante recensione
-    val hasAlreadyReviewed: Boolean = false, // Evita doppie recensioni
-    val isSubmittingReview: Boolean = false, // Loading durante il salvataggio del voto
-    val showReviewDialog: Boolean = false    // Controlla la visibilità del popup recensione
+    val actionSuccess: Boolean = false,    // Utile per chiudere la chat dopo l'eliminazione
+    val canReviewHouse: Boolean = false,       // Determina se mostrare l'icona/pulsante recensione
 )

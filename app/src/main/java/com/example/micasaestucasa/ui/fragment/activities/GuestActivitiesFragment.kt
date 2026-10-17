@@ -143,8 +143,3 @@ class GuestActivitiesFragment : Fragment() {
 
 }
 
-
-//TODO AGGIUNGERE SWIPE
-/*binding.swipeRefresh.setOnRefreshListener {
-    viewModel.loadAllActivities()
-}*/

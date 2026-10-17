@@ -13,7 +13,6 @@ object DateUtils {
 
     fun formatDate(time: Long ): String{
         return formatter.format(Date(time))
-
     }
 
     fun formatRange(

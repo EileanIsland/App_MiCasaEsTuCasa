@@ -1,6 +1,7 @@
 package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Booking
+import com.example.micasaestucasa.data.model.Message
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -59,14 +60,46 @@ object BookingRepository {
      */
     suspend fun saveBooking(booking: Booking): Result<String> {
         return try {
-            val docRef = if (booking.idBooking.isEmpty()) {
+            val isNewBooking = booking.idBooking.isEmpty()
+            val docRef = if (isNewBooking) {
                 bookingCollection.document()
             } else {
                 bookingCollection.document(booking.idBooking)
             }
+
             val finalBooking = booking.copy(idBooking = docRef.id)
             docRef.set(finalBooking).await()
+
+            if(isNewBooking){
+                val messageResult = sendBookingSystemMessage(finalBooking)
+                messageResult.onFailure {
+                    android.util.Log.e("BookingRepo", "Messaggio chat non inviato")
+                }
+            }
+
             Result.success(finalBooking.idBooking)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
+    private suspend fun sendBookingSystemMessage(booking: Booking): Result<Unit> {
+        return try {
+            val guest = UsersRepository.getUserById(booking.idUtente).getOrThrow()!!
+            val host = UsersRepository.getUserById(booking.idHost).getOrThrow()!!
+
+            ChatRepository.initializeChat(
+                currentUser = guest,
+                otherUser = host,
+                contextTitle = "Nuova prenotazione per ${booking.titoloCasa}",
+                contextType = "BOOKING_SUMMARY",
+                contextId = booking.idBooking,
+                contextImageUrl = booking.url,
+                customType = "booking_summary"
+            ).getOrThrow()
+
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -158,14 +191,30 @@ object BookingRepository {
         }
     }
 
+
     /**
-     * Elimina una prenotazione dallo storage di Firestore
+     * Annulla una prenotazione:
+     * Permesso se la prenotazione è ancora "In attesa" o "Pending".
+     * Se è già "Confermata", si impedisce l'annullamento.
      */
     suspend fun deleteBooking(bookingId: String): Result<Unit> {
         return try {
-            bookingCollection.document(bookingId).delete().await()
+            db.runTransaction { transaction ->
+                val bookingRef = bookingCollection.document(bookingId)
+                val bookingSnapshot = transaction.get(bookingRef)
+                val booking = bookingSnapshot.toObject(Booking::class.java)
+                    ?: throw Exception("Prenotazione non trovata")
+
+                if (booking.stato != "In attesa" && booking.stato != "Pending") {
+                    throw Exception("Non è possibile annullare una prenotazione già ${booking.stato}")
+                }
+
+                transaction.update(bookingRef, "stato", "Cancellata")
+            }.await()
+
             Result.success(Unit)
         } catch (e: Exception) {
+            android.util.Log.e("BookingRepo", "Errore durante l'annullamento: ${e.message}")
             Result.failure(e)
         }
     }

@@ -18,12 +18,6 @@ import com.example.micasaestucasa.databinding.FragmentLoginBinding
 import com.example.micasaestucasa.ui.viewmodel.LoginViewModel
 import kotlinx.coroutines.launch
 
-//TODO
-// 3 - autorizzazione per admin
-// 4 - implementare errori validazione con TextInputLayout.Error se voglio evidenziare un
-//      campo snackbar per errori
-//      TOast è per messaggi di sistema
-
 
 class LoginFragment : Fragment() {
 

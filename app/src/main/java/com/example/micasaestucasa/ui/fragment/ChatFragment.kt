@@ -44,7 +44,6 @@ class ChatFragment: Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupRecyclerView()
-        setUpListeners()
         observeUiState()
     }
 
@@ -101,14 +100,6 @@ class ChatFragment: Fragment() {
             layoutManager = LinearLayoutManager(requireContext())
             setHasFixedSize(true)
         }
-
-    }
-
-    fun setUpListeners(){
-        //TODO
-    //      aggiungere azioni per cancellare chat
-    //      segnalare utente
-
 
     }
 

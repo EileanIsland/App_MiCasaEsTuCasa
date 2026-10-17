@@ -161,7 +161,7 @@ class ProfileFragment : Fragment(){
 
         //notifiche
         binding.cardNotifications.setOnClickListener{
-            //TODO
+            //TODO notifiche
         }
 
         //aspetto
@@ -171,7 +171,7 @@ class ProfileFragment : Fragment(){
 
         //privacy
         binding.cardPrivacy.setOnClickListener{
-            //TODO
+            //è messo per bellezza, non le implemento
         }
 
         //bottone log out

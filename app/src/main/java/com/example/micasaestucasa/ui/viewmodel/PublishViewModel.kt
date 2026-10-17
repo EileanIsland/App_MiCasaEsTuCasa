@@ -18,9 +18,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-//TODO:
-// 1 - pubblicazione annuncio ora funziona, devo migliorare la navigazione alla pagina di dettaglio
-//      ci sono tempi di latenza tra pubblicazione annuncio e risultato che non sono l'idealte
 
 class PublishViewModel: ViewModel() {
 

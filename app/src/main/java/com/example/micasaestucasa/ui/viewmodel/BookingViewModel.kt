@@ -40,7 +40,7 @@ class BookingViewModel : ViewModel(){
                         startDate = booking?.dataInizio ?: state.startDate,
                         endDate = booking?.dataFine ?: state.endDate,
                         numGuest = booking?.numeroOspiti ?: state.numGuest,
-                        status = booking?.stato ?: state.status,
+                        status = booking?.getDisplayStatus() ?: state.status,
                     )
                 }
 
@@ -80,7 +80,7 @@ class BookingViewModel : ViewModel(){
         if(bookingId.isEmpty()) return
 
         if(_uiState.value.status != "In attesa"){
-            _uiState.update { it.copy(errorMessage = "Impossibile eliminare una prenotazione") }
+            _uiState.update { it.copy(errorMessage = "Impossibile cancellare la prenotazione") }
             return
         }
 
@@ -168,7 +168,9 @@ class BookingViewModel : ViewModel(){
                     dataFine = state.endDate!!,
                     prezzoTotale = state.totalPrice,
                     numeroOspiti = state.numGuest,
-                    stato = "In attesa"
+                    stato = "In attesa",
+                    url = state.casa.immagini.firstOrNull() ?: "",
+                    titoloCasa = state.casa.titolo
                 )
                 BookingRepository.saveBooking(booking).getOrThrow()
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }

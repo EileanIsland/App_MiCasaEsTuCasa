@@ -43,29 +43,15 @@
                 android:maxLines="1"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnRateUser"
+                app:layout_constraintEnd_toStartOf="@id/btnDeleteChat"
                 app:layout_constraintStart_toEndOf="@id/ivUserProfile"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Nome Utente" />
 
             <ImageButton
-                android:id="@+id/btnRateUser"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Recensisci"
-                android:src="@drawable/ic_star"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnDeleteChat"
-                app:layout_constraintTop_toTopOf="parent"
-                app:tint="?attr/colorPrimary"
-                tools:visibility="visible" />
-
-            <ImageButton
                 android:id="@+id/btnDeleteChat"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/elimina_chat"
                 android:src="@drawable/ic_delete"
@@ -76,8 +62,8 @@
 
             <ImageButton
                 android:id="@+id/btnReportChat"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
                 android:layout_marginEnd="8dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/segnala_chat"
@@ -135,6 +121,7 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:contentDescription="@string/immagine_allegata"
             app:icon="@drawable/ic_photo" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -164,6 +151,7 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:contentDescription="@string/invia_messaggio"
             app:icon="@drawable/ic_send" />
 
     </LinearLayout>

@@ -60,14 +60,14 @@ class BookingAdapter(
             val now = System.currentTimeMillis()
             val isPast = (booking?.dataFine ?: 0) < now
             val isNotPending = booking?.stato != "In attesa"
-            val alreadyReviewd = booking?.isReviewed ?: false
+            val alreadyReviewd = booking?.isHouseReviewed ?: false
 
 
             binding.tvHouseName.text = casa?.titolo ?: context.getString(R.string.segnaposto)
             binding.tvLocation.text = casa?.citta ?: "Posizione non specificata"
 
             binding.tvGuests.text = "${booking?.numeroOspiti ?: 0} ospiti"
-            binding.tvStatus.text = booking?.stato
+            binding.tvStatus.text = booking?.getDisplayStatus() ?: "Stato non specificato"
 
 
             binding.tvDates.text = formatRange( booking?.dataInizio, booking?.dataFine)

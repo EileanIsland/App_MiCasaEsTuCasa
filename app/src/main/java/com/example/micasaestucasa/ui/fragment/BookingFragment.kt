@@ -168,7 +168,7 @@ class BookingFragment : Fragment(){
             val casa = viewModel.uiState.value.casa
             if (casa != null) {
                 val ranges = casa.disponibilita.map { d -> Pair(d.inizio, d.fine) }
-                showAvailableRangeDatePicker(childFragmentManager, ranges) { start, end ->
+                showAvailableRangeDatePicker(childFragmentManager, requireContext(), ranges) { start, end ->
                     viewModel.updateDates(start, end)
                 }
             }
@@ -180,12 +180,11 @@ class BookingFragment : Fragment(){
                 val bundle = Bundle().apply {
                     putString("houseId", houseId)
                 }
-                findNavController().navigate(com.example.micasaestucasa.R.id.action_bookingFragment_to_detailedHouseFragment, bundle)
+                findNavController().navigate(R.id.action_bookingFragment_to_detailedHouseFragment, bundle)
             }
 
         }
 
-        // In BookingFragment.kt -> setupListeners()
         binding.guestsNumber.doAfterTextChanged { text ->val input = text.toString().toIntOrNull() ?: 1
             val maxGuests = viewModel.uiState.value.casa?.ospitiMassimi ?: 1
 

@@ -20,9 +20,10 @@ object ChatRepository {
     private val storage = FirebaseStorage.getInstance()
     private val chatsCollection = firestore.collection("chats")
 
+
+
     /**
-     * Inizializza una chat in modo ATOMICO e RESILIENTE.
-     * Non usa .get() preventivo per evitare PERMISSION_DENIED.
+     * Inizializza una chat
      */
     suspend fun initializeChat(
         currentUser: User,
@@ -30,7 +31,8 @@ object ChatRepository {
         contextId: String? = null,
         contextType: String? = null,
         contextTitle: String? = null,
-        contextImageUrl: String? = null
+        contextImageUrl: String? = null,
+        customType: String = "context"
     ): Result<String> {
         return try {
             val chatId = getChatId(currentUser.id, otherUser.id)
@@ -52,7 +54,10 @@ object ChatRepository {
                 "hiddenBy" to emptyList<String>()
             )
 
-            chatData["lastMessage"] = contextTitle ?: "Nuova conversazione"
+            chatData["lastMessage"] = when(customType) {
+                "booking_summary" -> "Nuova prenotazione"
+                else -> contextTitle ?: "Nuova conversazione"
+            }
 
             batch.set(chatRef, chatData, SetOptions.merge())
 
@@ -62,8 +67,9 @@ object ChatRepository {
                     id = messagesRef.id,
                     senderId = currentUser.id,
                     text = contextTitle ?: "",
-                    type = "context",
+                    type = customType,
                     contextId = contextId,
+                    contextTitle = contextTitle,
                     contextType = contextType,
                     url = contextImageUrl,
                     timestamp = System.currentTimeMillis()
@@ -77,6 +83,9 @@ object ChatRepository {
             Result.failure(e)
         }
     }
+
+
+
 
     /**
      * Invia un messaggio e "riattiva" la chat per tutti (svuota hiddenBy).

@@ -20,7 +20,7 @@ data class AdStatsUiState(
 
 )
 
-class AdStatsViewMod() : ViewModel(){
+class AdStatsViewMod : ViewModel(){
     private var _uiState = MutableStateFlow(AdStatsUiState())
     val uiState: StateFlow<AdStatsUiState> = _uiState.asStateFlow()
 

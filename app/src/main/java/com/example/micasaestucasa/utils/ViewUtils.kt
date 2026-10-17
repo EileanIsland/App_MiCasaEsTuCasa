@@ -175,6 +175,7 @@ object ViewUtils {
      */
     fun showAvailableRangeDatePicker(
         fragmentManager: FragmentManager,
+        context: Context,
         disponibilita: List<kotlin.Pair<Long, Long>>,
         onDateSelected: (Long, Long) -> Unit
     ) {
@@ -182,9 +183,13 @@ object ViewUtils {
 
         constraintsBuilder.setValidator(AvailabilityValidator(disponibilita))
 
-        if (disponibilita.isNotEmpty()) {
-            constraintsBuilder.setOpenAt(disponibilita.first().first)
-        }
+        val today = MaterialDatePicker.todayInUtcMilliseconds()
+        val firstAvailable = disponibilita
+            .map { it.first }
+            .filter { it >= today }
+            .minOrNull() ?: today
+
+        constraintsBuilder.setOpenAt(firstAvailable)
 
         val picker = MaterialDatePicker.Builder.dateRangePicker()
             .setTitleText("Seleziona date disponibili")
@@ -195,19 +200,25 @@ object ViewUtils {
             val start = range.first
             val end = range.second
             if (start != null && end != null) {
-                onDateSelected(start, end)
+                val isContainedInSingleRange = disponibilita.any { (availStart, availEnd) ->
+                    start >= availStart && end <= availEnd
+                }
+
+                if (isContainedInSingleRange) {
+                    onDateSelected(start, end)
+                } else {
+                    android.widget.Toast.makeText(
+                        context,
+                        "L'intervallo selezionato include giorni non disponibili",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
             }
         }
 
         picker.show(fragmentManager, "AVAILABLE_DATE_PICKER")
     }
 
-
-
-
-
-
-    // In com.example.micasaestucasa.utils.ViewUtils.kt
 
     fun showReportUserDialog(
         context: Context,

@@ -39,7 +39,7 @@ class RegistrationFragment : Fragment(){
     }
 
 
-    //TODO migliorare i messaggi di errore per la password, usare passWOrdInputLayit.error o qualcosa del genere, per ora sono toast message
+    //TODO tecnicamente avrei potuto usare passWOrdInputLayit.error o qualcosa del genere, per ora sono toast message
     private fun observeViewModel(){
         viewLifecycleOwner.lifecycleScope.launch{
             viewModel.uiState.collect { uiState ->

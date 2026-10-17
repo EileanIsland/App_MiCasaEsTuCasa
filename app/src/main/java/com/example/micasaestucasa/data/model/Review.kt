@@ -24,8 +24,9 @@ data class Review(
     // Mappiamo il targetType come Stringa per Firestore
     @get:PropertyName("targetType")
     @set:PropertyName("targetType")
-    var targetTypeString: String = ReviewTarget.UTENTE.name, // Valore di default fondamentale!
+    var targetTypeString: String = ReviewTarget.UTENTE.name,
 
+    val bookingId: String = "",
     val rating: Float = 0f,
     val testo: String = "",
     val timestamp: Long = System.currentTimeMillis(),

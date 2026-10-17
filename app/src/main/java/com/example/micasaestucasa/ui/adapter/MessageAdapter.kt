@@ -8,39 +8,42 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.micasaestucasa.data.model.Message
-import com.example.micasaestucasa.databinding.ItemChatContextBinding
-import com.example.micasaestucasa.databinding.ItemMessageReceivedBinding
-import com.example.micasaestucasa.databinding.ItemMessageSentBinding
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.micasaestucasa.data.model.Booking
+import com.example.micasaestucasa.databinding.*
+import com.example.micasaestucasa.utils.DateUtils.formatDate
 
 class MessageAdapter(
     private val currentUid: String,
     private val onImageClick: (String) -> Unit,
-    private val onContextClick: (String, String) -> Unit
-    ): ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
+    private val onContextClick: (String, String) -> Unit,
+    private val onReviewHouse: ((String) -> Unit)?,
+    private val onReviewUser: (String) -> Unit
+): ListAdapter<Message, RecyclerView.ViewHolder>(MessageDiffCallback()) {
+
+    private var bookingsMap: Map<String, Booking> = emptyMap()
 
     private val VIEW_TYPE_SENT_TEXT = 1
     private val VIEW_TYPE_RECEIVED_TEXT = 2
     private val VIEW_TYPE_SENT_IMAGE = 3
     private val VIEW_TYPE_RECEIVED_IMAGE = 4
-
     private val VIEW_TYPE_CONTEXT = 5
+    private val VIEW_TYPE_BOOKING_SUMMARY = 6
+
+    fun updateBookings(newBookings: Map<String, Booking>) {
+        this.bookingsMap = newBookings
+        notifyDataSetChanged()
+    }
 
     override fun getItemViewType(position: Int): Int {
         val message = getItem(position)
         val isMe = message.senderId == currentUid
 
-        if (message.type == "context") return VIEW_TYPE_CONTEXT
-
-        return if(message.type == "image"){
-            if(isMe) VIEW_TYPE_SENT_IMAGE else VIEW_TYPE_RECEIVED_IMAGE
-        }else{
-            if(isMe) VIEW_TYPE_SENT_TEXT else VIEW_TYPE_RECEIVED_TEXT
-
+        return when {
+            message.type == "booking_summary" -> VIEW_TYPE_BOOKING_SUMMARY
+            message.type == "context" -> VIEW_TYPE_CONTEXT
+            message.type == "image" -> if (isMe) VIEW_TYPE_SENT_IMAGE else VIEW_TYPE_RECEIVED_IMAGE
+            else -> if (isMe) VIEW_TYPE_SENT_TEXT else VIEW_TYPE_RECEIVED_TEXT
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
@@ -51,6 +54,7 @@ class MessageAdapter(
             VIEW_TYPE_SENT_IMAGE -> SentImageViewHolder(ItemMessageSentBinding.inflate(inflater, parent, false))
             VIEW_TYPE_RECEIVED_IMAGE -> ReceivedImageViewHolder(ItemMessageReceivedBinding.inflate(inflater, parent, false))
             VIEW_TYPE_CONTEXT -> ContextViewHolder(ItemChatContextBinding.inflate(inflater, parent, false))
+            VIEW_TYPE_BOOKING_SUMMARY -> BookingSummaryViewHolder(ItemBookingSummaryBinding.inflate(inflater, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -63,6 +67,57 @@ class MessageAdapter(
             is SentImageViewHolder -> holder.bind(message)
             is ReceivedImageViewHolder -> holder.bind(message)
             is ContextViewHolder -> holder.bind(message)
+            is BookingSummaryViewHolder -> holder.bind(message)
+        }
+    }
+
+    inner class BookingSummaryViewHolder(private val binding: ItemBookingSummaryBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(message: Message) {
+            binding.tvContextTitle.text = message.text
+            binding.tvContextSubtitle.text = "Riepilogo prenotazione"
+
+            Glide.with(binding.ivContextHouse.context)
+                .load(message.url)
+                .centerCrop()
+                .into(binding.ivContextHouse)
+
+            val bookingId = message.contextId
+            val booking = bookingsMap[bookingId]
+
+            val isHost = onReviewHouse == null
+
+            if (booking != null) {
+                val canReviewHouse = booking.canReviewHouse(isHost)
+                val canReviewUser = booking.canReviewUser()
+
+                binding.layoutReviewActions.visibility = if (canReviewHouse || canReviewUser) View.VISIBLE else View.GONE
+
+                if (canReviewHouse) {
+                    binding.btnReviewHouse.visibility = View.VISIBLE
+                    binding.btnReviewHouse.setOnClickListener {
+                        bookingId?.let { id -> onReviewHouse?.invoke(id) }
+                    }
+                } else {
+                    binding.btnReviewHouse.visibility = View.GONE
+                }
+
+                if (canReviewUser) {
+                    binding.btnReviewUser.visibility = View.VISIBLE
+                    binding.btnReviewUser.text = if (isHost) "Recensisci Ospite" else "Recensisci Host"
+                    binding.btnReviewUser.setOnClickListener {
+                        bookingId?.let { id -> onReviewUser(id) }
+                    }
+                } else {
+                    binding.btnReviewUser.visibility = View.GONE
+                }
+
+            } else {
+                binding.layoutReviewActions.visibility = View.GONE
+            }
+
+            binding.root.setOnClickListener {
+                if (bookingId != null) onContextClick(bookingId, "BOOKING")
+            }
         }
     }
 
@@ -90,73 +145,46 @@ class MessageAdapter(
         }
     }
 
-
-    inner class SentViewHolder(
-        private val binding: ItemMessageSentBinding
-    ): RecyclerView.ViewHolder(binding.root) {
+    inner class SentViewHolder(private val binding: ItemMessageSentBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.tvMessage.text = message.text
-            binding.tvTime.text = formatTime(message.timestamp)
+            binding.tvTime.text = formatDate(message.timestamp)
         }
     }
 
-    inner class ReceivedViewHolder(
-        private val binding: ItemMessageReceivedBinding
-    ): RecyclerView.ViewHolder(binding.root){
-        fun bind(message: Message){
+    inner class ReceivedViewHolder(private val binding: ItemMessageReceivedBinding): RecyclerView.ViewHolder(binding.root) {
+        fun bind(message: Message) {
             binding.tvMessage.text = message.text
-            binding.tvTime.text = formatTime(message.timestamp)
+            binding.tvTime.text = formatDate(message.timestamp)
         }
     }
 
     inner class SentImageViewHolder(private val binding: ItemMessageSentBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
-            binding.tvTime.text = formatTime(message.timestamp)
+            binding.tvTime.text = formatDate(message.timestamp)
             binding.ivMessageImage.visibility = View.VISIBLE
-            Glide.with(binding.ivMessageImage.context)
-                .load(message.url)
-                .centerCrop()
-                .into(binding.ivMessageImage)
-
-            binding.ivMessageImage.setOnClickListener {
-                message.url?.let { url -> onImageClick(url) }
-            }
+            Glide.with(binding.ivMessageImage.context).load(message.url).centerCrop().into(binding.ivMessageImage)
+            binding.ivMessageImage.setOnClickListener { message.url?.let { onImageClick(it) } }
         }
     }
 
     inner class ReceivedImageViewHolder(private val binding: ItemMessageReceivedBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
-            binding.tvTime.text = formatTime(message.timestamp)
+            binding.tvTime.text = formatDate(message.timestamp)
             binding.ivMessageImage.visibility = View.VISIBLE
-
-            Glide.with(binding.ivMessageImage.context)
-                .load(message.url)
-                .centerCrop()
-                .into(binding.ivMessageImage)
-
-            binding.ivMessageImage.setOnClickListener {
-                message.url?.let { url -> onImageClick(url) }
-            }
+            Glide.with(binding.ivMessageImage.context).load(message.url).centerCrop().into(binding.ivMessageImage)
+            binding.ivMessageImage.setOnClickListener { message.url?.let { onImageClick(it) } }
         }
     }
 
-    private fun formatTime(timestamp: Long): String {
-        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val date = Date(timestamp)
-        return sdf.format(date)
-    }
 
     class MessageDiffCallback: DiffUtil.ItemCallback<Message>(){
-        override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: Message, newItem: Message): Boolean {
-            return oldItem == newItem
-        }
-
+        override fun areItemsTheSame(oldItem: Message, newItem: Message) = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Message, newItem: Message) = oldItem == newItem
     }
 
+
 }
+
 
 

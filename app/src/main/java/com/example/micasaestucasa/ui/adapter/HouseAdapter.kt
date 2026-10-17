@@ -12,8 +12,6 @@ import com.example.micasaestucasa.data.model.Casa
 import com.example.micasaestucasa.databinding.ItemHouseBinding
 
 
-//TODO: modifica adapter per poterlo usare sia per ite_house per guest che per owner
-
 /**
  * Adapter flessibile per la visualizzazione delle case.
  *
