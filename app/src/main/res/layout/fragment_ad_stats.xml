@@ -39,7 +39,7 @@
                     android:id="@+id/tvTotalLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Prenotazioni Totali"
+                    android:text="@string/prenotazioni_totali"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -48,7 +48,7 @@
                     android:id="@+id/tvTotalValue"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
+                    android:text="@string/_0"
                     android:textAppearance="?attr/textAppearanceHeadlineLarge"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -60,7 +60,8 @@
                     android:layout_width="48dp"
                     android:layout_height="48dp"
                     android:src="@drawable/ic_document"
-                    android:alpha="0.3"
+                    android:contentDescription="@string/icona_prenotazioni"
+                    android:alpha="0.6"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />

@@ -223,5 +223,16 @@
     <string name="button">Bottone azioni\n</string>
     <string name="ignora">Ignora</string>
     <string name="administrator">Amministratore</string>
+    <string name="categoria">Categoria</string>
+    <string name="keyword">Keyword</string>
+    <string name="prenotazioni_totali">Prenotazioni Totali</string>
+    <string name="icona_prenotazioni">Icona prenotazioni</string>
+    <string name="gestione_segnalazioni">Gestione Segnalazioni</string>
+    <string name="nessuna_segnalazione">Nessuna segnalazione trovata</string>
+    <string name="riepilogo_prenotazione">Riepilogo Prenotazione</string>
+    <string name="recensisci_casa">Recensisci casa</string>
+    <string name="recensisci_utente">Recensisci utente</string>
+    <string name="blocca">Blocca</string>
+    <string name="sospendi">Sospendi</string>
 
 </resources>

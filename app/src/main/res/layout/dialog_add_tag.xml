@@ -8,7 +8,7 @@
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Nome Keyword">
+        android:hint="@string/keyword">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etTagName"
@@ -21,7 +21,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Categoria"
+        android:text="@string/categoria"
         android:textAppearance="?attr/textAppearanceLabelLarge" />
 
     <Spinner

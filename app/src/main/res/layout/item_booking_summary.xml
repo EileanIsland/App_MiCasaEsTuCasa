@@ -58,11 +58,10 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceLabelSmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
-                android:text="Riepilogo prenotazione" />
+                android:text="@string/riepilogo_prenotazione" />
         </LinearLayout>
 
         <!-- SEZIONE BOTTONI -->
-        <!-- SEZIONE BOTTONI: Più raffinata e allineata a destra -->
         <LinearLayout
             android:id="@+id/layoutReviewActions"
             android:layout_width="0dp"
@@ -95,7 +94,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="32dp"
                     android:paddingHorizontal="8dp"
-                    android:text="Recensisci casa"
+                    android:text="@string/recensisci_casa"
                     android:textSize="10sp"
                     android:textAllCaps="false"
                     android:letterSpacing="0.02"
@@ -115,7 +114,7 @@
                     android:layout_height="32dp"
                     android:layout_marginStart="4dp"
                     android:paddingHorizontal="8dp"
-                    android:text="Recensisci utente"
+                    android:text="@string/recensisci_utente"
                     android:textSize="10sp"
                     android:textAllCaps="false"
                     android:letterSpacing="0.02"
