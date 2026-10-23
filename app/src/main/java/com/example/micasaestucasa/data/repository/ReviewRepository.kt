@@ -8,9 +8,9 @@ import kotlinx.coroutines.tasks.await
 
 object ReviewRepository {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val reviewsCollection = db.collection("reviews")
-    private val bookingsCollection = db.collection("bookings")
+    private val db get() = FirebaseFirestore.getInstance()
+    private val reviewsCollection get() = db.collection("reviews")
+    private val bookingsCollection get() = db.collection("bookings")
 
     /**
      * Salva una recensione per la CASA e aggiorna il flag 'houseReviewed' nel Booking.

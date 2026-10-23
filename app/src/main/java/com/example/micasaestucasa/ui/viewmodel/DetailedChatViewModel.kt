@@ -65,7 +65,7 @@ class DetailedChatViewModel : ViewModel() {
                 }
             }
 
-            ChatRepository.getMessages(cid)
+            ChatRepository.getMessages(cid, currentUserID!!)
                 .catch { e -> handleError(e, "Errore caricamento messaggi") }
                 .onEach { messageList ->
                     if(messageList.isNotEmpty() && !isContextChecked){

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.PropertyName
  * @property dataInizio la data di inizio del stayed.
  * @property dataFine la data di fine del stayed.
  * @property prezzoTotale il prezzo totale della prenotazione.
+ * @property numeroOspiti il numero di ospiti per la prenotazione.
  * @property stato lo stato della prenotazione (ad esempio, "in attesa", "accettata", "rifiutata").
  * @property url l'URL dell'immagine associata alla casa.
  * @property titoloCasa il titolo della casa prenotata.
@@ -43,15 +44,18 @@ data class Booking (
     var isUserReviewed: Boolean = false
 
 ){
+    /**
+     * Restituisce una descrizione testuale dello stato della prenotazione per l'UI.
+     * @return Stringa descrittiva dello stato attuale.
+     */
     fun getDisplayStatus(): String {
         val now = System.currentTimeMillis()
 
-        return when {
-            stato == "Cancellata" -> "Cancellata"
-            stato == "Rifiutata" -> "Rifiutata"
-            stato == "In attesa" -> "In attesa"
-
-            stato == "Confermata" -> {
+        return when (stato) {
+            "Cancellata" -> "Cancellata"
+            "Rifiutata" -> "Rifiutata"
+            "In attesa" -> "In attesa"
+            "Confermata" -> {
                 when {
                     now < dataInizio -> "Confermata (In arrivo)"
                     now in dataInizio..dataFine -> "Soggiorno in corso"
@@ -64,15 +68,17 @@ data class Booking (
 
 
     /**
-     * Verifica base: il tempo è scaduto o la prenotazione è rifiutata
-     * */
+     * Verifica se il soggiorno è terminato o se la prenotazione è stata rifiutata.
+     */
     private fun isTimeExpired(): Boolean {
         val now = System.currentTimeMillis()
         return (stato == "Confermata" && now > dataFine) || stato == "Rifiutata"
     }
 
     /**
-     *
+     * Verifica se l'ospite può lasciare una recensione per la casa.
+     * @param isHost Indica se l'utente corrente è l'host.
+     * @return True se l'ospite può recensire, false altrimenti.
      */
     fun canReviewHouse(isHost: Boolean): Boolean {
         if (isHost) return false
@@ -82,9 +88,14 @@ data class Booking (
     }
 
     /**
-     *
+     * Verifica se l'host può lasciare una recensione per l'ospite.
+     * @return True se l'host può recensire, false altrimenti.
      */
     fun canReviewUser(): Boolean {
         return isTimeExpired() && !isUserReviewed
     }
 }
+
+
+
+

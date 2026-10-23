@@ -22,6 +22,9 @@ import androidx.core.view.size
 import androidx.core.view.get
 import androidx.navigation.NavGraph
 import com.example.micasaestucasa.data.local.ThemePreferences
+import com.example.micasaestucasa.data.repository.BookingRepository
+import com.example.micasaestucasa.data.repository.ChatRepository
+import com.example.micasaestucasa.utils.NotificationHelper
 
 //TODO:
 // 1 aggiornare i repository per usere Result<Unit>
@@ -37,12 +40,7 @@ class MainActivity : AppCompatActivity() {
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        if (isGranted) {
-            lifecycleScope.launch {
-                updateUserFcmToken()
-            }
-
-        } else {
+        if (!isGranted){
             Toast.makeText(this, "Notifiche disattivate. Non riceverai avvisi per i nuovi messaggi.", Toast.LENGTH_SHORT).show()
         }
     }
@@ -51,6 +49,8 @@ class MainActivity : AppCompatActivity() {
         val themePrefs = ThemePreferences(this)
         val currentTheme = themePrefs.getTheme()
         AppCompatDelegate.setDefaultNightMode(currentTheme)
+
+        NotificationHelper.createNotificationChannels(this)
 
         installSplashScreen().setKeepOnScreenCondition{isCheckingSession}
         super.onCreate(savedInstanceState)
@@ -89,8 +89,14 @@ class MainActivity : AppCompatActivity() {
 
                 result.onSuccess {
                     val isAdmin = UsersRepository.isAdmin()
+
+                    BookingRepository.startBookingListener(applicationContext, uid)
+                    ChatRepository.startGlobalChatListener(applicationContext, uid)
+
                     val startDest = if (isAdmin) R.id.statisticheFragment else R.id.homeFragment
                     navigationSetUp(navGraph, startDest, isAdmin)
+
+
                 }.onFailure { exception ->
                     val errorMessage = exception.message ?: "Errore durante il caricamento del profilo"
                     Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_LONG).show()
@@ -187,56 +193,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-
-
-
-    //NOTIFICHE
-
-    private fun updateUserFcmToken() {
-        val uid = UsersRepository.getCurrentUid()
-
-        if (uid == null) {
-            android.util.Log.w("FCM_DEBUG", "Salvataggio token annullato: nessun utente loggato.")
-            return
-        }
-
-        android.util.Log.d("FCM_DEBUG", "Tentativo di recupero token avviato...")
-
-        com.google.firebase.messaging.FirebaseMessaging.getInstance().token
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val token = task.result
-                    android.util.Log.d("FCM_DEBUG", "TOKEN RECUPERATO: $token")
-
-                    lifecycleScope.launch {
-                        UsersRepository.updateFcmToken(uid, token)
-                            .onSuccess {
-                                android.util.Log.d("FCM_DEBUG", "Token aggiornato con successo su Firestore.")
-                            }
-                            .onFailure { e ->
-                                android.util.Log.e("FCM_DEBUG", "Errore salvataggio token su DB: ${e.message}")
-                            }
-                    }
-                } else {
-                    android.util.Log.e("FCM_DEBUG", "ERRORE FIREBASE: ${task.exception?.message}")
-                }
-            }
-    }
-
     private fun askNotificationPermission() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             val permission = android.Manifest.permission.POST_NOTIFICATIONS
 
-            if (androidx.core.content.ContextCompat.checkSelfPermission(this, permission) ==
+            if (androidx.core.content.ContextCompat.checkSelfPermission(this, permission) !=
                 android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                updateUserFcmToken()
-            } else {
                 requestPermissionLauncher.launch(permission)
             }
-        } else {
-            updateUserFcmToken()
         }
     }
 
@@ -268,6 +232,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ChatRepository.stopGlobalChatListener()
+        BookingRepository.stopBookingListener()
     }
 
 }

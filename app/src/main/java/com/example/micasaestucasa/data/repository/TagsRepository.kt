@@ -6,8 +6,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 object TagsRepository {
-    private val db = FirebaseFirestore.getInstance()
-    private val tagsCollection = db.collection("tags")
+    private val db get() = FirebaseFirestore.getInstance()
+    private val tagsCollection get() = db.collection("tags")
 
     /**
      * Recupera tutte le tag di un determinato tipo

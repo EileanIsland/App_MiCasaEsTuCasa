@@ -2,7 +2,7 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.data.model.ReportedUser
+import com.example.micasaestucasa.ui.models.ReportedUser
 import com.example.micasaestucasa.data.repository.UsersRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

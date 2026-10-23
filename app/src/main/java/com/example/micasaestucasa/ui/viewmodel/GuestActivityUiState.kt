@@ -1,6 +1,6 @@
 package com.example.micasaestucasa.ui.viewmodel
 
-import com.example.micasaestucasa.data.model.BookingUi
+import com.example.micasaestucasa.ui.models.BookingUi
 
 data class GuestActivityUiState(
     val isLoading : Boolean = false,

@@ -2,7 +2,7 @@ package com.example.micasaestucasa.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.micasaestucasa.data.model.BookingUi
+import com.example.micasaestucasa.ui.models.BookingUi
 import com.example.micasaestucasa.data.repository.AuthRepository
 import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.CasaRepository

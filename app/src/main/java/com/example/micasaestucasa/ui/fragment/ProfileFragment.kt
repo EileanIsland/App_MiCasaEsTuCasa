@@ -69,6 +69,8 @@ class ProfileFragment : Fragment(){
                         return@collect
                     }
 
+                    android.util.Log.d("DEBUG_PROFILE", "stato $state")
+
                     binding.loadingOverlay.isVisible = state.isLoading
                     binding.userSection.isVisible = !state.isAdmin
                     binding.adminSection.isVisible = state.isAdmin

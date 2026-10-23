@@ -3,7 +3,20 @@ package com.example.micasaestucasa.data.model
 /**
  * Rappresenta un utente all'interno dell'applicazione.
  *
- *
+ * @property id Identificativo univoco dell'utente.
+ * @property name Nome dell'utente.
+ * @property surname Cognome dell'utente.
+ * @property email Indirizzo email dell'utente.
+ * @property phone Numero di telefono dell'utente.
+ * @property bio Breve descrizione biografica dell'utente.
+ * @property profileImageUrl URL dell'immagine del profilo.
+ * @property suspendedUntil Timestamp fino al quale l'account è sospeso.
+ * @property accountStatus Stato dell'account (es. "active", "blocked", "suspended").
+ * @property ruolo Ruolo dell'utente (es. "client", "admin").
+ * @property numeroSoggiorni Numero totale di soggiorni effettuati.
+ * @property numeroRecensioni Numero totale di recensioni ricevute o effettuate.
+ * @property valutazioneMedia Media delle valutazioni ricevute.
+ * @property numeroAnnunci Numero di annunci pubblicati dall'utente.
  */
 data class User(
     val id: String = "",
@@ -15,7 +28,6 @@ data class User(
     val profileImageUrl: String = "",
     val suspendedUntil: Long = 0,
     val accountStatus: String = "active",
-    val fcmToken: String = "",
     val ruolo: String = "client",
     val numeroSoggiorni: Int = 0,
     val numeroRecensioni: Int = 0,
@@ -23,6 +35,9 @@ data class User(
     val numeroAnnunci: Int = 0
 ){
 
+    /**
+     * Calcola e restituisce la lista dei badge assegnati all'utente in base alle sue statistiche.
+     */
     val badges: List<String>
         get(){
             val badgeList = mutableListOf<String>()
@@ -48,12 +63,20 @@ data class User(
             return badgeList
         }
 
+    /**
+     * Verifica se l'utente ha restrizioni all'accesso (bloccato o sospeso).
+     * @return True se l'account è bloccato o sospeso, false altrimenti.
+     */
     fun isRestricted(): Boolean {
         val now = System.currentTimeMillis()
         return accountStatus == "blocked" || (accountStatus == "suspended" && now < suspendedUntil)
     }
 
 
+    /**
+     * Restituisce un messaggio descrittivo dello stato dell'account se ristretto.
+     * @return Il messaggio di stato o null se l'account non è ristretto.
+     */
     fun getStatusMessage(): String? {
         val now = System.currentTimeMillis()
         return when (accountStatus) {

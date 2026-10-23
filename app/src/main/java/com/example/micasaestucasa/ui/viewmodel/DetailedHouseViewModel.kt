@@ -8,6 +8,7 @@ import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.CasaRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
+import com.example.micasaestucasa.ui.models.UserStats
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

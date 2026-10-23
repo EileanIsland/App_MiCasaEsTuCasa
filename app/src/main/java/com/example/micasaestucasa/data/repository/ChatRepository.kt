@@ -16,11 +16,54 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.channels.awaitClose
 
 object ChatRepository {
-    private val firestore = FirebaseFirestore.getInstance()
-    private val storage = FirebaseStorage.getInstance()
+    private val firestore get() = FirebaseFirestore.getInstance()
+    private val storage get() = FirebaseStorage.getInstance()
     private val chatsCollection = firestore.collection("chats")
+    private var globalMessagesListener: ListenerRegistration? = null
 
 
+    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {
+        globalMessagesListener?.remove()
+
+        globalMessagesListener = chatsCollection
+            .whereArrayContains("users", currentUid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null || snapshot == null) return@addSnapshotListener
+
+                for (docChange in snapshot.documentChanges) {
+                    if (docChange.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED) {
+                        val doc = docChange.document
+                        val lastTimestamp = doc.getLong("lastTimestamp") ?: 0L
+
+                        val clearHistoryAtMap = doc.get("clearHistoryAt") as? Map<String, Long>
+                        val clearTime = clearHistoryAtMap?.get(currentUid) ?: 0L
+
+                        if (lastTimestamp > clearTime) {
+                            val lastMessage = doc.getString("lastMessage") ?: ""
+                            val userNames = doc.get("userNames") as? Map<String, String>
+                            val users = doc.get("users") as? List<String> ?: emptyList()
+                            val otherUserId = users.find { it != currentUid } ?: ""
+                            val otherUserName = userNames?.get(otherUserId) ?: "Utente"
+
+                            com.example.micasaestucasa.utils.NotificationHelper.sendChatNotification(
+                                context,
+                                "Messaggio da $otherUserName",
+                                lastMessage,
+                                doc.id
+                            )
+                        }
+                    }
+                }
+            }
+    }
+
+
+
+
+                        fun stopGlobalChatListener() {
+        globalMessagesListener?.remove()
+        globalMessagesListener = null
+    }
 
     /**
      * Inizializza una chat
@@ -119,8 +162,10 @@ object ChatRepository {
         }
     }
 
+
     /**
-     * Recupera le chat e FILTRA quelle che l'utente ha scelto di nascondere.
+     * Recupera le chat e FILTRA quelle che l'utente ha scelto di nascondere
+     * o che sono state svuotate (messaggi vecchi).
      */
     fun getChatByUser(userId: String): Flow<List<ChatPreview>> = callbackFlow {
         val subscription = chatsCollection
@@ -135,6 +180,12 @@ object ChatRepository {
                     val hiddenBy = doc.get("hiddenBy") as? List<String> ?: emptyList()
                     if (userId in hiddenBy) return@mapNotNull null
 
+                    val clearHistoryAtMap = doc.get("clearHistoryAt") as? Map<String, Long>
+                    val clearTime = clearHistoryAtMap?.get(userId) ?: 0L
+                    val lastTimestamp = doc.getLong("lastTimestamp") ?: 0L
+
+                    if (lastTimestamp <= clearTime) return@mapNotNull null
+
                     val users = doc.get("users") as? List<String> ?: return@mapNotNull null
                     val otherUserId = users.find { it != userId } ?: return@mapNotNull null
                     val namesMap = doc.get("userNames") as? Map<String, String>
@@ -143,7 +194,7 @@ object ChatRepository {
                     ChatPreview(
                         id = doc.id,
                         lastMessage = doc.getString("lastMessage") ?: "",
-                        lastTimestamp = doc.getLong("lastTimestamp") ?: 0L,
+                        lastTimestamp = lastTimestamp,
                         otherUserName = namesMap?.get(otherUserId) ?: "Utente",
                         otherUserPhoto = photosMap?.get(otherUserId),
                         otherUserId = otherUserId
@@ -161,8 +212,11 @@ object ChatRepository {
     suspend fun deleteChat(chatId: String): Boolean {
         val currentUid = UsersRepository.getCurrentUid() ?: return false
         return try {
+            val now = System.currentTimeMillis()
+
             chatsCollection.document(chatId)
-                .update("hiddenBy", FieldValue.arrayUnion(currentUid))
+                .update("hiddenBy", FieldValue.arrayUnion(currentUid),
+                    "clearHistoryAt.$currentUid", now)
                 .await()
             true
         } catch (e: Exception) {
@@ -189,7 +243,9 @@ object ChatRepository {
         return "${sortedIds[0]}_${sortedIds[1]}"
     }
 
-    fun getMessages(chatId: String): Flow<List<Message>> = callbackFlow {
+
+
+    fun getMessages(chatId: String, currentUid: String): Flow<List<Message>> = callbackFlow {
         val chatRef = firestore.collection("chats").document(chatId)
         var messagesListener: ListenerRegistration? = null
 
@@ -200,15 +256,19 @@ object ChatRepository {
             }
 
             if (snapshot != null && snapshot.exists()) {
-                if (messagesListener == null) {
-                    messagesListener = chatRef.collection("messages")
-                        .orderBy("timestamp", Query.Direction.ASCENDING)
-                        .addSnapshotListener { querySnapshot, msgError ->
-                            if (msgError != null) return@addSnapshotListener
-                            val msgs = querySnapshot?.toObjects(Message::class.java) ?: emptyList()
-                            trySend(msgs)
-                        }
-                }
+                val clearHistoryAtMap = snapshot.get("clearHistoryAt") as? Map<String, Long>
+                val startTime = clearHistoryAtMap?.get(currentUid) ?: 0L
+
+                messagesListener?.remove()
+
+                messagesListener = chatRef.collection("messages")
+                    .whereGreaterThan("timestamp", startTime) // Aggiungi questo filtro
+                    .orderBy("timestamp", Query.Direction.ASCENDING)
+                    .addSnapshotListener { querySnapshot, msgError ->
+                        if (msgError != null) return@addSnapshotListener
+                        val msgs = querySnapshot?.toObjects(Message::class.java) ?: emptyList()
+                        trySend(msgs)
+                    }
             } else {
                 trySend(emptyList())
             }
@@ -219,6 +279,7 @@ object ChatRepository {
             messagesListener?.remove()
         }
     }
+
 
     suspend fun uploadImage(chatId: String, imageUri: String): Result<String> {
         return try {

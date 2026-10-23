@@ -1,14 +1,77 @@
 package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Booking
-import com.example.micasaestucasa.data.model.Message
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
 object BookingRepository {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val bookingCollection = db.collection("bookings")
+    private val db get() = FirebaseFirestore.getInstance()
+    private val bookingCollection get() = db.collection("bookings")
+    private var bookingListener: com.google.firebase.firestore.ListenerRegistration? = null
+
+
+    /**
+     * Avvia l'ascolto delle prenotazioni per l'utente corrente.
+     * Se lo stato cambia o viene aggiunta una prenotazione, invia una notifica locale.
+     */
+    fun startBookingListener(context: android.content.Context, userId: String) {
+        bookingListener?.remove()
+
+        bookingListener = bookingCollection
+            .whereIn("idHost", listOf(userId))
+            .addSnapshotListener { snapshot, e ->
+                if (e != null) {
+                    android.util.Log.w("BookingRepo", "Listen failed.", e)
+                    return@addSnapshotListener
+                }
+
+                snapshot?.documentChanges?.forEach { dc ->
+                    val booking = dc.document.toObject(Booking::class.java)
+
+                    when (dc.type) {
+                        com.google.firebase.firestore.DocumentChange.Type.ADDED -> {
+                            // NOTIFICA PER HOST: Nuova prenotazione ricevuta
+                            if (booking.idHost == userId && (booking.stato == "In attesa" || booking.stato == "Pending")) {
+                                com.example.micasaestucasa.utils.NotificationHelper.sendBookingNotification(
+                                    context,
+                                    "Nuova Richiesta",
+                                    "Hai ricevuto una nuova richiesta per: ${booking.titoloCasa}"
+                                )
+                            }
+                        }
+                        com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                            // NOTIFICA PER GUEST: Stato della prenotazione cambiato (Accettata/Rifiutata)
+                            if (booking.idUtente == userId) {
+                                val statusMessage = when (booking.stato) {
+                                    "Confermata" -> "La tua prenotazione per ${booking.titoloCasa} è stata confermata!"
+                                    "Rifiutata" -> "La tua richiesta per ${booking.titoloCasa} è stata rifiutata."
+                                    else -> null
+                                }
+
+                                statusMessage?.let {
+                                    com.example.micasaestucasa.utils.NotificationHelper.sendBookingNotification(
+                                        context,
+                                        "Aggiornamento Prenotazione",
+                                        it
+                                    )
+                                }
+                            }
+                        }
+                        else -> {}
+                    }
+                }
+            }
+    }
+
+    /**
+     * Ferma il listener quando l'utente fa il logout o l'app viene chiusa
+     */
+    fun stopBookingListener() {
+        bookingListener?.remove()
+        bookingListener = null
+    }
+
 
     /**
      * Recupera tutte le prenotazioni effettuate da un utente specifico (Ospite)
@@ -219,20 +282,6 @@ object BookingRepository {
         }
     }
 
-    /**
-     * Conta il numero di prenotazioni effettuate da un utente
-     */
-    suspend fun getBookingCountByGuest(guestId: String): Result<Int> {
-        return try {
-            val snapshot = bookingCollection
-                .whereEqualTo("idUtente", guestId)
-                .whereEqualTo("stato", "Confermata")
-                .get()
-                .await()
-            Result.success(snapshot.size())
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
+
 }
 

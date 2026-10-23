@@ -2,13 +2,14 @@ package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Casa
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestore.getInstance
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
 object CasaRepository {
 
-    private val db = getInstance()
+    private val db get() = FirebaseFirestore.getInstance()
     private val caseCollection = db.collection("case")
 
     // Recupera tutte le case

@@ -1,9 +1,10 @@
 package com.example.micasaestucasa.data.model
 
 /**
- * Rappresenta una categoria di tag (es. "Servizi", "Regole", "Esperienza").
- * @property nome Il nome della categoria.
- * @property categoria una breve descrizione della categoria.
+ * Rappresenta un tag associato a una casa (es. "WiFi", "No Animali").
+ *
+ * @property nome Il nome identificativo del tag.
+ * @property categoria La categoria di appartenenza del tag (Servizio, Regola, Esperienza).
  */
 data class Tag(
     val nome: String = "",
@@ -12,35 +13,3 @@ data class Tag(
 )
 
 
-
-/*
-idee tag per la ricerca
-
-
-//SERVIZI
-Wi-Fi
-Parcheggio
-Aria condizionata
-Riscaldamento
-Lavatrice
-Lavastoviglie
-Cucina attrezzata
-TV
-Ascensore
-
-//REGOLE
-Animali ammessi
-Adatto a famiglie
-Accessibile disabili
-Vietato fumare
-Self check-in
-
-//Esoerienza
-Romantico
-Pet friendly
-Business
-Adatto a gruppi
-Ideale per coppie
-Vicino ai mezzi pubblici
-
- */

@@ -5,17 +5,18 @@ import com.google.firebase.firestore.PropertyName
 
 /**
  * Rappresenta una recensione all'interno dell'applicazione.
+ *
  * @property id l'ID univoco della recensione.
  * @property reviewerId l'ID dell'utente che ha scritto la recensione.
  * @property targetId l'ID dell'elemento recensito (casa o utente).
- * @property targetType il tipo di elemento recensito (casa o utente).
- * @property testo il testo della recensione.
- * @property timestamp la data della recensione.
- * @property reviewerName il nome dell'utente che ha scritto la recensione.
- * @property reviewerImageUrl l'URL dell'immagine dell'utente che ha scritto la recensione.
- * @property rating la valutazione finale della recensione, tra 0 e 5.
+ * @property targetTypeString Rappresentazione testuale del tipo di target per Firestore.
+ * @property bookingId ID della prenotazione a cui si riferisce la recensione.
+ * @property rating Valutazione numerica assegnata (es. da 0 a 5).
+ * @property testo Il contenuto testuale della recensione.
+ * @property timestamp Data e ora in cui è stata creata la recensione.
+ * @property reviewerName Nome dell'utente che ha scritto la recensione.
+ * @property reviewerImageUrl URL dell'immagine del profilo dell'autore della recensione.
  */
-
 data class Review(
     val id: String = "",
     val reviewerId: String = "",
@@ -34,7 +35,9 @@ data class Review(
     val reviewerName: String = "",
     val reviewerImageUrl: String = ""
 ) {
-    // Proprietà calcolata per usare l'Enum nel codice Kotlin
+    /**
+     * Proprietà calcolata per gestire il tipo di target tramite enum nel codice.
+     */
     @get:Exclude
     val targetType: ReviewTarget
         get() = try {
@@ -43,4 +46,6 @@ data class Review(
             ReviewTarget.UTENTE
         }
 }
+
+
 

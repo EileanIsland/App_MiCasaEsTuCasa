@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
+import com.example.micasaestucasa.ui.models.UserStats
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

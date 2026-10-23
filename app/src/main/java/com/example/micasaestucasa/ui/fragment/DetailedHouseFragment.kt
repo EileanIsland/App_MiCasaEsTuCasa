@@ -77,7 +77,13 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
                     android.util.Log.d("DEBUG_HOUSE", "Casa presente nello stato: ${state.house != null}")
 
                     // caricamento
-                    binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    if(state.isLoading){
+                        binding.loadingOverlay.visibility = View.VISIBLE
+                        binding.nestedScrollView.visibility = View.GONE
+                    }else{
+                        binding.loadingOverlay.visibility = View.GONE
+                        binding.nestedScrollView.visibility = View.VISIBLE
+                    }
 
                     // Casa
                     state.house?.let { house ->

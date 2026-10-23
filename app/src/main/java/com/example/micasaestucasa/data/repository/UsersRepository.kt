@@ -1,7 +1,7 @@
 package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Report
-import com.example.micasaestucasa.data.model.ReportedUser
+import com.example.micasaestucasa.ui.models.ReportedUser
 import com.example.micasaestucasa.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,9 +17,9 @@ import kotlinx.coroutines.tasks.await
  */
 object UsersRepository {
 
-    private val db = FirebaseFirestore.getInstance()
-    private val auth = FirebaseAuth.getInstance()
-    private val usersCollection = db.collection("users")
+    private val db get() = FirebaseFirestore.getInstance()
+    private val auth get() = FirebaseAuth.getInstance()
+    private val usersCollection get() = db.collection("users")
 
     // Cache del profilo utente loggato
     private val _currentUserProfile = MutableStateFlow<User?>(null)
@@ -127,7 +127,7 @@ object UsersRepository {
         return try {
             usersCollection.document(uid).update(updates).await()
 
-            // Se stiamo aggiornando l'utente corrente, ricarichiamo la cache
+            // Se aggiorna l'utente corrente, ricarica la cache
             if (uid == getCurrentUid()) {
                 loadAndCacheProfile(uid)
             }
@@ -251,6 +251,9 @@ object UsersRepository {
     }
 
 
+    /**
+     * Segnalazioni già gestite
+     */
     suspend fun markReportsAsHandled(userId: String): Result<Unit> {
         return try {
             val db = FirebaseFirestore.getInstance()
@@ -276,24 +279,6 @@ object UsersRepository {
 
 
 
-
-
-    /**
-     * Aggiorna il token Firebase Cloud Messaging (FCM) nel profilo dell'utente.
-     * Questo token permette al server di sapere a quale dispositivo inviare le notifiche.
-     */
-    suspend fun updateFcmToken(uid: String, token: String): Result<Unit> {
-        return try {
-            db.collection("users")
-                .document(uid)
-                .update("fcmToken", token)
-                .await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            android.util.Log.e("UsersRepository", "Errore aggiornamento token FCM", e)
-            Result.failure(e)
-        }
-    }
 
 
 }

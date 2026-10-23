@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.Visibility
 import com.example.micasaestucasa.R
-import com.example.micasaestucasa.data.model.ReportedUser
+import com.example.micasaestucasa.ui.models.ReportedUser
 import com.example.micasaestucasa.databinding.ItemReportedUserBinding
 
 class ReportedUserAdapter(

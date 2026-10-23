@@ -10,7 +10,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 object StorageRepository {
-    private val storage = Firebase.storage.reference
+    private val storage get() = Firebase.storage.reference
 
     /**
      * Carica una lista di immagini su Firebase Storage in PARALLELO.

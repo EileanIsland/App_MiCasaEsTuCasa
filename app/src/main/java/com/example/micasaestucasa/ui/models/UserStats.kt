@@ -1,4 +1,4 @@
-package com.example.micasaestucasa.ui.viewmodel
+package com.example.micasaestucasa.ui.models
 
 data class UserStats (
     val ratingMedia: Double ? = 0.0,
