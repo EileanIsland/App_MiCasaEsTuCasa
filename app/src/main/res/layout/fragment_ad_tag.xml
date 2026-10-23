@@ -135,8 +135,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Sfondo scuro opzionale quando il menu è aperto (dimmer) -->
-    <View
+-    <View
         android:id="@+id/fabShadowOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -144,7 +143,7 @@
         android:visibility="gone"
         android:elevation="4dp" />
 
-    <!-- Azione: Elimina (Pulsante piccolo) -->
+    <!-- Elimina -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabDeleteTag"
         android:layout_width="wrap_content"
@@ -175,7 +174,7 @@
         app:layout_constraintBottom_toTopOf="@+id/fabDeleteTag"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Pulsante Principale (Trigger) -->
+    <!-- Pulsante Principale -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabMain"
         android:layout_width="wrap_content"

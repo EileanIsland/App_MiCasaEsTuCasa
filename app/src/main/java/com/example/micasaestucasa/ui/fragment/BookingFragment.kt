@@ -97,10 +97,16 @@ class BookingFragment : Fragment(){
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    // progressBar (TODO implementato)
-                    // binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    if(state.isLoading){
+                        binding.loadingOverlay.visibility = View.VISIBLE
+                        binding.bookingScrollView.visibility = View.GONE
+                    }else{
+                        binding.loadingOverlay.visibility = View.GONE
+                        binding.bookingScrollView.visibility = View.VISIBLE
+                    }
 
-                    // Il tasto prenota è attivo solo se il form è valido E non siamo in ReadOnly
+
+                    // Il tasto prenota è attivo solo se il form è valido, non è in caricamento e non è in ReadOnly
                     binding.bookingButton.isEnabled = state.isFormValid && !state.isLoading && !isReadOnly
 
                     // Se lo stato della prenotazione caricata è finale, forziamo il ReadOnly visivo

@@ -161,11 +161,6 @@ class ProfileFragment : Fragment(){
             findNavController().navigate(R.id.action_profileFragment_to_modifyProfileFragment, bundle)
         }
 
-        //notifiche
-        binding.cardNotifications.setOnClickListener{
-            //TODO notifiche
-        }
-
         //aspetto
         binding.cardAppearance.setOnClickListener{
             showAppearanceDialog()
@@ -173,7 +168,7 @@ class ProfileFragment : Fragment(){
 
         //privacy
         binding.cardPrivacy.setOnClickListener{
-            //è messo per bellezza, non le implemento
+            //è messo per riempire, non le implemento
         }
 
         //bottone log out

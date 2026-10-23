@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -42,7 +43,6 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupToolbar()
         setupSearchBar()
         setupRecyclerView()
         setupClickListeners()
@@ -78,7 +78,10 @@ class HomeFragment : Fragment() {
                 viewModel.uiState.collect { state ->
 
                     //  Gestione ProgressBar
-                    binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+                    binding.topProgressBar.isVisible = state.isLoading
+                    binding.homeScroll.alpha = if (state.isLoading) 0.6f else 1.0f
+                    binding.etSearch.isEnabled = !state.isLoading
+                    binding.btnExecuteSearch.isEnabled = !state.isLoading
 
                     when {
                         state.houses.isNotEmpty() -> {
@@ -179,38 +182,6 @@ class HomeFragment : Fragment() {
             putString("query", value)
         }
         findNavController().navigate(R.id.action_homeFragment_to_searchFragment, bundle)
-    }
-
-    private fun setupToolbar() {
-        binding.homeToolbar.toolbarActions.removeAllViews()
-
-        val notificationButton = ImageButton(requireContext()).apply {
-            setImageResource(R.drawable.ic_notification)
-
-            // Effetto click rotondo (ripple)
-            val outValue = TypedValue()
-            context.theme.resolveAttribute(
-                android.R.attr.selectableItemBackgroundBorderless,
-                outValue,
-                true
-            )
-            setBackgroundResource(outValue.resourceId)
-
-            val iconColor = MaterialColors.getColor(
-                context,
-                com.google.android.material.R.attr.colorSecondary,
-                android.graphics.Color.WHITE
-            )
-            setColorFilter(iconColor)
-
-            contentDescription = getString(R.string.notifications_description)
-
-            setOnClickListener {
-                // TODO: Azione notifiche (es. snackbar o navigazione)
-            }
-        }
-
-        binding.homeToolbar.toolbarActions.addView(notificationButton)
     }
 
 
