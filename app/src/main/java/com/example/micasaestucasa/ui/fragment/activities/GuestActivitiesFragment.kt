@@ -13,7 +13,6 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.micasaestucasa.databinding.FragmentGuestActivitiesBinding
 import com.example.micasaestucasa.ui.adapter.BookingAdapter
-import com.example.micasaestucasa.ui.viewmodel.GuestActivityViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import com.example.micasaestucasa.R

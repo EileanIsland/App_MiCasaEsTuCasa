@@ -17,7 +17,6 @@ import com.example.micasaestucasa.data.model.Casa
 import com.example.micasaestucasa.databinding.FragmentOwnerActivitiesBinding
 import com.example.micasaestucasa.ui.adapter.BookingAdapter
 import com.example.micasaestucasa.ui.adapter.HouseAdapter
-import com.example.micasaestucasa.ui.viewmodel.OwnerActivityViewModel
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 

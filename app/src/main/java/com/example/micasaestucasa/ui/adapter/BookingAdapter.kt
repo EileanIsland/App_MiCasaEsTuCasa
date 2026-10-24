@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.micasaestucasa.R
-import com.example.micasaestucasa.ui.models.BookingUi
+import com.example.micasaestucasa.data.model.BookingUi
 import com.example.micasaestucasa.databinding.ItemBookingBinding
 import com.example.micasaestucasa.utils.DateUtils.formatRange
 

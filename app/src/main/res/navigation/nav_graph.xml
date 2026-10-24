@@ -9,7 +9,7 @@
     <!-- LOGIN  -->
     <fragment
         android:id="@+id/loginFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.LoginFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.auth.LoginFragment">
 
         <action
             android:id="@+id/action_loginFragment_to_homeFragment"
@@ -28,7 +28,7 @@
     <!--Registrazione-->
     <fragment
         android:id="@+id/registerFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.RegistrationFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.auth.RegistrationFragment">
 
         <action
             android:id="@+id/action_registrationFragment_to_homeFragment"
@@ -43,7 +43,7 @@
     <!-- HOME -->
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.HomeFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.home.HomeFragment">
 
         <action
             android:id="@+id/action_homeFragment_to_publishFragment"
@@ -63,7 +63,7 @@
     <!-- DETAILED HOUSE -->
     <fragment
         android:id="@+id/detailedHouseFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.DetailedHouseFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.detailedHouse.DetailedHouseFragment">
         <argument
             android:name="houseId"
             app:argType="string">
@@ -100,7 +100,7 @@
     <!-- BookHouse -->
     <fragment
         android:id="@+id/bookingFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.BookingFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.booking.BookingFragment">
         <argument
             android:name="houseId"
             app:argType="string">
@@ -125,7 +125,7 @@
     <!-- CHAT -->
     <fragment
         android:id="@+id/chatFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.ChatFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.chat.ChatFragment">
 
         <action
             android:id="@+id/action_chatFragment_to_detailedChatFragment"
@@ -147,13 +147,13 @@
     <!-- DETAILED CHAT -->
     <fragment
         android:id="@+id/detailedChatFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.DetailedChatFragment"/>
+        android:name="com.example.micasaestucasa.ui.fragment.chat.DetailedChatFragment"/>
 
 
     <!-- SEARCH -->
     <fragment
         android:id="@+id/searchFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.SearchFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.search.SearchFragment">
 
         <argument
             android:name="category"
@@ -236,7 +236,7 @@
     <!--RECENSIONE-->
     <fragment
         android:id="@+id/reviewFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.ReviewFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.review.ReviewFragment">
 
         <argument
             android:name="houseId"
@@ -273,7 +273,7 @@
     <!-- PROFILO personale -->
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.ProfileFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.profile.ProfileFragment">
 
         <action
             android:id="@+id/action_profileFragment_to_modifyProfileFragment"
@@ -295,7 +295,7 @@
     <!-- profilo utente generico-->
     <fragment
         android:id="@+id/userProfileFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.UserProfileFragment">
+        android:name="com.example.micasaestucasa.ui.fragment.profile.UserProfileFragment">
 
         <argument
             android:name="userId"
@@ -315,7 +315,7 @@
     <!-- PUBLISH -->
     <fragment
         android:id="@+id/publishFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.PublishFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.publish.PublishFragment"
         >
 
         <action
@@ -328,7 +328,7 @@
     <!--modifica profilo-->
     <fragment
         android:id="@+id/modifyProfileFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.ModifyProfileFragment"/>
+        android:name="com.example.micasaestucasa.ui.fragment.profile.ModifyProfileFragment"/>
 
 
     <!-- NOTIFICATIONS
@@ -341,19 +341,19 @@
     <!--ADMIN-->
     <fragment
         android:id="@+id/statisticheFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.AdStatsFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.admin.AdStatsFragment"
         >
     </fragment>
 
     <fragment
         android:id="@+id/AdminGestioneUtenti"
-        android:name="com.example.micasaestucasa.ui.fragment.AdUserFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.admin.AdUserFragment"
         >
     </fragment>
 
     <fragment
         android:id="@+id/AdminTag"
-        android:name="com.example.micasaestucasa.ui.fragment.AdTagFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.admin.AdTagFragment"
         >
     </fragment>
 

@@ -1,7 +1,7 @@
 package com.example.micasaestucasa.data.repository
 
 import com.example.micasaestucasa.data.model.Report
-import com.example.micasaestucasa.ui.models.ReportedUser
+import com.example.micasaestucasa.data.model.ReportedUser
 import com.example.micasaestucasa.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
