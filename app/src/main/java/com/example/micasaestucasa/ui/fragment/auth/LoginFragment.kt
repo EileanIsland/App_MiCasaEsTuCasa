@@ -1,11 +1,21 @@
 package com.example.micasaestucasa.ui.fragment.auth
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.graphics.Typeface
+import androidx.core.content.ContextCompat
 import com.google.android.material.snackbar.Snackbar
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -42,6 +52,7 @@ class LoginFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupButtons()
+        setUpClickableRegisterText()
         observeViewModel()
     }
 
@@ -60,8 +71,13 @@ class LoginFragment : Fragment() {
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                         startActivity(intent)
 
-                        requireActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+                        val options = android.app.ActivityOptions.makeCustomAnimation(
+                            requireContext(),
+                            android.R.anim.fade_in,
+                            android.R.anim.fade_out
+                        )
 
+                        startActivity(intent, options.toBundle())
                     }
 
                     state.errorMessage?.let { error ->
@@ -80,9 +96,65 @@ class LoginFragment : Fragment() {
     }
 
 
+    private fun setUpClickableRegisterText() {
+        val fullText = getString(R.string.frase_registrazione)
+        val clickablePart = getString(R.string.register_clickable_part)
+
+        val spannableString = SpannableString(fullText)
+
+        val startIndex = fullText.indexOf(clickablePart)
+        val endIndex = startIndex + clickablePart.length
+
+        if (startIndex != -1) {
+            val colorPrimary =
+                ContextCompat.getColor(requireContext(), R.color.secondary_orange)
+            spannableString.setSpan(
+                ForegroundColorSpan(colorPrimary),
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            spannableString.setSpan(
+                StyleSpan(Typeface.BOLD),
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            val clickableSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    findNavController().navigate(R.id.action_loginFragment_to_registerFragment)
+                }
+
+                override fun updateDrawState(ds: TextPaint) {
+                    super.updateDrawState(ds)
+                    ds.isUnderlineText = false
+                }
+            }
+
+            spannableString.setSpan(
+                clickableSpan,
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+
+        }
+        binding.tvRegisterLink.apply {
+            text = spannableString
+            movementMethod = LinkMovementMethod.getInstance()
+            highlightColor = Color.TRANSPARENT
+        }
+    }
+
+
     private fun setupButtons(){
         //Bottone login
         binding.btnLogin.setOnClickListener {
+            hideKeyboard()
+
             val email = binding.etEmail.text.toString().trim()
             val password = binding.etPassword.text.toString().trim()
 
@@ -99,15 +171,14 @@ class LoginFragment : Fragment() {
             binding.etPassword.text?.clear()
 
         }
+    }
 
-        //link registrazione
-        binding.tvRegisterLink.setOnClickListener {
-            findNavController().navigate(
-                R.id.action_loginFragment_to_registerFragment
-            )
+    private fun hideKeyboard() {
+        val inputMethodManager = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        val currentFocusedView = requireActivity().currentFocus
+        currentFocusedView?.let {
+            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
         }
-
-
     }
 
 

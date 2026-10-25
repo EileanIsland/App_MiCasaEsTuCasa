@@ -9,20 +9,12 @@
     android:layout_height="match_parent">
 
     <LinearLayout
+        android:id="@+id/content"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="?attr/android:colorBackground"
         android:paddingBottom="24dp">
-
-
-        <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:layout_gravity="center_horizontal"
-        />
 
         <!-- FOTO -->
         <com.google.android.material.card.MaterialCardView
@@ -217,13 +209,6 @@
                         android:hint="@string/indirizzo"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/selectPositionButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="@string/seleziona_sulla_mappa"
-                    app:icon="@drawable/ic_posizione"/>
 
                 <androidx.fragment.app.FragmentContainerView
                     android:id="@+id/mapContainer"
@@ -476,6 +461,14 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:layout_gravity="center_horizontal"
+            />
+
 
         <!-- PUBBLICA -->
         <com.google.android.material.button.MaterialButton
@@ -486,6 +479,7 @@
             android:layout_marginHorizontal="16dp"
             android:text="@string/pubblica_annuncio"/>
     </LinearLayout>
+
 
 </androidx.core.widget.NestedScrollView>
 

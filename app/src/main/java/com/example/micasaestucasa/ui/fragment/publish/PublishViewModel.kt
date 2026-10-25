@@ -232,7 +232,6 @@ class PublishViewModel: ViewModel() {
     private fun validateForm() {
         val s = _uiState.value
 
-        // Log diagnostico per vedere lo stato dei singoli campi obbligatori
         Log.d("VALIDATION_DEBUG", """
         --- VERIFICA CAMPI OBBLIGATORI ---
         Titolo valido: ${s.titolo.isNotBlank()} ("${s.titolo}")
@@ -301,8 +300,8 @@ class PublishViewModel: ViewModel() {
                     )
 
                     CasaRepository.saveCasa(nuovaCasa)
-                        .onSuccess {
-                            _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                        .onSuccess {savedId ->
+                            _uiState.update { it.copy(isLoading = false, isSuccess = true, houseId = savedId) }
                         }
                         .onFailure { e ->
                             handleError(e, "Errore durante il salvataggio su database")
@@ -322,7 +321,7 @@ class PublishViewModel: ViewModel() {
         } else {
             "$contextMessage: ${e.localizedMessage}"
         }
-        _uiState.update { it.copy(isLoading = false, errorMessage = message) }
+        _uiState.update { it.copy(isLoading = false, errorMessage = message, isSuccess = false) }
     }
 
 

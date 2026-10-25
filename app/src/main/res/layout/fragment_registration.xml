@@ -203,7 +203,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:padding="10dp"
-                android:textColor="#0000EE"
                 android:clickable="true"
                 android:focusable="true"
                 android:text="@string/hai_gia_un_account"

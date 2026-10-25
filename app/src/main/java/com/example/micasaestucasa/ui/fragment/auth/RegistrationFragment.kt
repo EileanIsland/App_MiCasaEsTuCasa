@@ -1,10 +1,20 @@
 package com.example.micasaestucasa.ui.fragment.auth
 
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.TextPaint
+import android.text.method.LinkMovementMethod
+import android.text.style.ClickableSpan
+import android.text.style.ForegroundColorSpan
+import android.text.style.StyleSpan
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -32,12 +42,12 @@ class RegistrationFragment : Fragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setUpClickableLoginText()
         setupListeners()
         observeViewModel()
     }
 
 
-    //TODO tecnicamente avrei potuto usare passWOrdInputLayit.error o qualcosa del genere, per ora sono toast message
     private fun observeViewModel(){
         viewLifecycleOwner.lifecycleScope.launch{
             viewModel.uiState.collect { uiState ->
@@ -71,10 +81,62 @@ class RegistrationFragment : Fragment(){
             viewModel.register(name, surname, email, password, conPass)
         }
 
-        binding.tvLoginLink.setOnClickListener{
-            findNavController().popBackStack()
-        }
+    }
 
+
+    private fun setUpClickableLoginText() {
+        val fullText = getString(R.string.hai_gia_un_account)
+        val clickablePart = getString(R.string.login_clickable_part)
+
+        val spannableString = SpannableString(fullText)
+
+        val startIndex = fullText.indexOf(clickablePart)
+        val endIndex = startIndex + clickablePart.length
+
+        if (startIndex != -1) {
+            val colorPrimary =
+                ContextCompat.getColor(requireContext(), R.color.secondary_orange)
+            spannableString.setSpan(
+                ForegroundColorSpan(colorPrimary),
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            spannableString.setSpan(
+                StyleSpan(Typeface.BOLD),
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+            val clickableSpan = object : ClickableSpan() {
+                override fun onClick(widget: View) {
+                    findNavController().navigate(R.id.action_registrationFragment_to_loginFragment)
+                }
+
+                override fun updateDrawState(ds: TextPaint) {
+                    super.updateDrawState(ds)
+                    ds.isUnderlineText = false
+                    ds.color = colorPrimary
+                    ds.isFakeBoldText = true
+                }
+            }
+
+            spannableString.setSpan(
+                clickableSpan,
+                startIndex,
+                endIndex,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+
+
+        }
+        binding.tvLoginLink.apply {
+            text = spannableString
+            movementMethod = LinkMovementMethod.getInstance()
+            highlightColor = Color.TRANSPARENT
+        }
     }
 
 

@@ -39,18 +39,31 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.resume
+import androidx.core.content.FileProvider
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.io.File
 
 class PublishFragment : Fragment(), OnMapReadyCallback {
     private val viewModel: PublishViewModel by viewModels()
     private var _binding: FragmentPublishBinding? = null
     private val binding get() = _binding!!
 
-    //Flags per evitare di rigenerare DropDown e chip
+    //Flags per evitare di rigenerare tipologie e chip
     private var isCategoriesInitialized = false
     private var isTagsInitialized = false
 
     private lateinit var photoAdapter: EditPhotoAdapter
     private lateinit var availabilityAdapter : AvailabilityAdapter
+
+    private var latestTmpUri: android.net.Uri? = null
+
+    private val takePictureLauncher = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+        if (success) {
+            latestTmpUri?.let { uri ->
+                viewModel.addImage(uri.toString())
+            }
+        }
+    }
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         uris.forEach { uri -> viewModel.addImage(uri.toString()) }
@@ -90,12 +103,6 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
                     binding.progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
                     binding.publishButton.isEnabled = state.isFormValid && !state.isLoading
 
-                    if(state.isSuccess){
-                        Toast.makeText(requireContext(), "Annuncio Pubblicato!", Toast.LENGTH_SHORT).show()
-                        findNavController().popBackStack()
-                        return@collect
-                    }
-
                     state.errorMessage?.let{ msg ->
                         Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
                         viewModel.clearError()
@@ -108,10 +115,10 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
                     if (binding.addressEditText.text.isNullOrEmpty() && state.indirizzo.isNotEmpty()) binding.addressEditText.setText(state.indirizzo)
                     if (binding.priceEditText.text.isNullOrEmpty() && state.prezzoNotte > 0) binding.priceEditText.setText(state.prezzoNotte.toString())
 
-                    if(binding.guestsEditText.text.isNullOrEmpty() && state.ospitiMassimi > 0) binding.guestsEditText.setText(state.ospitiMassimi.toString())
-                    if(binding.roomsEditText.text.isNullOrEmpty() && state.numeroStanze > 0) binding.roomsEditText.setText(state.numeroStanze.toString())
-                    if(binding.bedsEditText.text.isNullOrEmpty() && state.numeroLetti > 0) binding.bedsEditText.setText(state.numeroLetti.toString())
-                    if(binding.bathroomsEditText.text.isNullOrEmpty() && state.numeroBagni > 0) binding.bathroomsEditText.setText(state.numeroBagni.toString())
+                    if(state.ospitiMassimi > 0) binding.guestsEditText.setText(state.ospitiMassimi.toString())
+                    if(state.numeroStanze > 0) binding.roomsEditText.setText(state.numeroStanze.toString())
+                    if(state.numeroLetti > 0) binding.bedsEditText.setText(state.numeroLetti.toString())
+                    if(state.numeroBagni > 0) binding.bathroomsEditText.setText(state.numeroBagni.toString())
 
 
                     //dropDown tipologia casa
@@ -159,18 +166,29 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
 
 
                     if (state.isSuccess) {
+                        val id = state.houseId
                         Toast.makeText(requireContext(), "Annuncio Pubblicato!", Toast.LENGTH_SHORT).show()
-
-                        // Ora che lo stato è SUCCESS, l'houseId nel ViewModel è sicuramente pronto e salvato su Firestore!
-                        navToDetailedHouse(state.houseId)
-
-                        // Resetta lo stato di successo nel ViewModel per evitare doppie navigazioni se torni indietro
                         viewModel.resetSuccess()
+                        navToDetailedHouse(id)
+
                         return@collect
                     }
                 }
             }
         }
+    }
+
+
+    private fun getTmpFileUri(): android.net.Uri {
+        val tmpFile = File.createTempFile("house_pic_", ".jpg", requireContext().externalCacheDir).apply {
+            createNewFile()
+            deleteOnExit()
+        }
+        return FileProvider.getUriForFile(
+            requireContext(),
+            "${requireContext().packageName}.fileprovider",
+            tmpFile
+        )
     }
 
 
@@ -291,7 +309,20 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
 
     fun setupActionListeners(){
         binding.addPhotoButton.setOnClickListener {
-            galleryLauncher.launch("image/*")
+            val options = arrayOf("Scatta Foto", "Scegli dalla Galleria")
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Aggiungi Foto Casa")
+                .setItems(options) { _, which ->
+                    when (which) {
+                        0 -> {
+                            val uri = getTmpFileUri()
+                            latestTmpUri = uri
+                            takePictureLauncher.launch(uri)
+                        }
+                        1 -> { galleryLauncher.launch("image/*") }
+                    }
+                }
+                .show()
         }
 
         binding.addAvailabilityButton.setOnClickListener {
@@ -303,7 +334,6 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
         binding.publishButton.setOnClickListener {
             binding.publishButton.clearFocus()
             viewModel.save()
-            //navToDetailedHouse(viewModel.uiState.value.houseId)
         }
     }
 
@@ -414,7 +444,12 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
 
         findNavController().navigate(
             com.example.micasaestucasa.R.id.action_publishFragment_to_detailedHouseFragment,
-            bundle
+            bundle,
+            androidx.navigation.navOptions {
+                popUpTo(com.example.micasaestucasa.R.id.publishFragment) {
+                    inclusive = true
+                }
+            }
         )
     }
 
@@ -426,3 +461,5 @@ class PublishFragment : Fragment(), OnMapReadyCallback {
     }
 
 }
+
+

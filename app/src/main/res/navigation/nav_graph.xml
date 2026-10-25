@@ -233,6 +233,21 @@
     </fragment>
 
 
+
+
+    <!-- Guest-->
+    <fragment
+        android:id="@+id/guestActivitiesFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.activities.GuestActivitiesFragment">
+
+    </fragment>
+
+    <!--host-->
+    <fragment
+        android:id="@+id/ownerActivitiesFragment"
+        android:name="com.example.micasaestucasa.ui.fragment.activities.OwnerActivitiesFragment">
+    </fragment>
+
     <!--RECENSIONE-->
     <fragment
         android:id="@+id/reviewFragment"
@@ -254,21 +269,6 @@
         </argument>
     </fragment>
 
-    <!-- Guest-->
-    <fragment
-        android:id="@+id/guestActivitiesFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.activities.GuestActivitiesFragment">
-
-    </fragment>
-
-    <!--host-->
-    <fragment
-        android:id="@+id/ownerActivitiesFragment"
-        android:name="com.example.micasaestucasa.ui.fragment.activities.OwnerActivitiesFragment">
-    </fragment>
-
-
-
 
     <!-- PROFILO personale -->
     <fragment
@@ -282,11 +282,6 @@
         <action
             android:id="@+id/action_profileFragment_to_LoginFragment"
             app:destination="@id/loginFragment"/>
-
-
-        <!--<action
-            android:id="@+id/action_profileFragment_to_notificationsFragment"
-            app:destination="@id/notificationsFragment"/>-->
 
     </fragment>
 
@@ -329,12 +324,6 @@
     <fragment
         android:id="@+id/modifyProfileFragment"
         android:name="com.example.micasaestucasa.ui.fragment.profile.ModifyProfileFragment"/>
-
-
-    <!-- NOTIFICATIONS
-    <fragment
-        android:id="@+id/notificationsFragment"
-        android:name="com.example.micasaestucasa.ui.NotificationsFragment"/>-->
 
 
 
