@@ -51,8 +51,6 @@ class OwnerActivitiesFragment : Fragment(){
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED){
                 viewModel.uiState.collect{state ->
-                    android.util.Log.d("DEBUG_OWNER", "Numero di case ricevute: ${state.housesList.size}")
-
                     houseAdapter.submitList(state.housesList)
                     bookingAdapter.submitList(state.bookingList)
 
@@ -130,9 +128,6 @@ class OwnerActivitiesFragment : Fragment(){
             adapter = houseAdapter
         }
 
-        //TODO: verificare se funziona
-        val snapHelper = androidx.recyclerview.widget.LinearSnapHelper()
-        snapHelper.attachToRecyclerView(binding.rvMyHouses)
 
         bookingAdapter = BookingAdapter(
             isHostView = true,
@@ -174,7 +169,6 @@ class OwnerActivitiesFragment : Fragment(){
     }
 
 
-    //TODO: altra soluzione: real time con addSnapshotListener nel repository
     override fun onStart() {
         super.onStart()
         viewModel.loadOwnerActivities()

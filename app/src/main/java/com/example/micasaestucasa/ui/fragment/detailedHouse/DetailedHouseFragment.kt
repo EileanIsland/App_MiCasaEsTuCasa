@@ -94,6 +94,8 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
 
                         }
 
+                        if(state.house?.stato == false) binding.bookButton.visibility = View.GONE
+
                         if (state.isHouseNotFound) {
                             Toast.makeText(requireContext(), "Casa non trovata", Toast.LENGTH_LONG)
                                 .show()

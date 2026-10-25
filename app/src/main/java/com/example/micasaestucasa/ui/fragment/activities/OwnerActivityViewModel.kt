@@ -89,6 +89,7 @@ class OwnerActivityViewModel : ViewModel() {
             CasaRepository.deactivateCasa(houseId)
                 .onSuccess {
                     loadOwnerActivities() // Ricarichiamo i dati aggiornati
+                    _uiState.update { it.copy(isSuccess = true) }
                 }
                 .onFailure { e ->
                     handleError(e, "Errore durante l'eliminazione dell'annuncio")

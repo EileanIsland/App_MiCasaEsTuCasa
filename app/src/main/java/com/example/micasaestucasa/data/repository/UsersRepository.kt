@@ -25,6 +25,8 @@ object UsersRepository {
     private val _currentUserProfile = MutableStateFlow<User?>(null)
     val currentUserProfile: StateFlow<User?> = _currentUserProfile.asStateFlow()
 
+    private var userListener: com.google.firebase.firestore.ListenerRegistration? = null
+
 
     /**
      * Carica il profilo e aggiorna la cache locale.
@@ -138,18 +140,6 @@ object UsersRepository {
     }
 
 
-    /**
-     * Recupera tutti gli utenti registrati.
-     */
-    suspend fun getAllUsers(): Result<List<User>> {
-        return try {
-            val snapshot = usersCollection.get().await()
-            val users = snapshot.toObjects(User::class.java)
-            Result.success(users)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
     /**
      * Pulisce la cache locale. Da chiamare obbligatoriamente al logout.
@@ -278,6 +268,23 @@ object UsersRepository {
     }
 
 
+    /**
+     * Avvia un ascoltatore in tempo reale sul profilo dell'utente.
+     */
+    fun startUserStatusListener(uid: String) {
+        userListener?.remove()
+        userListener = usersCollection.document(uid).addSnapshotListener { snapshot, error ->
+            if (error != null) return@addSnapshotListener
+
+            val user = snapshot?.toObject(User::class.java)
+            _currentUserProfile.value = user
+        }
+    }
+
+    fun stopUserStatusListener() {
+        userListener?.remove()
+        userListener = null
+    }
 
 
 

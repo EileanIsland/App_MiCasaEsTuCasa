@@ -26,11 +26,6 @@ import com.example.micasaestucasa.data.repository.BookingRepository
 import com.example.micasaestucasa.data.repository.ChatRepository
 import com.example.micasaestucasa.utils.NotificationHelper
 
-//TODO:
-// 1 aggiornare i repository per usere Result<Unit>
-// 4 - in alcuni viewmodel avevo usato UUID.random... cambiare usare gli id creati da Firestore
-// 5 - The safeArg gradle plug-in
-// 6 - PREFERENCES per memorizzare l'utente login/logout
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -90,20 +85,22 @@ class MainActivity : AppCompatActivity() {
                 result.onSuccess {
                     val isAdmin = UsersRepository.isAdmin()
 
-                    BookingRepository.startBookingListener(applicationContext, uid)
-                    ChatRepository.startGlobalChatListener(applicationContext, uid)
-
                     val startDest = if (isAdmin) R.id.statisticheFragment else R.id.homeFragment
                     navigationSetUp(navGraph, startDest, isAdmin)
 
+                    UsersRepository.startUserStatusListener(uid)
+                    startAccountMonitoring()
+                    BookingRepository.startBookingListener(applicationContext, uid)
+                    ChatRepository.startGlobalChatListener(applicationContext, uid)
 
                 }.onFailure { exception ->
                     val errorMessage = exception.message ?: "Errore durante il caricamento del profilo"
                     Toast.makeText(this@MainActivity, errorMessage, Toast.LENGTH_LONG).show()
-                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
-                    UsersRepository.clearCache()
 
                     navigationSetUp(navGraph, R.id.loginFragment, isAdmin = false)
+
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                    UsersRepository.clearCache()
                 }
             }
         }
@@ -230,6 +227,36 @@ class MainActivity : AppCompatActivity() {
                         navController.navigate(R.id.ownerActivitiesFragment)
                     }
                 }
+            }
+        }
+    }
+
+
+    private fun startAccountMonitoring() {
+        lifecycleScope.launch {
+            UsersRepository.currentUserProfile.collect { user ->
+                if (user != null && user.isRestricted()) {
+                    val message = user.getStatusMessage() ?: "Il tuo account è stato sospeso."
+                    handleForcedLogout(message)
+                }
+            }
+        }
+    }
+
+    private fun handleForcedLogout(message: String) {
+        if (navController.currentDestination?.id == R.id.loginFragment) return
+
+        com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+        UsersRepository.clearCache()
+        UsersRepository.stopUserStatusListener()
+        ChatRepository.stopGlobalChatListener()
+        BookingRepository.stopBookingListener()
+
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+
+        if (navController.currentDestination?.id != R.id.loginFragment) {
+            navController.navigate(R.id.loginFragment) {
+                popUpTo(navController.graph.id) { inclusive = true }
             }
         }
     }

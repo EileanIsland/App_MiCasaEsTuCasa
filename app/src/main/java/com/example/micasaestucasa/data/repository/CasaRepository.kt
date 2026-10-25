@@ -90,7 +90,8 @@ object CasaRepository {
     // Case per proprietario
     suspend fun getCaseByProprietario(ownerId: String): Result<List<Casa>> {
         return try {
-            val snapshot = caseCollection.whereEqualTo("proprietarioId", ownerId).get().await()
+            val snapshot = caseCollection.whereEqualTo("proprietarioId", ownerId)
+                .whereEqualTo("stato", true).get().await()
             Result.success(snapshot.toObjects(Casa::class.java))
         } catch (e: Exception) {
             Result.failure(e)

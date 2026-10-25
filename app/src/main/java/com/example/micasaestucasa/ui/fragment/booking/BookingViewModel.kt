@@ -95,47 +95,6 @@ class BookingViewModel : ViewModel(){
 
     }
 
-
-    //TODO: il fragment per ora è utile solo al guest che prenota, non all'host, non ci
-    // sono button per accettare/rifiutare, pensare di aggiungerli
-    /*
-    fun acceptBooking(bookingId: String){
-        if(bookingId.isEmpty()) return
-
-        if(_uiState.value.status != "In attesa"){
-            _uiState.update { it.copy(errorMessage = "Impossibile confermare prenotazione") }
-            return
-        }
-
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            BookingRepository.acceptBooking(bookingId)
-                .onSuccess {
-                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-                }
-                .onFailure { e -> handleError(e, "Errore durante la conferma") }
-        }
-    }
-
-    fun refuseBooking(bookingId: String){
-        if(bookingId.isEmpty()) return
-        if(_uiState.value.status != "In attesa"){
-            _uiState.update { it.copy(errorMessage = "Impossibile rifiutare prenotazione") }
-            return
-        }
-
-        _uiState.update { it.copy(isLoading = true) }
-        viewModelScope.launch {
-            BookingRepository.refuseBooking(bookingId)
-                .onSuccess {
-                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-                }
-                .onFailure { e -> handleError(e, "Errore durante cancellazione prenotazione") }
-        }
-
-    }
-    */
-
     private fun validateForm(){
         val s = _uiState.value
         val isValid =
