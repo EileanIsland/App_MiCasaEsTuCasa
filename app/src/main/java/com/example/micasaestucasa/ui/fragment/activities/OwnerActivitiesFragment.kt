@@ -53,10 +53,6 @@ class OwnerActivitiesFragment : Fragment(){
                 viewModel.uiState.collect{state ->
                     android.util.Log.d("DEBUG_OWNER", "Numero di case ricevute: ${state.housesList.size}")
 
-
-                    //todo aggiungere progress bar in xml
-                    //binding.progressBar.visibility = if(state.isLoading) View.VISIBLE else View.GONE
-
                     houseAdapter.submitList(state.housesList)
                     bookingAdapter.submitList(state.bookingList)
 

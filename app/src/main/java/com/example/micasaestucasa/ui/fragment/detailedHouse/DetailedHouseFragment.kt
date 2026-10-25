@@ -72,84 +72,107 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { state ->
-                    Log.d("DEBUG_HOUSE", "Casa presente nello stato: ${state.house != null}")
+                launch {
+                    viewModel.uiState.collect { state ->
+                        Log.d("DEBUG_HOUSE", "Casa presente nello stato: ${state.house != null}")
 
-                    // caricamento
-                    if(state.isLoading){
-                        binding.loadingOverlay.visibility = View.VISIBLE
-                        binding.nestedScrollView.visibility = View.GONE
-                    }else{
-                        binding.loadingOverlay.visibility = View.GONE
-                        binding.nestedScrollView.visibility = View.VISIBLE
-                    }
+                        // caricamento
+                        if (state.isLoading) {
+                            binding.loadingOverlay.visibility = View.VISIBLE
+                            binding.nestedScrollView.visibility = View.GONE
+                        } else {
+                            binding.loadingOverlay.visibility = View.GONE
+                            binding.nestedScrollView.visibility = View.VISIBLE
+                        }
 
-                    // Casa
-                    state.house?.let { house ->
-                        displayHouse(house)
+                        // Casa
+                        state.house?.let { house ->
+                            displayHouse(house)
 
-                        updateMapLocation(house)
-                        photoAdapter.submitList(house.immagini)
+                            updateMapLocation(house)
+                            photoAdapter.submitList(house.immagini)
 
-                    }
+                        }
 
-                    if (state.isHouseNotFound) {
-                        Toast.makeText(requireContext(), "Casa non trovata", Toast.LENGTH_LONG).show()
-                        findNavController().popBackStack()
-                    }
+                        if (state.isHouseNotFound) {
+                            Toast.makeText(requireContext(), "Casa non trovata", Toast.LENGTH_LONG)
+                                .show()
+                            findNavController().popBackStack()
+                        }
 
-                    // Proprietario
-                    state.owner?.let { owner ->
-                        binding.ownerInfo.tvUserName.text = getString(R.string.nome_cognome_user, owner.name, owner.surname)
-                        binding.ownerInfo.tvUserRole.text = getString(R.string.proprietario)
-                        Glide.with(this@DetailedHouseFragment)
-                            .load(owner.profileImageUrl)
-                            .placeholder(R.drawable.ic_person)
-                            .circleCrop()
-                            .into(binding.ownerInfo.ivUserPhoto)
-                    }
+                        // Proprietario
+                        state.owner?.let { owner ->
+                            binding.ownerInfo.tvUserName.text =
+                                getString(R.string.nome_cognome_user, owner.name, owner.surname)
+                            binding.ownerInfo.tvUserRole.text = getString(R.string.proprietario)
+                            Glide.with(this@DetailedHouseFragment)
+                                .load(owner.profileImageUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .circleCrop()
+                                .into(binding.ownerInfo.ivUserPhoto)
+                        }
 
-                    // Statistiche del proprietario
-                    state.ownerStat.let { stats ->
+                        // Statistiche del proprietario
+                        state.ownerStat.let { stats ->
 
-                        binding.ownerInfo.tvUserRating.visibility = View.VISIBLE
-                        binding.ownerInfo.tvUserStats.visibility = View.VISIBLE
-                        binding.ownerInfo.tvUserRole.visibility = View.VISIBLE
+                            binding.ownerInfo.tvUserRating.visibility = View.VISIBLE
+                            binding.ownerInfo.tvUserStats.visibility = View.VISIBLE
+                            binding.ownerInfo.tvUserRole.visibility = View.VISIBLE
 
 
-                        binding.ownerInfo.tvUserRating.text = getString(
-                            R.string.rating_num_rec,
-                            stats.ratingMedia,
-                            stats.numeroRecensioni
+                            binding.ownerInfo.tvUserRating.text = getString(
+                                R.string.rating_num_rec,
+                                stats.ratingMedia,
+                                stats.numeroRecensioni
+                            )
+
+                            binding.ownerInfo.tvUserStats.text = getString(
+                                R.string.num_soggiorni_annunci,
+                                stats.numeroSoggiorni,
+                                stats.numeroAnnunci
+                            )
+                        }
+
+                        // Recensioni
+                        ViewUtils.manageReviewsDisplay(
+                            state.houseReviews,
+                            state.isShowingAllReviews,
+                            reviewAdapter,
+                            binding.reviewsRecyclerView,
+                            binding.tvNoReviews,
+                            binding.showAllReviewsButton
                         )
 
-                        binding.ownerInfo.tvUserStats.text= getString(
-                            R.string.num_soggiorni_annunci,
-                            stats.numeroSoggiorni,
-                            stats.numeroAnnunci
-                        )
+                        // Bottoni visibilità in base all'utente
+                        binding.bookButton.visibility =
+                            if (state.isOwner) View.GONE else View.VISIBLE
+                        binding.contactOwnerButton.visibility =
+                            if (state.isOwner) View.GONE else View.VISIBLE
+
+
+                        // Messaggi di errore
+                        state.errorMessage?.let {
+                            Log.d("DEBUG_HOUSE", "Errore caricamento casa: $it")
+                            Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+                            viewModel.errorShown()
+                        }
+
+
                     }
+                }
 
-                    // Recensioni
-                    ViewUtils.manageReviewsDisplay(
-                        state.houseReviews,
-                        state.isShowingAllReviews,
-                        reviewAdapter,
-                        binding.reviewsRecyclerView,
-                        binding.tvNoReviews,
-                        binding.showAllReviewsButton
-                    )
-
-                    // Bottoni visibilità in base all'utente
-                    binding.bookButton.visibility = if (state.isOwner) View.GONE else View.VISIBLE
-                    binding.contactOwnerButton.visibility = if (state.isOwner) View.GONE else View.VISIBLE
-
-
-                    // Messaggi di errore
-                    state.errorMessage?.let {
-                        Log.d("DEBUG_HOUSE", "Errore caricamento casa: $it")
-                        Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                        viewModel.errorShown()
+                //navigazione
+                launch {
+                    viewModel.navigateToChat.collect { chatId ->
+                        val bundle = Bundle().apply {
+                            putString("chatId", chatId)
+                            putString("otherUserId", viewModel.uiState.value.house?.proprietarioId)
+                            putString("casaId", viewModel.uiState.value.house?.id)
+                        }
+                        findNavController().navigate(
+                            R.id.action_detailedHouseFragment_to_detailedChatFragment,
+                            bundle
+                        )
                     }
                 }
             }
@@ -236,13 +259,7 @@ class DetailedHouseFragment : Fragment(), OnMapReadyCallback {
 
     private fun setupButtons(){
         binding.contactOwnerButton.setOnClickListener {
-            val bundle = Bundle().apply{
-                putString("otherUserId", viewModel.uiState.value.house?.proprietarioId)
-                putString("casaId", viewModel.uiState.value.house?.id)
-            }
-            findNavController()
-                .navigate(R.id.action_detailedHouseFragment_to_detailedChatFragment, bundle)
-
+            viewModel.startChatWithHost()
         }
 
         binding.bookButton.setOnClickListener {

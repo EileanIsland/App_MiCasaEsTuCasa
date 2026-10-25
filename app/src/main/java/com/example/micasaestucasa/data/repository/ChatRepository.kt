@@ -22,8 +22,7 @@ object ChatRepository {
     private var globalMessagesListener: ListenerRegistration? = null
 
 
-    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {
-        globalMessagesListener?.remove()
+    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {    globalMessagesListener?.remove()
 
         globalMessagesListener = chatsCollection
             .whereArrayContains("users", currentUid)
@@ -33,8 +32,12 @@ object ChatRepository {
                 for (docChange in snapshot.documentChanges) {
                     if (docChange.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED) {
                         val doc = docChange.document
-                        val lastTimestamp = doc.getLong("lastTimestamp") ?: 0L
 
+                        val lastSenderId = doc.getString("lastSenderId") ?: ""
+
+                        if (lastSenderId == currentUid) continue
+
+                        val lastTimestamp = doc.getLong("lastTimestamp") ?: 0L
                         val clearHistoryAtMap = doc.get("clearHistoryAt") as? Map<String, Long>
                         val clearTime = clearHistoryAtMap?.get(currentUid) ?: 0L
 
@@ -58,9 +61,7 @@ object ChatRepository {
     }
 
 
-
-
-                        fun stopGlobalChatListener() {
+    fun stopGlobalChatListener() {
         globalMessagesListener?.remove()
         globalMessagesListener = null
     }
@@ -80,34 +81,28 @@ object ChatRepository {
         return try {
             val chatId = getChatId(currentUser.id, otherUser.id)
             val chatRef = chatsCollection.document(chatId)
-            val batch = firestore.batch()
 
-            val chatData = mutableMapOf(
-                "id" to chatId,
-                "users" to listOf(currentUser.id, otherUser.id),
-                "userNames" to mapOf(
-                    currentUser.id to (currentUser.name),
-                    otherUser.id to (otherUser.name)
-                ),
-                "userPhotoUrls" to mapOf(
-                    currentUser.id to (currentUser.profileImageUrl),
-                    otherUser.id to (otherUser.profileImageUrl )
-                ),
-                "lastTimestamp" to System.currentTimeMillis(),
-                "hiddenBy" to emptyList<String>()
-            )
+            val snapshot = chatRef.get().await()
+            val now = System.currentTimeMillis()
 
-            chatData["lastMessage"] = when(customType) {
-                "booking_summary" -> "Nuova prenotazione"
-                else -> contextTitle ?: "Nuova conversazione"
+            if (!snapshot.exists()) {
+                val chatData = mutableMapOf(
+                    "id" to chatId,
+                    "users" to listOf(currentUser.id, otherUser.id),
+                    "userNames" to mapOf(currentUser.id to currentUser.name, otherUser.id to otherUser.name),
+                    "userPhotoUrls" to mapOf(currentUser.id to currentUser.profileImageUrl, otherUser.id to otherUser.profileImageUrl),
+                    "lastTimestamp" to now,
+                    "lastSenderId" to currentUser.id,
+                    "hiddenBy" to emptyList<String>(),
+                    "clearHistoryAt" to mapOf(currentUser.id to 0L, otherUser.id to 0L)
+                )
+                chatData["lastMessage"] = contextTitle ?: "Nuova conversazione"
+
+                chatRef.set(chatData).await()
             }
 
-            batch.set(chatRef, chatData, SetOptions.merge())
-
             if (contextId != null && contextType != null) {
-                val messagesRef = chatRef.collection("messages").document()
                 val contextMessage = Message(
-                    id = messagesRef.id,
                     senderId = currentUser.id,
                     text = contextTitle ?: "",
                     type = customType,
@@ -117,12 +112,16 @@ object ChatRepository {
                     url = contextImageUrl,
                     timestamp = System.currentTimeMillis()
                 )
-                batch.set(messagesRef, contextMessage)
+
+                val sendResult = sendMessage(chatId, contextMessage)
+                if (sendResult.isFailure) {
+                    throw sendResult.exceptionOrNull() ?: Exception("Errore invio messaggio contesto")
+                }
             }
 
-            batch.commit().await()
             Result.success(chatId)
         } catch (e: Exception) {
+            android.util.Log.e("ChatRepo", "Errore initializeChat: ${e.message}")
             Result.failure(e)
         }
     }
@@ -151,6 +150,7 @@ object ChatRepository {
             val chatUpdate = mapOf(
                 "lastMessage" to previewText,
                 "lastTimestamp" to finalMessage.timestamp,
+                "lastSenderId" to finalMessage.senderId,
                 "hiddenBy" to emptyList<String>()
             )
 
@@ -247,6 +247,7 @@ object ChatRepository {
 
     fun getMessages(chatId: String, currentUid: String): Flow<List<Message>> = callbackFlow {
         val chatRef = firestore.collection("chats").document(chatId)
+        val messagesCollection = chatRef.collection("messages")
         var messagesListener: ListenerRegistration? = null
 
         val chatListener = chatRef.addSnapshotListener { snapshot, error ->
@@ -255,23 +256,22 @@ object ChatRepository {
                 return@addSnapshotListener
             }
 
-            if (snapshot != null && snapshot.exists()) {
+            val clearTime = if (snapshot != null && snapshot.exists()) {
                 val clearHistoryAtMap = snapshot.get("clearHistoryAt") as? Map<String, Long>
-                val startTime = clearHistoryAtMap?.get(currentUid) ?: 0L
+                clearHistoryAtMap?.get(currentUid) ?: 0L
+            } else 0L
 
-                messagesListener?.remove()
+            val startTime = clearTime - 10000L
 
-                messagesListener = chatRef.collection("messages")
-                    .whereGreaterThan("timestamp", startTime) // Aggiungi questo filtro
-                    .orderBy("timestamp", Query.Direction.ASCENDING)
-                    .addSnapshotListener { querySnapshot, msgError ->
-                        if (msgError != null) return@addSnapshotListener
-                        val msgs = querySnapshot?.toObjects(Message::class.java) ?: emptyList()
-                        trySend(msgs)
-                    }
-            } else {
-                trySend(emptyList())
-            }
+            messagesListener?.remove()
+            messagesListener = messagesCollection
+                .whereGreaterThanOrEqualTo("timestamp", startTime)
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener { querySnapshot, msgError ->
+                    if (msgError != null) return@addSnapshotListener
+                    val msgs = querySnapshot?.toObjects(Message::class.java) ?: emptyList()
+                    trySend(msgs)
+                }
         }
 
         awaitClose {

@@ -30,26 +30,37 @@ class DetailedChatViewModel : ViewModel() {
 
     val currentUserID: String? get() = UsersRepository.getCurrentUid()
 
+
     /**
      * Inizializza la chat caricando messaggi, profili e dettagli contesto.
      */
-    fun initChat(chatId: String?, otherUserId: String, casaId: String?, bookingId: String?) {
-        this._currentChatID = chatId ?: ChatRepository.getChatId(currentUserID ?: "", otherUserId)
-        this._otherUserID = otherUserId
+    fun initChat(chatId: String?, otherUserId: String?, casaId: String?, bookingId: String?) {
+        if (chatId.isNullOrEmpty() && otherUserId.isNullOrEmpty()) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-            val cid = currentChatID ?: return@launch
             val uid = currentUserID ?: return@launch
 
-            UsersRepository.getUserById(otherUserId)
-                .onSuccess { user -> _uiState.update { it.copy(otherUser = user) } }
-                .onFailure { e -> handleError(e, "Errore profilo interlocutore") }
+            val cid = chatId ?: ChatRepository.getChatId(uid, otherUserId!!)
+            this@DetailedChatViewModel._currentChatID = cid
+            this@DetailedChatViewModel._otherUserID = otherUserId
+
+            otherUserId?.let {
+                loadOtherUser(it)
+            }
 
             ChatRepository.getChatMetadata(cid, uid)
                 .catch { e -> handleError(e, "Errore metadati chat") }
-                .onEach { preview -> _uiState.update { it.copy(chatInfo = preview) } }
+                .onEach { preview ->
+                    _uiState.update { it.copy(chatInfo = preview) }
+
+                    if (this@DetailedChatViewModel._otherUserID == null && preview != null) {
+                        val extractedId = preview.otherUserId
+                        this@DetailedChatViewModel._otherUserID = extractedId
+                        loadOtherUser(extractedId)
+                    }
+                }
                 .launchIn(viewModelScope)
 
             if (bookingId != null) {
@@ -65,16 +76,14 @@ class DetailedChatViewModel : ViewModel() {
                 }
             }
 
-            ChatRepository.getMessages(cid, currentUserID!!)
+            ChatRepository.getMessages(cid, uid)
                 .catch { e -> handleError(e, "Errore caricamento messaggi") }
                 .onEach { messageList ->
-                    if(messageList.isNotEmpty() && !isContextChecked){
+                    _uiState.update { it.copy(messages = messageList, isLoading = false) }
+                    if (messageList.isNotEmpty() && !isContextChecked) {
                         checkAndSendContext(cid, uid)
                         isContextChecked = true
                     }
-
-                    _uiState.update { it.copy(messages = messageList, isLoading = false) }
-
                     syncBookingMetadata(messageList)
 
                     if (_uiState.value.house == null && _uiState.value.booking == null) {
@@ -82,6 +91,16 @@ class DetailedChatViewModel : ViewModel() {
                     }
                 }
                 .launchIn(viewModelScope)
+        }
+    }
+
+    private fun loadOtherUser(userId: String) {
+        viewModelScope.launch {
+            UsersRepository.getUserById(userId)
+                .onSuccess { user ->
+                    _uiState.update { it.copy(otherUser = user) }
+                }
+                .onFailure { e -> handleError(e, "Errore profilo interlocutore") }
         }
     }
 
@@ -174,22 +193,42 @@ class DetailedChatViewModel : ViewModel() {
         }
     }
 
-    private suspend fun checkAndSendContext(chatId: String, senderId: String) {
-        val state = _uiState.value
-        val currentContextId = state.booking?.idBooking ?: state.house?.id
-        val currentContextType = if (state.booking != null) "BOOKING" else if (state.house != null) "HOUSE" else null
+    private fun checkAndSendContext(chatId: String, senderId: String) {
+        if(isContextChecked) return
 
-        if (currentContextId != null && currentContextType != null) {
-            val lastContextMsg = state.messages.lastOrNull { it.type == "context" || it.type == "booking_summary" }
-            if (lastContextMsg?.contextId != currentContextId) {
+        val state = _uiState.value
+
+        val (currentContextId, currentContextType) = when {
+            state.booking != null -> state.booking.idBooking to "BOOKING"
+            state.house != null -> state.house.id to "HOUSE"
+            else -> null to null
+        }
+        if (currentContextId == null || currentContextType == null) return
+
+        val isAlreadyInMessages = state.messages.any { msg ->
+            (msg.type == "context" || msg.type == "booking_summary") && msg.contextId == currentContextId
+        }
+
+        if (isAlreadyInMessages) {
+            isContextChecked = true
+            return
+        }
+
+        isContextChecked = true
+
+        viewModelScope.launch {
+            try {
                 ChatRepository.sendContextMessage(
                     chatId = chatId,
                     senderId = senderId,
                     contextId = currentContextId,
                     contextType = currentContextType,
-                    contextTitle = state.house?.titolo ?: "Info",
+                    contextTitle = state.house?.titolo ?: "Informazioni casa",
                     contextImageUrl = state.house?.immagini?.firstOrNull()
                 )
+            } catch (e: Exception) {
+                isContextChecked = false
+                handleError(e, "Invio messaggio di contesto fallito")
             }
         }
     }

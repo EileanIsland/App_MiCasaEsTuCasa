@@ -8,9 +8,12 @@ import com.example.micasaestucasa.data.repository.CasaRepository
 import com.example.micasaestucasa.data.repository.ReviewRepository
 import com.example.micasaestucasa.data.repository.UsersRepository
 import com.example.micasaestucasa.data.model.UserStats
+import com.example.micasaestucasa.data.repository.ChatRepository
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,6 +22,57 @@ class DetailedHouseViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailedHouseUiState())
     val uiState: StateFlow<DetailedHouseUiState> = _uiState.asStateFlow()
+
+
+
+
+
+    // Stato per la navigazione
+    private val _navigateToChat = MutableSharedFlow<String>()
+    val navigateToChat = _navigateToChat.asSharedFlow()
+
+    fun startChatWithHost() {
+        val state = uiState.value
+        val house = state.house ?: return
+        val host = state.owner ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            try {
+                UsersRepository.getCurrentUserProfile().onSuccess { currentUser ->
+
+                    if (currentUser == null) {
+                        handleError(Exception("Profilo utente non trovato"), "Errore")
+                        return@onSuccess
+                    }
+
+                    val result = ChatRepository.initializeChat(
+                        currentUser = currentUser,
+                        otherUser = host,
+                        contextId = house.id,
+                        contextType = "HOUSE",
+                        contextTitle = "Richiesta per ${house.titolo}",
+                        contextImageUrl = house.immagini.firstOrNull()
+                    )
+
+                    result.onSuccess { chatId ->
+                        _uiState.update { it.copy(isLoading = false) }
+                        _navigateToChat.emit(chatId)
+                    }.onFailure { e ->
+                        handleError(e, "Impossibile avviare la chat")
+                    }
+                }.onFailure { e ->
+                    handleError(e, "Errore recupero profilo utente")
+                }
+            } catch (e: Exception) {
+                handleError(e, "Errore imprevisto")
+            }
+        }
+    }
+
+
+
 
     /**
      * Carica i dettagli completi della casa, incluse le recensioni e i dati del proprietario.
