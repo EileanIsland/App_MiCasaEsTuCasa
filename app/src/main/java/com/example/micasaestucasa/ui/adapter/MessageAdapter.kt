@@ -1,5 +1,6 @@
 package com.example.micasaestucasa.ui.adapter
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,6 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.micasaestucasa.R
 import com.example.micasaestucasa.data.model.Message
 import com.example.micasaestucasa.data.model.Booking
 import com.example.micasaestucasa.databinding.*
@@ -38,10 +40,10 @@ class MessageAdapter(
         val message = getItem(position)
         val isMe = message.senderId == currentUid
 
-        return when {
-            message.type == "booking_summary" -> VIEW_TYPE_BOOKING_SUMMARY
-            message.type == "context" -> VIEW_TYPE_CONTEXT
-            message.type == "image" -> if (isMe) VIEW_TYPE_SENT_IMAGE else VIEW_TYPE_RECEIVED_IMAGE
+        return when (message.type) {
+            "booking_summary" -> VIEW_TYPE_BOOKING_SUMMARY
+            "context" -> VIEW_TYPE_CONTEXT
+            "image" -> if (isMe) VIEW_TYPE_SENT_IMAGE else VIEW_TYPE_RECEIVED_IMAGE
             else -> if (isMe) VIEW_TYPE_SENT_TEXT else VIEW_TYPE_RECEIVED_TEXT
         }
     }
@@ -73,8 +75,9 @@ class MessageAdapter(
 
     inner class BookingSummaryViewHolder(private val binding: ItemBookingSummaryBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
+            // CORREZIONE: getString invece di R.string...toString()
             binding.tvContextTitle.text = message.text
-            binding.tvContextSubtitle.text = "Riepilogo prenotazione"
+            binding.tvContextSubtitle.text = binding.root.context.getString(R.string._riepilogo_prenotazione)
 
             Glide.with(binding.ivContextHouse.context)
                 .load(message.url)
@@ -82,13 +85,20 @@ class MessageAdapter(
                 .into(binding.ivContextHouse)
 
             val bookingId = message.contextId
-            val booking = bookingsMap[bookingId]
+
+            val booking = if (bookingId != null) bookingsMap[bookingId] else null
+
+            android.util.Log.d("Adapter", "Messaggio: ${message.id}, BookingId: $bookingId, Trovato: ${booking != null}")
 
             val isHost = onReviewHouse == null
 
             if (booking != null) {
                 val canReviewHouse = booking.canReviewHouse(isHost)
                 val canReviewUser = booking.canReviewUser()
+                android.util.Log.d("Adapter", "Status: ${booking.stato}, canReviewHouse: $canReviewHouse, canReviewUser: $canReviewUser, isHost: $isHost")
+                Log.d("Adapter", "DataFine: ${booking.dataFine}, Now: ${System.currentTimeMillis()}, Diff: ${System.currentTimeMillis() - booking.dataFine}")
+                Log.d("Adapter", "isHouseReviewed: ${booking.isHouseReviewed}, isUserReviewed: ${booking.isUserReviewed}")
+
 
                 binding.layoutReviewActions.visibility = if (canReviewHouse || canReviewUser) View.VISIBLE else View.GONE
 
@@ -120,7 +130,6 @@ class MessageAdapter(
             }
         }
     }
-
     inner class ContextViewHolder(private val binding: ItemChatContextBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.tvContextTitle.text = message.text
@@ -145,14 +154,14 @@ class MessageAdapter(
         }
     }
 
-    inner class SentViewHolder(private val binding: ItemMessageSentBinding): RecyclerView.ViewHolder(binding.root) {
+    class SentViewHolder(private val binding: ItemMessageSentBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.tvMessage.text = message.text
             binding.tvTime.text = formatDate(message.timestamp)
         }
     }
 
-    inner class ReceivedViewHolder(private val binding: ItemMessageReceivedBinding): RecyclerView.ViewHolder(binding.root) {
+    class ReceivedViewHolder(private val binding: ItemMessageReceivedBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(message: Message) {
             binding.tvMessage.text = message.text
             binding.tvTime.text = formatDate(message.timestamp)

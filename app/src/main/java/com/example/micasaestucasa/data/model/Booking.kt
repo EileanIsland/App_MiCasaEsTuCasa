@@ -40,7 +40,7 @@ data class Booking (
     var isHouseReviewed : Boolean = false,
 
     @get:PropertyName("isUserReviewed")
-    @set:PropertyName("userReviewed")
+    @set:PropertyName("isUserReviewed")
     var isUserReviewed: Boolean = false
 
 ){
@@ -72,7 +72,7 @@ data class Booking (
      */
     private fun isTimeExpired(): Boolean {
         val now = System.currentTimeMillis()
-        return (stato == "Confermata" && now > dataFine) || stato == "Rifiutata"
+        return ((stato == "Confermata" || stato == "Conclusa") && (now > dataFine)) || (stato == "Rifiutata")
     }
 
     /**

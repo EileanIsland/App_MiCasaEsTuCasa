@@ -214,7 +214,7 @@ class MainActivity : AppCompatActivity() {
             when (type) {
                 "CHAT" -> {
                     val chatId = intent.getStringExtra("chatId")
-                    val otherId = intent.getStringExtra("otherUserId") ?: ""
+                    val otherId = intent.getStringExtra("otherUserId")
                     val bundle = Bundle().apply {
                         putString("chatId", chatId)
                         putString("otherUserId", otherId)

@@ -236,5 +236,6 @@
     <string name="sospendi">Sospendi</string>
     <string name="register_clickable_part">Registrati Ora!</string>
     <string name="login_clickable_part">Torna al login</string>
+    <string name="_riepilogo_prenotazione">Riepilogo prenotazione</string>
 
 </resources>

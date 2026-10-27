@@ -8,7 +8,7 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import com.google.firebase.firestore.SetOptions
+import com.example.micasaestucasa.utils.NotificationHelper
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -22,7 +22,8 @@ object ChatRepository {
     private var globalMessagesListener: ListenerRegistration? = null
 
 
-    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {    globalMessagesListener?.remove()
+    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {
+        globalMessagesListener?.remove()
 
         globalMessagesListener = chatsCollection
             .whereArrayContains("users", currentUid)
@@ -30,7 +31,8 @@ object ChatRepository {
                 if (error != null || snapshot == null) return@addSnapshotListener
 
                 for (docChange in snapshot.documentChanges) {
-                    if (docChange.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED) {
+                    if (docChange.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED ||
+                        docChange.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
                         val doc = docChange.document
 
                         val lastSenderId = doc.getString("lastSenderId") ?: ""
@@ -48,7 +50,7 @@ object ChatRepository {
                             val otherUserId = users.find { it != currentUid } ?: ""
                             val otherUserName = userNames?.get(otherUserId) ?: "Utente"
 
-                            com.example.micasaestucasa.utils.NotificationHelper.sendChatNotification(
+                            NotificationHelper.sendChatNotification(
                                 context,
                                 "Messaggio da $otherUserName",
                                 lastMessage,
@@ -141,6 +143,8 @@ object ChatRepository {
 
             batch.set(newMsgDoc, finalMessage)
 
+            android.util.Log.d("Message", "Sending message: $finalMessage, to chat: $chatId")
+
             val previewText = when (finalMessage.type) {
                 "image" -> "Foto"
                 "context" -> "In merito a: ${finalMessage.text}"
@@ -151,7 +155,7 @@ object ChatRepository {
                 "lastMessage" to previewText,
                 "lastTimestamp" to finalMessage.timestamp,
                 "lastSenderId" to finalMessage.senderId,
-                "hiddenBy" to emptyList<String>()
+                "hiddenBy" to emptyList<String>(),
             )
 
             batch.update(chatsCollection.document(chatId), chatUpdate)

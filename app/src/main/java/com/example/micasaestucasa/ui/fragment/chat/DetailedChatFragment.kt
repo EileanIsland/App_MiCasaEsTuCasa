@@ -76,7 +76,12 @@ class DetailedChatFragment : Fragment() {
             },
 
             onReviewUser = { bId ->
-                navigateToReview(state.otherUser?.id ?: "", bId, "UTENTE")
+                val currentState = viewModel.uiState.value
+                val targetUserId = currentState.otherUser?.id
+
+                if (!targetUserId.isNullOrEmpty()) {
+                    navigateToReview(targetUserId, bId, "UTENTE")
+                }
             }
         )
 

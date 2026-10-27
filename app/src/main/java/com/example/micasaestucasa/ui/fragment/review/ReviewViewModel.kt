@@ -53,7 +53,10 @@ class ReviewViewModel : ViewModel() {
      */
     fun submitReview() {
         val state = _uiState.value
-        if (!state.isPublishEnabled) return
+        if (state.targetId.isBlank()) {
+            _uiState.update { it.copy(errorMessage = "Errore: ID destinatario mancante.") }
+            return
+        }
 
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -73,20 +76,19 @@ class ReviewViewModel : ViewModel() {
 
             val review = Review(
                 id = "",
+                reviewerId = currentUid,
                 targetId = state.targetId,
+                targetTypeString = state.targetType,
+                bookingId = state.bookingId,
                 rating = state.rating,
                 testo = state.reviewText,
-                reviewerId = currentUid,
                 reviewerName = profile.name,
                 reviewerImageUrl = profile.profileImageUrl,
-                targetTypeString = state.targetType
+
             )
 
-            val result = if (state.targetType == "CASA") {
-                ReviewRepository.saveReviewHouse(review)
-            } else {
-                ReviewRepository.saveReviewUser(review)
-            }
+            val result = if (state.targetType == "CASA") ReviewRepository.saveReviewHouse(review)
+            else ReviewRepository.saveReviewUser(review)
 
             result.onSuccess {
                 if (state.bookingId.isNotEmpty()) {

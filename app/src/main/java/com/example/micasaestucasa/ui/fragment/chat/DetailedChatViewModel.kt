@@ -35,16 +35,19 @@ class DetailedChatViewModel : ViewModel() {
      * Inizializza la chat caricando messaggi, profili e dettagli contesto.
      */
     fun initChat(chatId: String?, otherUserId: String?, casaId: String?, bookingId: String?) {
-        if (chatId.isNullOrEmpty() && otherUserId.isNullOrEmpty()) return
+        val c = if(chatId.isNullOrBlank()) null else chatId
+        val o = if(otherUserId.isNullOrBlank()) null else otherUserId
+
+        if (c.isNullOrEmpty() && o.isNullOrEmpty()) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             val uid = currentUserID ?: return@launch
 
-            val cid = chatId ?: ChatRepository.getChatId(uid, otherUserId!!)
+            val cid = c ?: ChatRepository.getChatId(uid, o!!)
             this@DetailedChatViewModel._currentChatID = cid
-            this@DetailedChatViewModel._otherUserID = otherUserId
+            this@DetailedChatViewModel._otherUserID = o
 
             otherUserId?.let {
                 loadOtherUser(it)
