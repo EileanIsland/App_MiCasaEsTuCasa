@@ -7,6 +7,7 @@ import com.google.android.material.datepicker.MaterialDatePicker
 
 class AvailabilityValidator(private val availableRanges: List<Pair<Long, Long>>) : CalendarConstraints.DateValidator {
 
+
     override fun isValid(date: Long): Boolean {
         val today = MaterialDatePicker.todayInUtcMilliseconds()
         if (date < today) {
@@ -18,7 +19,10 @@ class AvailabilityValidator(private val availableRanges: List<Pair<Long, Long>>)
         }
     }
 
+
     override fun describeContents(): Int = 0
+
+
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeInt(availableRanges.size)
         for (range in availableRanges) {
@@ -26,6 +30,7 @@ class AvailabilityValidator(private val availableRanges: List<Pair<Long, Long>>)
             dest.writeLong(range.second)
         }
     }
+
 
     companion object CREATOR : Parcelable.Creator<AvailabilityValidator> {
         override fun createFromParcel(parcel: Parcel): AvailabilityValidator {
@@ -36,4 +41,6 @@ class AvailabilityValidator(private val availableRanges: List<Pair<Long, Long>>)
         override fun newArray(size: Int): Array<AvailabilityValidator?> = arrayOfNulls(size)
     }
 }
+
+
 

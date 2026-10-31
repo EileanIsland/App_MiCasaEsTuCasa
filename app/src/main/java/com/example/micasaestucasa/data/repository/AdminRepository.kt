@@ -4,9 +4,11 @@ import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+
 object AdminRepository {
     private val db get() = FirebaseFirestore.getInstance()
     private val bookingRef get() = db.collection("bookings")
+
 
     suspend fun getBookingStats(): Result<Map<String, Int>> {
         return try {
@@ -46,7 +48,6 @@ object AdminRepository {
         }
     }
 
-
-
-
 }
+
+

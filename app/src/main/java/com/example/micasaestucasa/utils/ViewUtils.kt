@@ -21,6 +21,7 @@ import androidx.core.util.Pair
 import com.example.micasaestucasa.databinding.DialogReportUserBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
+
 object ViewUtils {
 
     /**
@@ -258,8 +259,6 @@ object ViewUtils {
             }
             .show()
     }
-
-
 }
 
 

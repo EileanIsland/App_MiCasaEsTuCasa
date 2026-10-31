@@ -1,5 +1,6 @@
 package com.example.micasaestucasa.data.repository
 
+import android.content.Context
 import androidx.core.net.toUri
 import com.example.micasaestucasa.data.model.ChatPreview
 import com.example.micasaestucasa.data.model.Message
@@ -9,11 +10,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import com.example.micasaestucasa.utils.NotificationHelper
+import com.google.firebase.firestore.DocumentChange
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.channels.awaitClose
+
 
 object ChatRepository {
     private val firestore get() = FirebaseFirestore.getInstance()
@@ -22,7 +25,7 @@ object ChatRepository {
     private var globalMessagesListener: ListenerRegistration? = null
 
 
-    fun startGlobalChatListener(context: android.content.Context, currentUid: String) {
+    fun startGlobalChatListener(context: Context, currentUid: String) {
         globalMessagesListener?.remove()
 
         globalMessagesListener = chatsCollection
@@ -31,8 +34,8 @@ object ChatRepository {
                 if (error != null || snapshot == null) return@addSnapshotListener
 
                 for (docChange in snapshot.documentChanges) {
-                    if (docChange.type == com.google.firebase.firestore.DocumentChange.Type.MODIFIED ||
-                        docChange.type == com.google.firebase.firestore.DocumentChange.Type.ADDED) {
+                    if (docChange.type == DocumentChange.Type.MODIFIED ||
+                        docChange.type == DocumentChange.Type.ADDED) {
                         val doc = docChange.document
 
                         val lastSenderId = doc.getString("lastSenderId") ?: ""
@@ -67,6 +70,7 @@ object ChatRepository {
         globalMessagesListener?.remove()
         globalMessagesListener = null
     }
+
 
     /**
      * Inizializza una chat
@@ -127,8 +131,6 @@ object ChatRepository {
             Result.failure(e)
         }
     }
-
-
 
 
     /**
@@ -210,6 +212,7 @@ object ChatRepository {
         awaitClose { subscription.remove() }
     }
 
+
     /**
      * Nasconde la chat per l'utente corrente aggiungendo il suo ID a hiddenBy.
      */
@@ -241,12 +244,12 @@ object ChatRepository {
         return sendMessage(chatId, contextMessage)
     }
 
+
     fun getChatId(uid1: String, uid2: String): String {
         if (uid1 == uid2) throw IllegalArgumentException("Utenti uguali")
         val sortedIds = listOf(uid1, uid2).sorted()
         return "${sortedIds[0]}_${sortedIds[1]}"
     }
-
 
 
     fun getMessages(chatId: String, currentUid: String): Flow<List<Message>> = callbackFlow {
@@ -294,6 +297,7 @@ object ChatRepository {
         } catch (e: Exception) { Result.failure(e) }
     }
 
+
     fun getChatMetadata(chatId: String, currentUserId: String): Flow<ChatPreview?> = callbackFlow {
         val subscription = chatsCollection.document(chatId).addSnapshotListener { snapshot, _ ->
             if (snapshot == null || !snapshot.exists()) { trySend(null); return@addSnapshotListener }
@@ -310,6 +314,7 @@ object ChatRepository {
         }
         awaitClose { subscription.remove() }
     }
+
 
     suspend fun syncUserImageDataInChats(uid: String, newPhotoUrl: String): Result<Unit> {
         return try {

@@ -8,3 +8,4 @@ enum class TagCategory {
     SERVIZIO,
     REGOLA
 }
+

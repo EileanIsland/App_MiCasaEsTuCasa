@@ -64,6 +64,7 @@ object BookingRepository {
             }
     }
 
+
     /**
      * Ferma il listener quando l'utente fa il logout o l'app viene chiusa
      */
@@ -101,6 +102,7 @@ object BookingRepository {
         }
     }
 
+
     /**
      * Recupera tutte le prenotazioni ricevute da un proprietario (Host)
      */
@@ -116,6 +118,7 @@ object BookingRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Salva o aggiorna i dati di una prenotazione.
@@ -167,7 +170,6 @@ object BookingRepository {
             Result.failure(e)
         }
     }
-
 
 
     /**
@@ -236,6 +238,7 @@ object BookingRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Recupera i dettagli di una singola prenotazione tramite ID

@@ -23,12 +23,14 @@
             <!-- Logo -->
             <ImageView
                 android:id="@+id/ivLogo"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:layout_marginBottom="16dp"
-                android:src="@drawable/ic_logo"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_marginStart="-32dp"
+                android:layout_marginEnd="-32dp"
+                android:layout_marginBottom="20dp"
+                android:src="@drawable/ic_logo_icon"
                 android:contentDescription="@string/app_name"
-                app:tint="?attr/colorSecondary"/>
+                app:tint="?attr/colorSecondary" />
 
             <!-- Titolo -->
             <TextView
@@ -206,6 +208,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:text="@string/hai_gia_un_account"
+                android:textColor="?attr/colorOnPrimary"
                 android:textSize="14sp"/>
         </LinearLayout>
     </ScrollView>

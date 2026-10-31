@@ -6,11 +6,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
+
 object ReviewRepository {
 
     private val db get() = FirebaseFirestore.getInstance()
     private val reviewsCollection get() = db.collection("reviews")
     private val bookingsCollection get() = db.collection("bookings")
+
 
     /**
      * Salva una recensione per la CASA e aggiorna il flag 'houseReviewed' nel Booking.
@@ -44,6 +46,7 @@ object ReviewRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Salva una recensione per l'UTENTE e aggiorna il flag 'userReviewed' nel Booking.
@@ -85,8 +88,6 @@ object ReviewRepository {
             .get().await()
         Result.success(snapshot.toObjects(Review::class.java))
     } catch (e: Exception) { Result.failure(e) }
-
-
 
 
     suspend fun getReviewsForUser(userId: String): Result<List<Review>> = try {

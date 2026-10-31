@@ -11,9 +11,11 @@ object DateUtils {
         "dd/MM/yyyy", Locale.getDefault()
     )
 
+
     fun formatDate(time: Long ): String{
         return formatter.format(Date(time))
     }
+
 
     fun formatRange(
         start: Long?,

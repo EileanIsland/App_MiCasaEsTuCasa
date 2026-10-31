@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
     private var isCheckingSession = true
 
+
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -106,6 +107,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     /**
      * Imposta la destinazione iniziale, assegna il grafo e configura la UI
      */
@@ -120,6 +122,10 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * Gestisce i cambiamenti di destinazione nella navigazione inferiore.
+     * E sicurezza admin
+     */
     private fun setupBottomNavigationListeners() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
 
@@ -151,11 +157,10 @@ class MainActivity : AppCompatActivity() {
                 navController.navigate(R.id.homeFragment)
             }
 
-            // Sincronizzazione visiva dei tasti selezionati
+            // Sincronizzazione dei tasti selezionati
             syncMenuSelection(destination.id)
         }
     }
-
 
 
     private fun setUpNavigationMenu(isAdmin: Boolean) {
@@ -190,6 +195,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun askNotificationPermission() {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
             val permission = android.Manifest.permission.POST_NOTIFICATIONS
@@ -201,9 +207,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: android.content.Intent) {super.onNewIntent(intent)
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
         handleNotificationIntent(intent)
     }
+
 
     private fun handleNotificationIntent(intent: android.content.Intent?) {
         val type = intent?.getStringExtra("notification_type") ?: return
@@ -232,6 +241,9 @@ class MainActivity : AppCompatActivity() {
     }
 
 
+    /**
+     * Funzione per monitorare lo stato dell'account dell'utente.
+     */
     private fun startAccountMonitoring() {
         lifecycleScope.launch {
             UsersRepository.currentUserProfile.collect { user ->
@@ -242,6 +254,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 
     private fun handleForcedLogout(message: String) {
         if (navController.currentDestination?.id == R.id.loginFragment) return
@@ -260,7 +273,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-
 
 
     override fun onDestroy() {

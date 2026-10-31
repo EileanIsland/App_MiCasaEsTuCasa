@@ -55,17 +55,20 @@ object UsersRepository {
         )
     }
 
+
     /**
      * Verifica se l'utente loggato ha i permessi amministrativi
      * @return true se l'utente è amministratore, false altrimenti
      */
     fun isAdmin(): Boolean = _currentUserProfile.value?.ruolo == "admin"
 
+
     /**
      * Restiruis l'UID dell'utente autenticato su Firebase Auth.
      * @return l'UID dell'utente o null se non è autenticato.
      */
     fun getCurrentUid(): String? = auth.currentUser?.uid
+
 
     /**
      * Recupera il profilo dell'utente loggato cercando prima in cache.
@@ -84,6 +87,7 @@ object UsersRepository {
         }
     }
 
+
     /**
      * Recupera un utente specifico tramite ID.
      * @param id l'ID dell'utente da cercare.
@@ -101,6 +105,7 @@ object UsersRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Salva o aggiorna il profilo utente.
@@ -122,6 +127,7 @@ object UsersRepository {
         }
     }
 
+
     /**
      * Aggiorna solo campi specifici.
      */
@@ -138,7 +144,6 @@ object UsersRepository {
             Result.failure(e)
         }
     }
-
 
 
     /**
@@ -281,12 +286,11 @@ object UsersRepository {
         }
     }
 
+
     fun stopUserStatusListener() {
         userListener?.remove()
         userListener = null
     }
-
-
 
 }
 

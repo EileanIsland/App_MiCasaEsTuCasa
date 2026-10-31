@@ -42,7 +42,7 @@ data class User(
         get(){
             val badgeList = mutableListOf<String>()
 
-            if(valutazioneMedia>= 4.5 && numeroRecensioni >= 0)
+            if(valutazioneMedia>= 4.5)
                 badgeList.add("Top Rated")
 
             if (numeroAnnunci > 0 && valutazioneMedia >= 4.8 && numeroRecensioni >= 5)

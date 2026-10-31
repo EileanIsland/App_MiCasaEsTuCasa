@@ -5,9 +5,11 @@ import com.example.micasaestucasa.data.model.TagCategory
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+
 object TagsRepository {
     private val db get() = FirebaseFirestore.getInstance()
     private val tagsCollection get() = db.collection("tags")
+
 
     /**
      * Recupera tutte le tag di un determinato tipo
@@ -31,6 +33,7 @@ object TagsRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Salva un nuovo tag
@@ -59,6 +62,7 @@ object TagsRepository {
         }
 
     }
+
 
     /**
      * Elimina un tag esistente

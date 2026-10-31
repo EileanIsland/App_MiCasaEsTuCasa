@@ -3,14 +3,14 @@ package com.example.micasaestucasa.data.repository
 import com.example.micasaestucasa.data.model.Casa
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.FirebaseFirestore.getInstance
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
-object CasaRepository {
 
+object CasaRepository {
     private val db get() = FirebaseFirestore.getInstance()
     private val caseCollection = db.collection("case")
+
 
     // Recupera tutte le case
     suspend fun getAllCase(): Result<List<Casa>> {
@@ -29,6 +29,7 @@ object CasaRepository {
         }
     }
 
+
     // Recupera casa tramite Id
     suspend fun getCasaById(id: String): Result<Casa?> {
         return try {
@@ -40,6 +41,7 @@ object CasaRepository {
             Result.failure(e)
         }
     }
+
 
     // Salva casa
     suspend fun saveCasa(casa: Casa): Result<String> {
@@ -62,6 +64,7 @@ object CasaRepository {
         }
     }
 
+
     // Rimuove casa
     suspend fun removeCasa(casa: Casa): Result<Unit> {
         return try {
@@ -69,11 +72,12 @@ object CasaRepository {
                 transaction.delete(caseCollection.document(casa.id))
 
                 val ownerRef = db.collection("users").document(casa.proprietarioId)
-                transaction.update(ownerRef, "numeroAnnunci", com.google.firebase.firestore.FieldValue.increment(-1))
+                transaction.update(ownerRef, "numeroAnnunci", FieldValue.increment(-1))
             }.await()
             Result.success(Unit)
         } catch (e: Exception) { Result.failure(e) }
     }
+
 
     // Disattiva casa
     suspend fun deactivateCasa(casaId: String): Result<Unit> {
@@ -87,6 +91,7 @@ object CasaRepository {
         }
     }
 
+
     // Case per proprietario
     suspend fun getCaseByProprietario(ownerId: String): Result<List<Casa>> {
         return try {
@@ -98,6 +103,7 @@ object CasaRepository {
         }
     }
 
+
     // Case con valutazione più alta
     suspend fun getTopRatedHouses(): Result<List<Casa>> {
         return try {
@@ -108,6 +114,7 @@ object CasaRepository {
         }
     }
 
+
     // Conteggio case per proprietario
     suspend fun getCountHousesByOwner(ownerId: String): Result<Int> {
         return try {
@@ -117,6 +124,7 @@ object CasaRepository {
             Result.failure(e)
         }
     }
+
 
     suspend fun searchHouses(
         query: String,

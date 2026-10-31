@@ -12,6 +12,7 @@ object AuthRepository {
 
     fun getCurrentIUD(): String? = auth.currentUser?.uid
 
+
     /**
      * Esegue il login.
      * Restituisce Result per permettere al ViewModel di gestire i vari tipi di errore
@@ -31,6 +32,7 @@ object AuthRepository {
         }
     }
 
+
     /**
      * Crea un nuovo account.
      */
@@ -47,6 +49,7 @@ object AuthRepository {
             Result.failure(e)
         }
     }
+
 
     fun signOut() {
         auth.signOut()

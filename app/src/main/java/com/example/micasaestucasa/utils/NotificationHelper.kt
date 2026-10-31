@@ -13,10 +13,10 @@ object NotificationHelper {
     private const val CHANNEL_CHAT_ID = "it.uniupo.micasa.chat"
     private const val CHANNEL_CHAT_NAME = "Messaggi Chat"
     private const val CHANNEL_CHAT_DESCRIPTION = "Notifiche per i nuovi messaggi"
-
     private const val CHANNEL_BOOKING_ID = "it.uniupo.micasa.booking"
     private const val CHANNEL_BOOKING_NAME = "Nuove prenotazioni"
     private const val CHANNEL_BOOKING_DESCRIPTION = "Notifiche per le nuove prenotazioni"
+
 
     fun createNotificationChannels(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -44,9 +44,11 @@ object NotificationHelper {
         }
     }
 
+
     fun sendChatNotification(context: Context, title: String, message: String, chatId: String) {
         sendNotification(context, title, message, CHANNEL_CHAT_ID, 101, "CHAT", chatId)
     }
+
 
     fun sendBookingNotification(context: Context, title: String, message: String) {
         sendNotification(context, title, message, CHANNEL_BOOKING_ID, 102, "BOOKING")

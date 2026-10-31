@@ -6,13 +6,5 @@ package com.example.micasaestucasa.data.model
 enum class ReviewTarget {
     CASA, UTENTE;
 
-    companion object {
-        fun fromString(text: String): ReviewTarget {
-            return when (text.lowercase()) {
-                "casa" -> CASA
-                "utente" -> UTENTE
-                else -> throw IllegalArgumentException("Valore non valido: $text")
-            }
-        }
-    }
 }
+

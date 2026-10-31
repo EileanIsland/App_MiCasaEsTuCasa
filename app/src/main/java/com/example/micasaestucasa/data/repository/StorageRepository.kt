@@ -9,8 +9,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
+
 object StorageRepository {
     private val storage get() = Firebase.storage.reference
+
 
     /**
      * Carica una lista di immagini su Firebase Storage in PARALLELO.
@@ -43,6 +45,7 @@ object StorageRepository {
         }
     }
 
+
     /**
      * Carica la foto profilo di un utente specifico. Utilizza l'UID come nome file
      * per sovrascrivere automaticamente la vecchia foto ed evitare duplicati.
@@ -61,6 +64,7 @@ object StorageRepository {
         }
     }
 
+
     /**
      * Elimina una singola immagine dallo Storage a partire dal suo URL pubblico.
      * Utile se l'utente rimuove una foto durante la modifica di un annuncio.
@@ -74,6 +78,7 @@ object StorageRepository {
             Result.failure(e)
         }
     }
+
 
     /**
      * Elimina un'intera lista di immagini dallo Storage in PARALLELO.
